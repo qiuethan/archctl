@@ -1,5 +1,6 @@
 import type { ParsedArgs } from '../types';
 import { findConfigFile, loadConfig } from '../config/loader';
+import { messages } from '../messages';
 
 /**
  * Lint command - enforce architecture rules
@@ -14,24 +15,20 @@ export function cmdLint(args: ParsedArgs): void {
   const configPath = findConfigFile();
 
   if (!configPath) {
-    console.error('No architecture.config.json found. Run `archctl init` first.');
+    console.error(messages.common.noConfigFound);
     process.exit(1);
   }
 
-  console.log(`Found config at: ${configPath}`);
+  console.log(`${messages.lint.foundConfig} ${configPath}`);
 
   try {
     const config = loadConfig(configPath);
-    console.log(`Loaded config: ${config.name}`);
-    console.log(`Rules defined: ${config.rules.length}`);
+    console.log(`${messages.lint.loadedConfig} ${config.name}`);
+    console.log(`${messages.lint.rulesDefined} ${config.rules.length}`);
 
-    console.log('\n⚠️  Lint command is not yet implemented.');
-    console.log('\nPlanned features:');
-    console.log('  - Check layer dependency violations');
-    console.log('  - Validate naming conventions');
-    console.log('  - Enforce file structure rules');
-    console.log('  - Custom rule execution');
-    console.log('  - Configurable severity levels');
+    console.log(`\n${messages.lint.notImplemented}`);
+    console.log(messages.lint.plannedFeaturesHeader);
+    messages.lint.plannedFeatures.forEach((feature) => console.log(feature));
 
     // TODO: Implement linting logic
     // const violations = checkRules(config, args);
@@ -40,7 +37,7 @@ export function cmdLint(args: ParsedArgs): void {
     //   process.exit(1);
     // }
   } catch (error) {
-    console.error('Failed to load config:', error);
+    console.error(`${messages.common.failedToLoadConfig}`, error);
     process.exit(1);
   }
 }

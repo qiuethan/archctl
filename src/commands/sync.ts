@@ -1,5 +1,6 @@
 import type { ParsedArgs } from '../types';
 import { findConfigFile } from '../config/loader';
+import { messages } from '../messages';
 
 /**
  * Sync command - propagate architecture documentation
@@ -13,17 +14,14 @@ export function cmdSync(args: ParsedArgs): void {
   const configPath = findConfigFile();
 
   if (!configPath) {
-    console.error('No architecture.config.json found. Run `archctl init` first.');
+    console.error(messages.common.noConfigFound);
     process.exit(1);
   }
 
-  console.log(`Found config at: ${configPath}`);
-  console.log('\n⚠️  Sync command is not yet implemented.');
-  console.log('\nPlanned features:');
-  console.log('  - Generate architecture documentation');
-  console.log('  - Create/update README sections');
-  console.log('  - Export diagrams (Mermaid, PlantUML)');
-  console.log('  - Sync with ADR tools');
+  console.log(`${messages.sync.foundConfig} ${configPath}`);
+  console.log(`\n${messages.sync.notImplemented}`);
+  console.log(messages.sync.plannedFeaturesHeader);
+  messages.sync.plannedFeatures.forEach((feature) => console.log(feature));
 
   // TODO: Implement sync logic
   // const config = loadConfig(configPath);

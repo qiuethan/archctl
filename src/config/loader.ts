@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ArchConfig } from '../types';
+import { messages } from '../messages';
+import { constants } from '../constants';
 
 /**
  * Load and validate architecture.config.json
@@ -8,7 +10,7 @@ import type { ArchConfig } from '../types';
  */
 export function loadConfig(configPath: string): ArchConfig {
   if (!fs.existsSync(configPath)) {
-    throw new Error(`Config file not found: ${configPath}`);
+    throw new Error(`${messages.config.notFound} ${configPath}`);
   }
 
   const content = fs.readFileSync(configPath, 'utf-8');
@@ -26,7 +28,7 @@ export function loadConfig(configPath: string): ArchConfig {
  */
 function validateConfig(config: ArchConfig): void {
   if (!config.name || typeof config.name !== 'string') {
-    throw new Error('Config must have a valid "name" field');
+    throw new Error(messages.config.invalidName);
   }
 
   // TODO: Add more validation rules
@@ -38,13 +40,13 @@ function validateConfig(config: ArchConfig): void {
 
 /**
  * Find the architecture config file starting from a directory
- * Walks up the directory tree looking for architecture.config.json
+ * Walks up the directory tree looking for the config file
  */
 export function findConfigFile(startDir: string = process.cwd()): string | null {
   let currentDir = startDir;
 
   while (true) {
-    const configPath = path.join(currentDir, 'architecture.config.json');
+    const configPath = path.join(currentDir, constants.configFileName);
     if (fs.existsSync(configPath)) {
       return configPath;
     }

@@ -5,31 +5,34 @@ import { cmdInit } from './commands/init';
 import { cmdSync } from './commands/sync';
 import { cmdLint } from './commands/lint';
 import { cmdPrompt } from './commands/prompt';
+import { messages } from './messages';
 
 function printHelp() {
-  console.log(`archctl – architecture control CLI
+  const { cliName, cliUsage, commands, initOptions, examples, cliMoreInfo } = messages;
+
+  console.log(`${cliName}
 
 Usage:
-  archctl <command> [options]
+  ${cliUsage}
 
 Commands:
-  init      Initialize architecture folder and config
-  sync      Propagate architecture documentation
-  lint      Enforce architecture rules
-  prompt    Generate AI prompts with architecture context
+  ${commands.init.name.padEnd(10)}${commands.init.description}
+  ${commands.sync.name.padEnd(10)}${commands.sync.description}
+  ${commands.lint.name.padEnd(10)}${commands.lint.description}
+  ${commands.prompt.name.padEnd(10)}${commands.prompt.description}
 
 Init Options:
-  --out       Folder to store architecture files (default: "architecture")
-  --force     Overwrite existing architecture.config.json if present
+  ${initOptions.out.flag.padEnd(12)}${initOptions.out.description}
+  ${initOptions.force.flag.padEnd(12)}${initOptions.force.description}
 
 Examples:
-  archctl init
-  archctl init --out .archctl --force
-  archctl sync
-  archctl lint
-  archctl prompt
+  ${examples.init}
+  ${examples.initWithOut}
+  ${examples.sync}
+  ${examples.lint}
+  ${examples.prompt}
 
-For more information, visit: https://github.com/yourusername/archctl
+${cliMoreInfo}
 `);
 }
 
@@ -64,17 +67,17 @@ async function main() {
     case '--version':
     case 'version':
       // TODO: Read version from package.json
-      console.log('archctl v0.1.0');
+      console.log(messages.common.version);
       break;
 
     default:
-      console.error(`Unknown command: ${cmd}`);
+      console.error(`${messages.common.unknownCommand} ${cmd}`);
       printHelp();
       process.exit(1);
   }
 }
 
 main().catch((err) => {
-  console.error('Error:', err.message || err);
+  console.error(`${messages.common.error}`, err.message || err);
   process.exit(1);
 });
