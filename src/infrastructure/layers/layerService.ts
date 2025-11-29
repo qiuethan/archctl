@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { ArchctlConfig, LayerConfig, LayerMapping } from '../../types';
+import { toRelativePath, normalizePathPattern, isWithinDirectory } from '../../utils/path';
 
 /**
  * Layer service - handles all layer-related operations
@@ -53,8 +54,7 @@ export function addLayerMapping(config: ArchctlConfig, mapping: LayerMapping): v
  * Validate that current directory is within project
  */
 export function validateWithinProject(projectRoot: string, currentDir: string): boolean {
-  const relativePath = path.relative(projectRoot, currentDir);
-  return !relativePath.startsWith('..');
+  return isWithinDirectory(currentDir, projectRoot);
 }
 
 /**
@@ -65,38 +65,10 @@ export function toProjectRelativePath(
   currentDir: string,
   userPath: string
 ): string {
-  // Resolve the path relative to current directory
-  const absolutePath = path.resolve(currentDir, userPath);
-  // Make it relative to project root
-  const relativeToRoot = path.relative(projectRoot, absolutePath);
-  // Normalize to forward slashes
-  return relativeToRoot.replace(/\\/g, '/');
+  return toRelativePath(userPath, projectRoot, currentDir);
 }
 
-/**
- * Normalize a path pattern for layer mapping
- * - If contains * or ?, treat as glob and return as-is
- * - If looks like a file (has extension), return as-is
- * - If looks like a directory, append /**
- */
-export function normalizePathPattern(pattern: string): string {
-  // Already a glob pattern
-  if (pattern.includes('*') || pattern.includes('?')) {
-    return pattern;
-  }
-
-  // Check if it looks like a file (has extension in last segment)
-  const lastSegment = pattern.split('/').pop() || '';
-  const hasExtension = lastSegment.includes('.');
-
-  if (hasExtension) {
-    // Treat as file path
-    return pattern;
-  }
-
-  // Treat as directory, append /**
-  return pattern.endsWith('/') ? `${pattern}**` : `${pattern}/**`;
-}
+// Note: normalizePathPattern is now imported from utils/path
 
 /**
  * Process paths for layer mapping
