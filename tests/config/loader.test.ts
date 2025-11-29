@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadConfig, findConfigFile } from '../../src/config/loader';
-import type { ArchConfig } from '../../src/types';
+import type { ArchctlConfig } from '../../src/types';
 
 describe('loadConfig', () => {
   const testDir = path.join(process.cwd(), 'test-config-loader');
-  const testConfigPath = path.join(testDir, 'architecture.config.json');
+  const testConfigPath = path.join(testDir, 'archctl.config.json');
 
   beforeEach(() => {
     if (!fs.existsSync(testDir)) {
@@ -21,12 +21,13 @@ describe('loadConfig', () => {
   });
 
   it('should load a valid config file', () => {
-    const validConfig: ArchConfig = {
+    const validConfig: ArchctlConfig = {
       name: 'Test Architecture',
       language: 'TypeScript',
       framework: 'Node.js',
       testing: 'Vitest',
       layers: [],
+      layerMappings: [],
       rules: [],
     };
 
@@ -61,7 +62,7 @@ describe('loadConfig', () => {
 describe('findConfigFile', () => {
   const testDir = path.join(process.cwd(), 'test-find-config');
   const nestedDir = path.join(testDir, 'nested', 'deep');
-  const configPath = path.join(testDir, 'architecture.config.json');
+  const configPath = path.join(testDir, 'archctl.config.json');
 
   beforeEach(() => {
     if (!fs.existsSync(nestedDir)) {

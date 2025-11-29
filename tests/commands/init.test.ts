@@ -2,10 +2,18 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cmdInit } from '../../src/commands/init';
+import * as prompts from '@inquirer/prompts';
+
+// Mock the prompts module
+vi.mock('@inquirer/prompts', () => ({
+  input: vi.fn(),
+  confirm: vi.fn(),
+  select: vi.fn(),
+}));
 
 describe('cmdInit', () => {
   const testOutDir = path.join(process.cwd(), 'test-architecture');
-  const testConfigPath = path.join(testOutDir, 'architecture.config.json');
+  const testConfigPath = path.join(testOutDir, 'archctl.config.json');
 
   // Mock console methods
   const originalLog = console.log;
@@ -20,6 +28,13 @@ describe('cmdInit', () => {
     if (fs.existsSync(testOutDir)) {
       fs.rmSync(testOutDir, { recursive: true });
     }
+    
+    // Reset mocks
+    vi.clearAllMocks();
+    
+    // Default mock responses for prompts
+    vi.mocked(prompts.input).mockResolvedValue('Test Project');
+    vi.mocked(prompts.confirm).mockResolvedValue(false); // Don't use template
   });
 
   afterEach(() => {
@@ -31,8 +46,8 @@ describe('cmdInit', () => {
     }
   });
 
-  it('should create architecture directory and config file', () => {
-    cmdInit({ out: testOutDir });
+  it('should create architecture directory and config file', async () => {
+    await cmdInit({ out: testOutDir });
 
     expect(fs.existsSync(testOutDir)).toBe(true);
     expect(fs.existsSync(testConfigPath)).toBe(true);
@@ -40,36 +55,43 @@ describe('cmdInit', () => {
     const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
     expect(config).toHaveProperty('name');
     expect(config).toHaveProperty('layers');
+    expect(config).toHaveProperty('layerMappings');
     expect(config).toHaveProperty('rules');
     expect(Array.isArray(config.layers)).toBe(true);
     expect(Array.isArray(config.rules)).toBe(true);
   });
 
-  it('should create config with correct structure', () => {
-    cmdInit({ out: testOutDir });
+  it('should create config with correct structure for custom setup', async () => {
+    // Mock custom setup responses
+    vi.mocked(prompts.input)
+      .mockResolvedValueOnce('My Project') // project name
+      .mockResolvedValueOnce('TypeScript') // language
+      .mockResolvedValueOnce('Node.js') // framework
+      .mockResolvedValueOnce('Vitest'); // testing
+
+    await cmdInit({ out: testOutDir });
 
     const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
-    expect(config).toEqual({
-      name: 'My Architecture',
-      language: '',
-      framework: '',
-      testing: '',
-      layers: [],
-      rules: [],
-    });
+    expect(config.name).toBe('My Project');
+    expect(config.language).toBe('TypeScript');
+    expect(config.framework).toBe('Node.js');
+    expect(config.testing).toBe('Vitest');
+    expect(config.layers).toEqual([]);
+    expect(config.layerMappings).toEqual([]);
+    expect(config.rules).toEqual([]);
   });
 
-  it('should log success message', () => {
-    cmdInit({ out: testOutDir });
+  it('should log success message', async () => {
+    await cmdInit({ out: testOutDir });
 
     expect(mockLog).toHaveBeenCalledWith(
       expect.stringContaining('Initialized architecture config at:')
     );
   });
 
-  it('should not overwrite existing config without --force', () => {
+  it('should not overwrite existing config without --force', async () => {
     // Create initial config
-    cmdInit({ out: testOutDir });
+    await cmdInit({ out: testOutDir });
 
     // Mock process.exit to prevent test from exiting
     const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
@@ -77,9 +99,9 @@ describe('cmdInit', () => {
     });
 
     // Try to init again without force
-    expect(() => {
-      cmdInit({ out: testOutDir });
-    }).toThrow('process.exit called');
+    await expect(async () => {
+      await cmdInit({ out: testOutDir });
+    }).rejects.toThrow('process.exit called');
 
     expect(mockError).toHaveBeenCalledWith(
       expect.stringContaining('already exists')
@@ -88,19 +110,24 @@ describe('cmdInit', () => {
     mockExit.mockRestore();
   });
 
-  it('should overwrite existing config with --force', () => {
-    // Create initial config
-    cmdInit({ out: testOutDir });
+  it('should create config from template', async () => {
+    // Mock template selection
+    vi.mocked(prompts.input).mockResolvedValueOnce('My Project');
+    vi.mocked(prompts.confirm).mockResolvedValue(true); // Use template
+    vi.mocked(prompts.select).mockResolvedValue('clean-architecture');
 
-    // Modify the config
-    const modifiedConfig = { name: 'Modified' };
-    fs.writeFileSync(testConfigPath, JSON.stringify(modifiedConfig), 'utf-8');
+    await cmdInit({ out: testOutDir });
 
-    // Init again with force
-    cmdInit({ out: testOutDir, force: true });
-
-    // Check that config was overwritten
     const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
-    expect(config.name).toBe('My Architecture');
+    expect(config.name).toBe('My Project');
+    expect(config.layers.length).toBeGreaterThan(0);
+    expect(config.rules.length).toBeGreaterThan(0);
+    
+    // Check that layers don't have path property
+    config.layers.forEach((layer: any) => {
+      expect(layer).toHaveProperty('name');
+      expect(layer).toHaveProperty('description');
+      expect(layer).not.toHaveProperty('path');
+    });
   });
 });

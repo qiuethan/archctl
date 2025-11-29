@@ -37,9 +37,9 @@ describe('Rule Library', () => {
     });
 
     it('should allow lookup by ID', () => {
-      const rule = RULES_BY_ID['no-controller-to-repo'];
+      const rule = RULES_BY_ID['no-infrastructure-to-domain'];
       expect(rule).toBeDefined();
-      expect(rule?.id).toBe('no-controller-to-repo');
+      expect(rule?.id).toBe('no-infrastructure-to-domain');
       expect(rule?.kind).toBe('dependency');
     });
 
@@ -52,9 +52,9 @@ describe('Rule Library', () => {
 
   describe('getRuleById', () => {
     it('should return rule when ID exists', () => {
-      const rule = getRuleById('no-controller-to-repo');
+      const rule = getRuleById('no-infrastructure-to-domain');
       expect(rule).toBeDefined();
-      expect(rule?.id).toBe('no-controller-to-repo');
+      expect(rule?.id).toBe('no-infrastructure-to-domain');
     });
 
     it('should return undefined when ID does not exist', () => {
@@ -65,9 +65,9 @@ describe('Rule Library', () => {
 
   describe('getRulesByTags', () => {
     it('should return rules matching any of the provided tags', () => {
-      const rules = getRulesByTags(['testing']);
+      const rules = getRulesByTags(['ddd']);
       expect(rules.length).toBeGreaterThan(0);
-      expect(rules.some((r) => r.tags?.includes('testing'))).toBe(true);
+      expect(rules.some((r) => r.tags?.includes('ddd'))).toBe(true);
     });
 
     it('should return empty array when no rules match tags', () => {
@@ -76,7 +76,7 @@ describe('Rule Library', () => {
     });
 
     it('should match multiple tags (OR logic)', () => {
-      const rules = getRulesByTags(['testing', 'layering']);
+      const rules = getRulesByTags(['ddd', 'clean-architecture']);
       expect(rules.length).toBeGreaterThan(0);
     });
   });
@@ -90,29 +90,32 @@ describe('Rule Library', () => {
       });
     });
 
-    it('should return empty array when no rules of that kind exist', () => {
+    it('should return semantic rules', () => {
       const semanticRules = getRulesByKind('semantic');
-      expect(semanticRules).toEqual([]);
+      expect(semanticRules.length).toBeGreaterThan(0);
+      semanticRules.forEach((rule) => {
+        expect(rule.kind).toBe('semantic');
+      });
     });
   });
 
   describe('Example Rules', () => {
-    it('should have no-controller-to-repo rule', () => {
-      const rule = getRuleById('no-controller-to-repo');
+    it('should have no-infrastructure-to-domain rule', () => {
+      const rule = getRuleById('no-infrastructure-to-domain');
       expect(rule).toBeDefined();
-      expect(rule?.label).toBe('Controllers cannot depend directly on repositories');
+      expect(rule?.label).toBe('Infrastructure must not depend directly on Domain');
       expect(rule?.kind).toBe('dependency');
       expect(rule?.defaultSeverity).toBe('error');
-      expect(rule?.tags).toContain('layering');
+      expect(rule?.tags).toContain('clean-architecture');
     });
 
-    it('should have require-tests-for-services rule', () => {
-      const rule = getRuleById('require-tests-for-services');
+    it('should have domain-no-ui-awareness rule', () => {
+      const rule = getRuleById('domain-no-ui-awareness');
       expect(rule).toBeDefined();
-      expect(rule?.label).toBe('Services must have tests');
-      expect(rule?.kind).toBe('tests');
-      expect(rule?.defaultSeverity).toBe('warning');
-      expect(rule?.tags).toContain('testing');
+      expect(rule?.label).toBe('Domain must not depend on UI');
+      expect(rule?.kind).toBe('dependency');
+      expect(rule?.defaultSeverity).toBe('error');
+      expect(rule?.tags).toContain('ddd');
     });
   });
 });
