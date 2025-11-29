@@ -72,6 +72,7 @@ export const messages = {
     // Interactive prompts
     prompts: {
       projectName: 'What is your project name?',
+      entryPoint: 'What is your application entry point? (e.g., src/index.ts)',
       useTemplate: 'Would you like to use a template?',
       selectTemplate: 'Select an architecture template:',
       customSetup: 'Custom (start from scratch)',

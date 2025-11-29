@@ -37,6 +37,14 @@ export interface LayerMapping {
  */
 export interface ArchctlConfig {
   name: string;
+  
+  /**
+   * Entry point file for the application (relative to project root)
+   * Example: "src/index.ts", "src/main.ts", "app.js"
+   * Used for code tracing and dependency analysis
+   */
+  entryPoint?: string;
+  
   layers: LayerConfig[];
   layerMappings?: LayerMapping[];
   rules: ProjectRule[];

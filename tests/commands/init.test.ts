@@ -33,7 +33,9 @@ describe('cmdInit', () => {
     vi.clearAllMocks();
     
     // Default mock responses for prompts
-    vi.mocked(prompts.input).mockResolvedValue('Test Project');
+    vi.mocked(prompts.input)
+      .mockResolvedValueOnce('Test Project') // project name
+      .mockResolvedValueOnce(''); // entry point (empty)
     vi.mocked(prompts.confirm).mockResolvedValue(false); // Don't use template
   });
 
@@ -64,12 +66,14 @@ describe('cmdInit', () => {
   it('should create config with correct structure for custom setup', async () => {
     vi.mocked(prompts.confirm).mockResolvedValueOnce(false); // useTemplate
     vi.mocked(prompts.input)
-      .mockResolvedValueOnce('My Project'); // project name
+      .mockResolvedValueOnce('My Project') // project name
+      .mockResolvedValueOnce('src/index.ts'); // entry point
 
     await cmdInit({ out: testOutDir });
 
     const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
     expect(config.name).toBe('My Project');
+    expect(config.entryPoint).toBe('src/index.ts');
     expect(config.layers).toEqual([]);
     expect(config.layerMappings).toEqual([]);
     expect(config.rules).toEqual([]);
@@ -106,7 +110,9 @@ describe('cmdInit', () => {
 
   it('should create config from template', async () => {
     // Mock template selection
-    vi.mocked(prompts.input).mockResolvedValueOnce('My Project');
+    vi.mocked(prompts.input)
+      .mockResolvedValueOnce('My Project') // project name
+      .mockResolvedValueOnce('src/main.ts'); // entry point
     vi.mocked(prompts.confirm).mockResolvedValue(true); // Use template
     vi.mocked(prompts.select).mockResolvedValue('clean-architecture');
 
@@ -114,6 +120,7 @@ describe('cmdInit', () => {
 
     const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
     expect(config.name).toBe('My Project');
+    expect(config.entryPoint).toBe('src/main.ts');
     expect(config.layers.length).toBeGreaterThan(0);
     expect(config.rules.length).toBeGreaterThan(0);
     

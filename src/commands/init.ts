@@ -34,7 +34,13 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
     default: messages.init.defaultConfigName,
   });
 
-  // Step 2: Template selection
+  // Step 2: Entry point
+  const entryPoint = await input({
+    message: messages.init.prompts.entryPoint,
+    default: '',
+  });
+
+  // Step 3: Template selection
   const useTemplate = await confirm({
     message: messages.init.prompts.useTemplate,
     default: true,
@@ -64,14 +70,14 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
 
     if (selectedTemplateId === 'none') {
       // Custom setup
-      config = await createCustomConfig(projectName);
+      config = await createCustomConfig(projectName, entryPoint);
     } else {
       // Use template
-      config = await createConfigFromTemplate(projectName, selectedTemplateId);
+      config = await createConfigFromTemplate(projectName, selectedTemplateId, entryPoint);
     }
   } else {
     // Custom setup
-    config = await createCustomConfig(projectName);
+    config = await createCustomConfig(projectName, entryPoint);
   }
 
   // Write config file
@@ -83,13 +89,19 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
 /**
  * Create a custom configuration by prompting for details
  */
-async function createCustomConfig(projectName: string): Promise<ArchctlConfig> {
-  return {
+async function createCustomConfig(projectName: string, entryPoint: string): Promise<ArchctlConfig> {
+  const config: ArchctlConfig = {
     name: projectName,
     layers: [],
     layerMappings: [],
     rules: [],
   };
+
+  if (entryPoint) {
+    config.entryPoint = entryPoint;
+  }
+
+  return config;
 }
 
 /**
@@ -98,6 +110,7 @@ async function createCustomConfig(projectName: string): Promise<ArchctlConfig> {
 async function createConfigFromTemplate(
   projectName: string,
   templateId: string,
+  entryPoint: string,
 ): Promise<ArchctlConfig> {
   const template = getTemplateById(templateId);
 
@@ -131,7 +144,7 @@ async function createConfigFromTemplate(
     })
     .filter((rule): rule is ProjectRule => rule !== null);
 
-  return {
+  const config: ArchctlConfig = {
     name: projectName,
     layers: template.layers.map((layer) => ({
       name: layer.name,
@@ -140,4 +153,10 @@ async function createConfigFromTemplate(
     layerMappings: [],
     rules,
   };
+
+  if (entryPoint) {
+    config.entryPoint = entryPoint;
+  }
+
+  return config;
 }
