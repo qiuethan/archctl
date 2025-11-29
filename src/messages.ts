@@ -32,11 +32,11 @@ export const messages = {
   initOptions: {
     out: {
       flag: '--out',
-      description: 'Folder to store architecture files (default: "architecture")',
+      description: 'Folder to store architecture files (default: ".archctl")',
     },
     force: {
       flag: '--force',
-      description: 'Overwrite existing architecture.config.json if present',
+      description: 'Overwrite existing archctl.config.json if present',
     },
   },
 
@@ -108,7 +108,7 @@ export const messages = {
 
   // Common Messages
   common: {
-    noConfigFound: 'No architecture.config.json found. Run `archctl init` first.',
+    noConfigFound: 'No archctl.config.json found. Run `archctl init` first.',
     unknownCommand: 'Unknown command:',
     version: 'archctl v0.1.0',
     error: 'Error:',
