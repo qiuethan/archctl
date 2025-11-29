@@ -19,11 +19,11 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
     {
       name: 'shared',
-      description: 'Shared utilities and infrastructure',
+      description: 'Shared utilities and common code',
     },
     {
       name: 'api',
-      description: 'API gateway and routing',
+      description: 'REST/GraphQL API layer',
     },
   ],
 

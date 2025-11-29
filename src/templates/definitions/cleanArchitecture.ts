@@ -15,15 +15,15 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
   layers: [
     {
       name: 'domain',
-      description: 'Core business logic, entities, and domain rules',
+      description: 'Domain models, aggregates, and business rules',
     },
     {
       name: 'application',
-      description: 'Use cases and application services',
+      description: 'Application services and use cases',
     },
     {
       name: 'infrastructure',
-      description: 'External concerns: DB, APIs, file system',
+      description: 'Persistence, messaging, external integrations',
     },
     {
       name: 'presentation',

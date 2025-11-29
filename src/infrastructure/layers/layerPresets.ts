@@ -31,9 +31,19 @@ export const LAYER_PRESETS: LayerPreset[] = [
     description: 'REST/GraphQL API layer',
   },
   {
+    id: 'presentation',
+    name: 'presentation',
+    description: 'UI, controllers, API endpoints',
+  },
+  {
     id: 'ui',
     name: 'ui',
     description: 'User interface components and views',
+  },
+  {
+    id: 'features',
+    name: 'features',
+    description: 'Independent feature modules',
   },
   {
     id: 'persistence',
