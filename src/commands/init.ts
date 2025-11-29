@@ -4,6 +4,7 @@ import { input, confirm, select } from '@inquirer/prompts';
 import { getOutDir, ensureDir } from '../utils/fs';
 import type { ParsedArgs, ArchctlConfig, ProjectRule } from '../types';
 import { saveConfig } from '../infrastructure/config/configService';
+import * as presenter from '../presentation/initPresenter';
 import { messages } from '../messages';
 import { constants } from '../constants';
 import { TEMPLATES, getTemplateById } from '../templates';
@@ -14,7 +15,7 @@ import { RULES_BY_ID } from '../rules';
  * Interactive process to set up archctl.config.json
  */
 export async function cmdInit(args: ParsedArgs): Promise<void> {
-  console.log(messages.init.welcome);
+  presenter.displayWelcome();
 
   const outDir = getOutDir(args);
   ensureDir(outDir);
@@ -23,7 +24,7 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
 
   // Check if config already exists
   if (fs.existsSync(configPath) && !args.force) {
-    console.error(`${configPath} ${messages.init.alreadyExists}`);
+    presenter.displayConfigExists(configPath);
     process.exit(1);
   }
 
@@ -76,9 +77,7 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
   // Write config file
   saveConfig(configPath, config);
 
-  console.log(`\n${messages.init.success} ${configPath}`);
-  console.log(messages.init.nextStepsHeader);
-  messages.init.nextSteps.forEach((step) => console.log(step));
+  presenter.displayInitSuccess(configPath);
 }
 
 /**

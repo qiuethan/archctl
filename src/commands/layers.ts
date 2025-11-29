@@ -2,7 +2,7 @@ import type { ParsedArgs, LayerConfig, LayerMapping } from '../types';
 import { findConfigFile, loadConfig, saveConfig } from '../infrastructure/config/configService';
 import { getLayerPreset, getAllLayerPresets } from '../infrastructure/layers/layerPresets';
 import * as layerService from '../infrastructure/layers/layerService';
-import { messages } from '../messages';
+import * as presenter from '../presentation/layersPresenter';
 
 /**
  * Main entry point for layers command
@@ -24,11 +24,7 @@ export function cmdLayers(args: ParsedArgs): void {
       break;
 
     default:
-      console.error(`${messages.layers.help.unknownSubcommand} ${subcommand}`);
-      console.log(messages.layers.help.availableSubcommands);
-      console.log(messages.layers.help.listUsage);
-      console.log(messages.layers.help.addUsage);
-      console.log(messages.layers.help.mapUsage);
+      presenter.displayUnknownSubcommand(subcommand);
       process.exit(1);
   }
 }
@@ -40,44 +36,12 @@ function cmdLayersList(args: ParsedArgs): void {
   const configPath = findConfigFile();
 
   if (!configPath) {
-    console.error(messages.layers.common.configNotFound);
+    presenter.displayConfigNotFound();
     process.exit(1);
   }
 
   const config = loadConfig(configPath);
-
-  // Display layers
-  if (config.layers.length === 0) {
-    console.log(messages.layers.list.noLayers);
-    console.log(messages.layers.list.suggestAddHeader);
-    console.log(messages.layers.list.suggestAddPreset);
-    console.log(messages.layers.list.suggestAddCustom);
-    return;
-  }
-
-  console.log(messages.layers.list.layersHeader);
-  config.layers.forEach((layer) => {
-    console.log(`  Layer "${layer.name}": ${layer.description}`);
-  });
-
-  // Display layer mappings
-  console.log(messages.layers.list.mappingsHeader);
-  if (!config.layerMappings || config.layerMappings.length === 0) {
-    console.log(`  ${messages.layers.list.noMappings}`);
-    console.log(`  ${messages.layers.list.suggestMap}`);
-    return;
-  }
-
-  config.layerMappings.forEach((mapping) => {
-    const parts = [`include: ${JSON.stringify(mapping.include)}`];
-    if (mapping.exclude) {
-      parts.push(`exclude: ${JSON.stringify(mapping.exclude)}`);
-    }
-    if (mapping.priority !== undefined) {
-      parts.push(`priority: ${mapping.priority}`);
-    }
-    console.log(`  Layer "${mapping.layer}": ${parts.join(', ')}`);
-  });
+  presenter.displayLayersList(config);
 }
 
 /**
@@ -87,7 +51,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
   const configPath = findConfigFile();
 
   if (!configPath) {
-    console.error(messages.layers.common.configNotFound);
+    presenter.displayConfigNotFound();
     process.exit(1);
   }
 
@@ -100,11 +64,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
   if (args.preset) {
     const preset = getLayerPreset(args.preset as string);
     if (!preset) {
-      console.error(`${messages.layers.add.presetNotFound} ${args.preset}`);
-      console.log(messages.layers.add.availablePresets);
-      getAllLayerPresets().forEach((p) => {
-        console.log(`  ${p.id}: ${p.description}`);
-      });
+      presenter.displayPresetNotFound(args.preset as string, getAllLayerPresets());
       process.exit(1);
     }
 
@@ -114,18 +74,14 @@ function cmdLayersAdd(args: ParsedArgs): void {
     layerName = args.name as string;
     layerDescription = args.description as string;
   } else {
-    console.error(messages.layers.add.missingArgs);
-    console.log(messages.layers.add.examplesHeader);
-    console.log(messages.layers.add.examplePreset);
-    console.log(messages.layers.add.exampleCustom);
+    presenter.displayMissingAddArgs();
     process.exit(1);
   }
 
   // Check for duplicate
   if (layerService.layerExists(config, layerName)) {
     const existingLayer = layerService.findLayer(config, layerName)!;
-    console.error(`${messages.layers.add.duplicate} ${existingLayer.name}`);
-    console.log(messages.layers.add.suggestList);
+    presenter.displayLayerExists(existingLayer.name);
     process.exit(1);
   }
 
@@ -140,8 +96,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
   // Save config
   saveConfig(configPath, config);
 
-  console.log(`${messages.layers.add.success} "${newLayer.name}": ${newLayer.description}`);
-  console.log(`${messages.layers.common.configSaved} ${configPath}`);
+  presenter.displayLayerAdded(newLayer, configPath);
 }
 
 /**
@@ -151,7 +106,7 @@ function cmdLayersMap(args: ParsedArgs): void {
   const configPath = findConfigFile();
 
   if (!configPath) {
-    console.error(messages.layers.common.configNotFound);
+    presenter.displayConfigNotFound();
     process.exit(1);
   }
 
@@ -161,9 +116,7 @@ function cmdLayersMap(args: ParsedArgs): void {
 
   // Check if current directory is within the project
   if (!layerService.validateWithinProject(projectRoot, currentDir)) {
-    console.error('Error: Must run this command from within the project directory.');
-    console.error(`Project root: ${projectRoot}`);
-    console.error(`Current directory: ${currentDir}`);
+    presenter.displayMustRunFromProject(projectRoot, currentDir);
     process.exit(1);
   }
 
@@ -171,7 +124,7 @@ function cmdLayersMap(args: ParsedArgs): void {
 
   // Validate required arguments
   if (!args.layer) {
-    console.error(messages.layers.map.missingLayer);
+    presenter.displayMissingLayer();
     process.exit(1);
   }
 
@@ -179,9 +132,7 @@ function cmdLayersMap(args: ParsedArgs): void {
 
   // Check if layer exists
   if (!layerService.layerExists(config, layerName)) {
-    console.error(`${messages.layers.map.layerNotFound} ${layerName}`);
-    console.log(messages.layers.map.suggestList);
-    console.log(messages.layers.map.suggestAdd);
+    presenter.displayLayerNotFound(layerName);
     process.exit(1);
   }
 
@@ -192,7 +143,7 @@ function cmdLayersMap(args: ParsedArgs): void {
   } else if (args.include) {
     includePaths = [args.include as string];
   } else {
-    console.error(messages.layers.map.missingInclude);
+    presenter.displayMissingInclude();
     process.exit(1);
   }
 
@@ -238,13 +189,5 @@ function cmdLayersMap(args: ParsedArgs): void {
   saveConfig(configPath, config);
 
   // Display success message
-  const parts = [`include: ${JSON.stringify(processedIncludes)}`];
-  if (excludePaths) {
-    parts.push(`exclude: ${JSON.stringify(excludePaths)}`);
-  }
-  if (priority !== undefined) {
-    parts.push(`priority: ${priority}`);
-  }
-  console.log(`${messages.layers.map.success} "${layerName}": ${parts.join(', ')}`);
-  console.log(`${messages.layers.common.configSaved} ${configPath}`);
+  presenter.displayLayerMapped(layerName, processedIncludes, excludePaths, priority, configPath);
 }
