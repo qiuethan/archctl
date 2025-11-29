@@ -172,15 +172,27 @@ export function addLayerMapping(
   return mapping;
 }
 
+export interface RemoveLayerMappingResult {
+  layerName: string;
+  includePath?: string | undefined;
+  excludePath?: string | undefined;
+  removed: boolean;
+}
+
 /**
  * Remove a layer mapping or exclude patterns
  */
 export function removeLayerMapping(
   config: ArchctlConfig,
-  layerName: string,
+  layerName?: string,
   includePath?: string,
   excludePath?: string
-): boolean {
+): RemoveLayerMappingResult {
+  // Validate required arguments
+  if (!layerName) {
+    throw new Error('Missing required argument: --layer');
+  }
+
   // Check if layer exists
   if (!layerInfra.layerExists(config, layerName)) {
     throw new Error(`Layer not found: ${layerName}`);
@@ -188,7 +200,11 @@ export function removeLayerMapping(
 
   // If exclude path is provided, remove it from matching mappings
   if (excludePath) {
-    return layerInfra.removeExcludeFromMapping(config, layerName, excludePath, includePath);
+    const removed = layerInfra.removeExcludeFromMapping(config, layerName, excludePath, includePath);
+    if (!removed) {
+      throw new Error(`No exclude pattern "${excludePath}" found for layer "${layerName}"`);
+    }
+    return { layerName, includePath, excludePath, removed };
   }
 
   // Otherwise remove the entire mapping
@@ -202,7 +218,7 @@ export function removeLayerMapping(
     }
   }
 
-  return removed;
+  return { layerName, includePath, removed };
 }
 
 /**

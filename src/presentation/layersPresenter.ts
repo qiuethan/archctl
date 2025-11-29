@@ -144,6 +144,27 @@ export function displayMustRunFromProject(projectRoot: string, currentDir: strin
 }
 
 /**
+ * Display success message for unmap operation
+ */
+export function displayUnmapSuccess(
+  result: { layerName: string; includePath?: string | undefined; excludePath?: string | undefined },
+  configPath: string
+): void {
+  if (result.excludePath) {
+    if (result.includePath) {
+      console.log(`✓ Removed exclude "${result.excludePath}" from layer "${result.layerName}" mapping "${result.includePath}"`);
+    } else {
+      console.log(`✓ Removed exclude "${result.excludePath}" from all "${result.layerName}" mappings`);
+    }
+  } else if (result.includePath) {
+    console.log(`✓ Removed mapping for layer "${result.layerName}" with path "${result.includePath}"`);
+  } else {
+    console.log(`✓ Removed all mappings for layer "${result.layerName}"`);
+  }
+  console.log(`${messages.layers.common.configSaved} ${configPath}`);
+}
+
+/**
  * Display help for unknown subcommand
  */
 export function displayUnknownSubcommand(subcommand: string | undefined): void {

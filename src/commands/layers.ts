@@ -209,35 +209,20 @@ export function cmdLayersUnmap(args: ParsedArgs): void {
 
   const config = loadConfig(configPath);
 
-  // Validate required arguments
-  if (!args.layer) {
-    console.error('Error: Missing required argument --layer');
-    process.exit(1);
-  }
-
-  const layerName = args.layer as string;
-  const includePath = args.include as string | undefined;
-  const excludePath = args.exclude as string | undefined;
-
   try {
-    layersService.removeLayerMapping(config, layerName, includePath, excludePath);
+    // Service layer handles validation and business logic
+    const result = layersService.removeLayerMapping(
+      config,
+      args.layer as string | undefined,
+      args.include as string | undefined,
+      args.exclude as string | undefined
+    );
 
     // Save config
     saveConfig(configPath, config);
 
-    // Display appropriate success message
-    if (excludePath) {
-      if (includePath) {
-        console.log(`✓ Removed exclude "${excludePath}" from layer "${layerName}" mapping "${includePath}"`);
-      } else {
-        console.log(`✓ Removed exclude "${excludePath}" from all "${layerName}" mappings`);
-      }
-    } else if (includePath) {
-      console.log(`✓ Removed mapping for layer "${layerName}" with path "${includePath}"`);
-    } else {
-      console.log(`✓ Removed all mappings for layer "${layerName}"`);
-    }
-    console.log(`✓ Config saved to: ${configPath}`);
+    // Presentation layer handles display
+    presenter.displayUnmapSuccess(result, configPath);
   } catch (error) {
     if (error instanceof Error) {
       console.error(`Error: ${error.message}`);
