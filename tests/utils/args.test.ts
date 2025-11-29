@@ -1,0 +1,92 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { parseArgs } from '../../src/utils/args';
+
+describe('parseArgs', () => {
+  let originalArgv: string[];
+
+  beforeEach(() => {
+    originalArgv = process.argv;
+  });
+
+  afterEach(() => {
+    process.argv = originalArgv;
+  });
+
+  it('should parse a simple command', () => {
+    process.argv = ['node', 'cli.js', 'init'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('init');
+    expect(args).toEqual({});
+  });
+
+  it('should parse boolean flags', () => {
+    process.argv = ['node', 'cli.js', 'init', '--force'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('init');
+    expect(args).toEqual({ force: true });
+  });
+
+  it('should parse flags with values (space-separated)', () => {
+    process.argv = ['node', 'cli.js', 'init', '--out', '.archctl'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('init');
+    expect(args).toEqual({ out: '.archctl' });
+  });
+
+  it('should parse flags with values (equals syntax)', () => {
+    process.argv = ['node', 'cli.js', 'init', '--out=.archctl'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('init');
+    expect(args).toEqual({ out: '.archctl' });
+  });
+
+  it('should parse multiple flags', () => {
+    process.argv = ['node', 'cli.js', 'init', '--out', 'architecture', '--force'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('init');
+    expect(args).toEqual({
+      out: 'architecture',
+      force: true,
+    });
+  });
+
+  it('should handle commands without flags', () => {
+    process.argv = ['node', 'cli.js', 'sync'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('sync');
+    expect(args).toEqual({});
+  });
+
+  it('should handle no command', () => {
+    process.argv = ['node', 'cli.js'];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBeUndefined();
+    expect(args).toEqual({});
+  });
+
+  it('should parse complex flag combinations', () => {
+    process.argv = [
+      'node',
+      'cli.js',
+      'init',
+      '--out=config/arch',
+      '--force',
+      '--verbose',
+    ];
+    const { cmd, args } = parseArgs();
+
+    expect(cmd).toBe('init');
+    expect(args).toEqual({
+      out: 'config/arch',
+      force: true,
+      verbose: true,
+    });
+  });
+});

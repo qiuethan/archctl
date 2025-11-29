@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Build output
 dist/
@@ -38,4 +39,14 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+
+# Test artifacts
+test-architecture/
+test-config-loader/
+test-find-config/
+test-output/
+
+# Architecture output (for testing)
+architecture/
+.archctl/
 
