@@ -1,4 +1,4 @@
-import { messages } from '../messages';
+import { messages } from '../utils/messages';
 
 /**
  * Presentation layer for general CLI output

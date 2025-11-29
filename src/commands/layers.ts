@@ -1,5 +1,5 @@
 import type { ParsedArgs } from '../types';
-import { findConfigFile, loadConfig, saveConfig } from '../infrastructure/config/configService';
+import * as configService from '../services/configService';
 import * as layersService from '../services/layersService';
 import * as presenter from '../presentation/layersPresenter';
 
@@ -40,14 +40,14 @@ export function cmdLayers(args: ParsedArgs): void {
  * List all layers and their mappings
  */
 function cmdLayersList(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = loadConfig(configPath);
+  const config = configService.loadConfig(configPath);
   presenter.displayLayersList(config);
 }
 
@@ -55,14 +55,14 @@ function cmdLayersList(args: ParsedArgs): void {
  * Add a new layer to the configuration
  */
 function cmdLayersAdd(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = loadConfig(configPath);
+  const config = configService.loadConfig(configPath);
 
   try {
     const newLayer = layersService.addLayer(config, {
@@ -72,7 +72,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
     });
 
     // Save config
-    saveConfig(configPath, config);
+    configService.saveConfig(configPath, config);
 
     presenter.displayLayerAdded(newLayer, configPath);
   } catch (error) {
@@ -96,7 +96,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
  * Map files/folders to a layer
  */
 function cmdLayersMap(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     presenter.displayConfigNotFound();
@@ -112,7 +112,7 @@ function cmdLayersMap(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  const config = loadConfig(configPath);
+  const config = configService.loadConfig(configPath);
 
   try {
     // Parse and validate arguments (service layer)
@@ -131,7 +131,7 @@ function cmdLayersMap(args: ParsedArgs): void {
     const mapping = layersService.addLayerMapping(config, mappingInput);
 
     // Save config (infrastructure layer)
-    saveConfig(configPath, config);
+    configService.saveConfig(configPath, config);
 
     // Display success (presentation layer)
     presenter.displayLayerMapped(
@@ -162,14 +162,14 @@ function cmdLayersMap(args: ParsedArgs): void {
  * Remove a layer
  */
 export function cmdLayersRemove(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = loadConfig(configPath);
+  const config = configService.loadConfig(configPath);
 
   // Validate required arguments
   if (!args.layer) {
@@ -183,7 +183,7 @@ export function cmdLayersRemove(args: ParsedArgs): void {
     layersService.removeLayer(config, layerName);
 
     // Save config
-    saveConfig(configPath, config);
+    configService.saveConfig(configPath, config);
 
     console.log(`✓ Removed layer "${layerName}" and all its mappings`);
     console.log(`✓ Config saved to: ${configPath}`);
@@ -200,14 +200,14 @@ export function cmdLayersRemove(args: ParsedArgs): void {
  * Can remove entire mappings, or just exclude patterns
  */
 export function cmdLayersUnmap(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = loadConfig(configPath);
+  const config = configService.loadConfig(configPath);
 
   try {
     // Service layer handles validation and business logic
@@ -219,7 +219,7 @@ export function cmdLayersUnmap(args: ParsedArgs): void {
     );
 
     // Save config
-    saveConfig(configPath, config);
+    configService.saveConfig(configPath, config);
 
     // Presentation layer handles display
     presenter.displayUnmapSuccess(result, configPath);

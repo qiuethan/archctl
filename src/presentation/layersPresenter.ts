@@ -1,5 +1,5 @@
 import type { ArchctlConfig, LayerConfig, LayerMapping } from '../types';
-import { messages } from '../messages';
+import { messages } from '../utils/messages';
 
 /**
  * Presentation layer for layers command

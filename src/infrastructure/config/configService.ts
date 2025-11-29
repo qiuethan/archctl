@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ArchctlConfig } from '../../types';
-import { messages } from '../../messages';
-import { constants } from '../../constants';
+import { messages } from '../../utils/messages';
+import { constants } from '../../utils/constants';
 
 /**
  * Config service - handles all configuration file operations

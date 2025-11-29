@@ -1,6 +1,6 @@
 import type { ParsedArgs } from '../types';
-import { findConfigFile } from '../infrastructure/config/configService';
-import { messages } from '../messages';
+import * as configService from '../services/configService';
+import { messages } from '../utils/messages';
 
 /**
  * Sync command - propagate architecture documentation
@@ -11,7 +11,7 @@ import { messages } from '../messages';
  * - Sync with external tools (ADRs, wikis, etc.)
  */
 export function cmdSync(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     console.error(messages.common.noConfigFound);

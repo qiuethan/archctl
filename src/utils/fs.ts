@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ParsedArgs } from '../types';
-import { constants } from '../constants';
+import { constants } from './constants';
 
 /**
  * Get the output directory from args, defaulting to configured default

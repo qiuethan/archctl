@@ -1,7 +1,7 @@
 import * as path from 'path';
 import type { ParsedArgs } from '../types';
-import { findConfigFile, loadConfig } from '../infrastructure/config/configService';
-import { messages } from '../messages';
+import { messages } from '../utils/messages';
+import * as configService from '../services/configService';
 import * as graphService from '../services/graphService';
 import * as presenter from '../presentation/graphPresenter';
 
@@ -10,14 +10,18 @@ import * as presenter from '../presentation/graphPresenter';
  * Generates a graph analysis file in .archctl/
  */
 export async function cmdGraph(args: ParsedArgs): Promise<void> {
-  const configPath = findConfigFile();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     console.error(messages.common.noConfigFound);
     process.exit(1);
   }
 
-  const config = loadConfig(configPath);
   const projectRoot = path.dirname(path.dirname(configPath)); // Go up from .archctl/archctl.config.json
 
   // Presentation: Display scanning start

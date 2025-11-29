@@ -1,6 +1,6 @@
 import type { ParsedArgs } from '../types';
-import { findConfigFile, loadConfig } from '../infrastructure/config/configService';
-import { messages } from '../messages';
+import * as configService from '../services/configService';
+import { messages } from '../utils/messages';
 
 /**
  * Lint command - enforce architecture rules
@@ -12,7 +12,7 @@ import { messages } from '../messages';
  * - Report violations with severity levels
  */
 export function cmdLint(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     console.error(messages.common.noConfigFound);
@@ -22,7 +22,7 @@ export function cmdLint(args: ParsedArgs): void {
   console.log(`${messages.lint.foundConfig} ${configPath}`);
 
   try {
-    const config = loadConfig(configPath);
+    const config = configService.loadConfig(configPath);
     console.log(`${messages.lint.loadedConfig} ${config.name}`);
     console.log(`${messages.lint.rulesDefined} ${config.rules.length}`);
 

@@ -4,10 +4,10 @@ import { input, confirm, select } from '@inquirer/prompts';
 import { getOutDir, ensureDir } from '../utils/fs';
 import { sanitizePathForConfig } from '../utils/path';
 import type { ParsedArgs } from '../types';
-import { saveConfig } from '../infrastructure/config/configService';
+import * as configService from '../services/configService';
 import * as presenter from '../presentation/initPresenter';
-import { messages } from '../messages';
-import { constants } from '../constants';
+import { messages } from '../utils/messages';
+import { constants } from '../utils/constants';
 import * as initService from '../services/initService';
 
 /**
@@ -87,7 +87,7 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
   }
 
   // Write config file
-  saveConfig(configPath, config);
+  configService.saveConfig(configPath, config);
 
   presenter.displayInitSuccess(configPath);
 }

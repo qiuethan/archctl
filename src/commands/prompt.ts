@@ -1,6 +1,6 @@
 import type { ParsedArgs } from '../types';
-import { findConfigFile, loadConfig } from '../infrastructure/config/configService';
-import { messages } from '../messages';
+import * as configService from '../services/configService';
+import { messages } from '../utils/messages';
 
 /**
  * Prompt command - generate AI prompts with architecture context
@@ -12,7 +12,7 @@ import { messages } from '../messages';
  * - Support different prompt templates (feature, refactor, debug)
  */
 export function cmdPrompt(args: ParsedArgs): void {
-  const configPath = findConfigFile();
+  const configPath = configService.findConfig();
 
   if (!configPath) {
     console.error(messages.common.noConfigFound);
@@ -22,7 +22,7 @@ export function cmdPrompt(args: ParsedArgs): void {
   console.log(`${messages.prompt.foundConfig} ${configPath}`);
 
   try {
-    const config = loadConfig(configPath);
+    const config = configService.loadConfig(configPath);
     console.log(`${messages.prompt.loadedConfig} ${config.name}`);
 
     console.log(`\n${messages.prompt.notImplemented}`);
