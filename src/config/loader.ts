@@ -49,16 +49,32 @@ function validateConfig(config: ArchctlConfig): void {
 }
 
 /**
+ * Save configuration to file
+ */
+export function saveConfig(configPath: string, config: ArchctlConfig): void {
+  const content = JSON.stringify(config, null, 2);
+  fs.writeFileSync(configPath, content, 'utf-8');
+}
+
+/**
  * Find the architecture config file starting from a directory
  * Walks up the directory tree looking for the config file
+ * Checks both the directory root and the .archctl subdirectory
  */
 export function findConfigFile(startDir: string = process.cwd()): string | null {
   let currentDir = startDir;
 
   while (true) {
-    const configPath = path.join(currentDir, constants.configFileName);
-    if (fs.existsSync(configPath)) {
-      return configPath;
+    // Check in .archctl subdirectory first (preferred location)
+    const archctlPath = path.join(currentDir, constants.defaultOutDir, constants.configFileName);
+    if (fs.existsSync(archctlPath)) {
+      return archctlPath;
+    }
+
+    // Also check in the directory root (for backwards compatibility)
+    const rootPath = path.join(currentDir, constants.configFileName);
+    if (fs.existsSync(rootPath)) {
+      return rootPath;
     }
 
     const parentDir = path.dirname(currentDir);

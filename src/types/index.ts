@@ -12,7 +12,8 @@ export type { TemplateDefinition, TemplateLayer, TemplateRuleRef } from './templ
 export type { LayerConfig, LayerMapping, ArchctlConfig } from './config';
 
 export interface ParsedArgs {
-  [key: string]: string | boolean;
+  _?: string[]; // Positional arguments
+  [key: string]: string | boolean | string[] | undefined;
 }
 
 export interface CommandContext {

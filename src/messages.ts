@@ -14,6 +14,10 @@ export const messages = {
       name: 'init',
       description: 'Initialize architecture folder and config',
     },
+    layers: {
+      name: 'layers',
+      description: 'Manage architecture layers and mappings',
+    },
     sync: {
       name: 'sync',
       description: 'Propagate architecture documentation',
@@ -43,7 +47,10 @@ export const messages = {
   // Examples
   examples: {
     init: 'archctl init',
-    initWithOut: 'archctl init --out .archctl --force',
+    initWithOut: 'archctl init --out <dir> --force',
+    layersList: 'archctl layers list',
+    layersAdd: 'archctl layers add --preset <preset-id>',
+    layersMap: 'archctl layers map --layer <name> --include <path>',
     sync: 'archctl sync',
     lint: 'archctl lint',
     prompt: 'archctl prompt',
@@ -113,14 +120,67 @@ export const messages = {
     notImplemented: '⚠️  Prompt command is not yet implemented.',
     plannedFeaturesHeader: '\nPlanned features:',
     plannedFeatures: [
-      '  - Generate architecture-aware AI prompts',
-      '  - Include layer definitions and constraints',
+      '  - Generate context-aware prompts for AI assistants',
+      '  - Include architecture rules and constraints',
       '  - Add relevant code patterns and examples',
       '  - Support multiple prompt templates',
       '  - Copy to clipboard or save to file',
     ],
     foundConfig: 'Found config at:',
     loadedConfig: 'Loaded config:',
+  },
+
+  // Layers Command Messages
+  layers: {
+    // List subcommand
+    list: {
+      noLayers: 'No layers defined yet.',
+      suggestAddHeader: '\nExamples:',
+      suggestAddPreset: '  archctl layers add --preset <preset-id>',
+      suggestAddCustom: '  archctl layers add --name <layer-name> --description <description>',
+      layersHeader: '\n📦 Defined Layers:',
+      mappingsHeader: '\n🗺️  Layer Mappings:',
+      noMappings: 'No layer mappings defined yet.',
+      suggestMap: 'Use `archctl layers map --layer <name> --include <path>` to map files to layers.',
+    },
+
+    // Add subcommand
+    add: {
+      success: '✓ Added layer',
+      duplicate: 'Error: Layer already exists:',
+      suggestList: 'Use `archctl layers list` to see all layers.',
+      missingArgs: 'Error: Must provide either --preset or both --name and --description',
+      presetNotFound: 'Error: Preset not found:',
+      availablePresets: '\nAvailable presets:',
+      examplesHeader: '\nExamples:',
+      examplePreset: '  archctl layers add --preset <preset-id>',
+      exampleCustom: '  archctl layers add --name <layer-name> --description <description>',
+    },
+
+    // Map subcommand
+    map: {
+      success: '✓ Mapped layer',
+      layerNotFound: 'Error: Layer not found:',
+      suggestList: '\nUse `archctl layers list` to see available layers.',
+      suggestAdd: 'Or use `archctl layers add` to create a new layer.',
+      missingLayer: 'Error: Must provide --layer <name>',
+      missingInclude: 'Error: Must provide at least one --include <path>',
+    },
+
+    // Help
+    help: {
+      unknownSubcommand: 'Error: Unknown layers subcommand:',
+      availableSubcommands: '\nAvailable subcommands:',
+      listUsage: '  archctl layers list',
+      addUsage: '  archctl layers add --preset <id> | --name <name> --description <desc>',
+      mapUsage: '  archctl layers map --layer <name> --include <path> [--exclude <path>] [--priority <n>]',
+    },
+
+    // Common
+    common: {
+      configNotFound: 'Error: No config file found. Run `archctl init` first.',
+      configSaved: '✓ Config saved to:',
+    },
   },
 
   // Common Messages

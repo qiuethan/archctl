@@ -5,6 +5,7 @@ import { cmdInit } from './commands/init';
 import { cmdSync } from './commands/sync';
 import { cmdLint } from './commands/lint';
 import { cmdPrompt } from './commands/prompt';
+import { cmdLayers } from './commands/layers';
 import { messages } from './messages';
 
 function printHelp() {
@@ -17,6 +18,7 @@ Usage:
 
 Commands:
   ${commands.init.name.padEnd(10)}${commands.init.description}
+  ${commands.layers.name.padEnd(10)}${commands.layers.description}
   ${commands.sync.name.padEnd(10)}${commands.sync.description}
   ${commands.lint.name.padEnd(10)}${commands.lint.description}
   ${commands.prompt.name.padEnd(10)}${commands.prompt.description}
@@ -28,6 +30,9 @@ Init Options:
 Examples:
   ${examples.init}
   ${examples.initWithOut}
+  ${examples.layersList}
+  ${examples.layersAdd}
+  ${examples.layersMap}
   ${examples.sync}
   ${examples.lint}
   ${examples.prompt}
@@ -54,6 +59,10 @@ async function main() {
 
     case 'prompt':
       cmdPrompt(args);
+      break;
+
+    case 'layers':
+      cmdLayers(args);
       break;
 
     case undefined:
