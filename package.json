@@ -1,0 +1,25 @@
+{
+  "name": "archctl",
+  "version": "0.1.0",
+  "type": "commonjs",
+  "main": "dist/cli.js",
+  "bin": {
+    "archctl": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "globby": "^16.0.0"
+  }
+}

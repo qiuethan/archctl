@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    // Where TS looks for source files
+    "rootDir": "./src",
+    // Where compiled JS goes
+    "outDir": "./dist",
+
+    // Target Node-style JS
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+
+    // Node env
+    "lib": ["esnext"],
+    "types": ["node"],
+
+    // Interop & ergonomics
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    // Strictness
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Performance / convenience
+    "skipLibCheck": true,
+
+    // Outputs (you can keep these if you want)
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["src"]
+}
