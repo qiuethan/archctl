@@ -15,7 +15,7 @@ export interface AddLayerInput {
 
 export interface AddLayerMappingInput {
   layerName: string;
-  includePaths: string[];
+  includePaths?: string[] | undefined;
   excludePaths?: string[] | undefined;
   priority?: number | undefined;
   projectRoot: string;
@@ -82,13 +82,6 @@ export function addLayerMapping(
     throw new Error(`Layer not found: ${input.layerName}`);
   }
 
-  // Process include paths
-  const processedIncludes = layerInfra.processPathsForMapping(
-    input.projectRoot,
-    input.currentDir,
-    input.includePaths
-  );
-
   // Process exclude paths if provided
   let processedExcludes: string[] | undefined;
   if (input.excludePaths && input.excludePaths.length > 0) {
@@ -99,7 +92,67 @@ export function addLayerMapping(
     );
   }
 
-  // Create layer mapping
+  // If no include paths provided, add excludes to all existing mappings for this layer
+  if (!input.includePaths || input.includePaths.length === 0) {
+    if (!processedExcludes || processedExcludes.length === 0) {
+      throw new Error('Must provide either --include or --exclude');
+    }
+
+    // Find all mappings for this layer and add excludes
+    let updated = false;
+    if (config.layerMappings) {
+      for (const existingMapping of config.layerMappings) {
+        if (existingMapping.layer === input.layerName) {
+          const currentExcludes = existingMapping.exclude || [];
+          const mergedExcludes = [...new Set([...currentExcludes, ...processedExcludes])];
+          existingMapping.exclude = mergedExcludes;
+          updated = true;
+        }
+      }
+    }
+
+    if (!updated) {
+      throw new Error(`No existing mappings found for layer "${input.layerName}". Use --include to create a new mapping.`);
+    }
+
+    // Return the first updated mapping
+    return config.layerMappings!.find(m => m.layer === input.layerName)!;
+  }
+
+  // Process include paths
+  const processedIncludes = layerInfra.processPathsForMapping(
+    input.projectRoot,
+    input.currentDir,
+    input.includePaths
+  );
+
+  // Check for existing mappings and merge if found
+  if (config.layerMappings) {
+    for (const existingMapping of config.layerMappings) {
+      if (existingMapping.layer === input.layerName) {
+        // Check if any include path already exists
+        for (const includePath of processedIncludes) {
+          if (existingMapping.include.includes(includePath)) {
+            // Merge excludes instead of throwing error
+            if (processedExcludes && processedExcludes.length > 0) {
+              const currentExcludes = existingMapping.exclude || [];
+              const mergedExcludes = [...new Set([...currentExcludes, ...processedExcludes])];
+              existingMapping.exclude = mergedExcludes;
+            }
+            
+            // Update priority if provided
+            if (input.priority !== undefined && !isNaN(input.priority)) {
+              existingMapping.priority = input.priority;
+            }
+            
+            return existingMapping; // Return the updated mapping
+          }
+        }
+      }
+    }
+  }
+
+  // Create new layer mapping (no duplicate found)
   const mapping: LayerMapping = {
     layer: input.layerName,
     include: processedIncludes,
@@ -117,6 +170,52 @@ export function addLayerMapping(
   layerInfra.addLayerMapping(config, mapping);
 
   return mapping;
+}
+
+/**
+ * Remove a layer mapping or exclude patterns
+ */
+export function removeLayerMapping(
+  config: ArchctlConfig,
+  layerName: string,
+  includePath?: string,
+  excludePath?: string
+): boolean {
+  // Check if layer exists
+  if (!layerInfra.layerExists(config, layerName)) {
+    throw new Error(`Layer not found: ${layerName}`);
+  }
+
+  // If exclude path is provided, remove it from matching mappings
+  if (excludePath) {
+    return layerInfra.removeExcludeFromMapping(config, layerName, excludePath, includePath);
+  }
+
+  // Otherwise remove the entire mapping
+  const removed = layerInfra.removeLayerMapping(config, layerName, includePath);
+  
+  if (!removed) {
+    if (includePath) {
+      throw new Error(`No mapping found for layer "${layerName}" with path "${includePath}"`);
+    } else {
+      throw new Error(`No mappings found for layer "${layerName}"`);
+    }
+  }
+
+  return removed;
+}
+
+/**
+ * Remove a layer and all its mappings
+ */
+export function removeLayer(config: ArchctlConfig, layerName: string): boolean {
+  const removed = layerInfra.removeLayer(config, layerName);
+  
+  if (!removed) {
+    throw new Error(`Layer not found: ${layerName}`);
+  }
+
+  return removed;
 }
 
 /**
@@ -163,18 +262,19 @@ export function parseMappingArguments(
   projectRoot: string,
   currentDir: string
 ): AddLayerMappingInput {
-  // Validate layer name
+  // Validate required arguments
   if (!args.layerName) {
     throw new Error('Missing required argument: --layer');
   }
 
-  // Parse include paths
-  let includePaths: string[];
+  // Parse include paths (optional if exclude is provided)
+  let includePaths: string[] | undefined;
   if (Array.isArray(args.include)) {
     includePaths = args.include;
   } else if (args.include) {
     includePaths = [args.include];
-  } else {
+  } else if (!args.exclude) {
+    // Only require include if exclude is not provided
     throw new Error('Missing required argument: --include');
   }
 

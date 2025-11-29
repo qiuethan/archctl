@@ -46,8 +46,10 @@ export interface ArchctlConfig {
   entryPoint?: string;
   
   /**
-   * Directories to exclude from analysis (in addition to defaults)
-   * Example: ["tests", "scripts", "docs"]
+   * Directories to exclude from dependency analysis
+   * Note: Automatically reads from .gitignore if present
+   * Additional excludes can be specified here
+   * Example: ["tests", "scripts", "docs", "examples"]
    */
   exclude?: string[];
   

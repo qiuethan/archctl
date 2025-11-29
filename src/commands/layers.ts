@@ -18,8 +18,16 @@ export function cmdLayers(args: ParsedArgs): void {
       cmdLayersAdd(args);
       break;
 
+    case 'remove':
+      cmdLayersRemove(args);
+      break;
+
     case 'map':
       cmdLayersMap(args);
+      break;
+
+    case 'unmap':
+      cmdLayersUnmap(args);
       break;
 
     default:
@@ -145,6 +153,94 @@ function cmdLayersMap(args: ParsedArgs): void {
       } else {
         console.error(error.message);
       }
+    }
+    process.exit(1);
+  }
+}
+
+/**
+ * Remove a layer
+ */
+export function cmdLayersRemove(args: ParsedArgs): void {
+  const configPath = findConfigFile();
+
+  if (!configPath) {
+    presenter.displayConfigNotFound();
+    process.exit(1);
+  }
+
+  const config = loadConfig(configPath);
+
+  // Validate required arguments
+  if (!args.layer) {
+    console.error('Error: Missing required argument --layer');
+    process.exit(1);
+  }
+
+  const layerName = args.layer as string;
+
+  try {
+    layersService.removeLayer(config, layerName);
+
+    // Save config
+    saveConfig(configPath, config);
+
+    console.log(`✓ Removed layer "${layerName}" and all its mappings`);
+    console.log(`✓ Config saved to: ${configPath}`);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+    }
+    process.exit(1);
+  }
+}
+
+/**
+ * Remove a layer mapping (unmap) - inverse of map command
+ * Can remove entire mappings, or just exclude patterns
+ */
+export function cmdLayersUnmap(args: ParsedArgs): void {
+  const configPath = findConfigFile();
+
+  if (!configPath) {
+    presenter.displayConfigNotFound();
+    process.exit(1);
+  }
+
+  const config = loadConfig(configPath);
+
+  // Validate required arguments
+  if (!args.layer) {
+    console.error('Error: Missing required argument --layer');
+    process.exit(1);
+  }
+
+  const layerName = args.layer as string;
+  const includePath = args.include as string | undefined;
+  const excludePath = args.exclude as string | undefined;
+
+  try {
+    layersService.removeLayerMapping(config, layerName, includePath, excludePath);
+
+    // Save config
+    saveConfig(configPath, config);
+
+    // Display appropriate success message
+    if (excludePath) {
+      if (includePath) {
+        console.log(`✓ Removed exclude "${excludePath}" from layer "${layerName}" mapping "${includePath}"`);
+      } else {
+        console.log(`✓ Removed exclude "${excludePath}" from all "${layerName}" mappings`);
+      }
+    } else if (includePath) {
+      console.log(`✓ Removed mapping for layer "${layerName}" with path "${includePath}"`);
+    } else {
+      console.log(`✓ Removed all mappings for layer "${layerName}"`);
+    }
+    console.log(`✓ Config saved to: ${configPath}`);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
     }
     process.exit(1);
   }

@@ -4,6 +4,7 @@ import type { ParsedArgs } from '../types';
 import { findConfigFile, loadConfig } from '../infrastructure/config/configService';
 import { buildProjectGraph, getGraphStats, getFileDependencies, getFileDependents } from '../infrastructure/graph/graphBuilder';
 import { messages } from '../messages';
+import { parseGitignore, mergeExcludes } from '../utils/gitignore';
 
 /**
  * Temporary graph command - analyze project dependencies
@@ -22,6 +23,24 @@ export async function cmdGraph(args: ParsedArgs): Promise<void> {
 
   console.log('🔍 Scanning project files...');
 
+  // Parse .gitignore and merge with config excludes
+  const gitignoreExcludes = parseGitignore(projectRoot);
+  
+  // Filter config excludes to only include directories that exist
+  const configExcludes = (config.exclude || []).filter(dir => {
+    const dirPath = path.join(projectRoot, dir);
+    return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+  });
+  
+  const allExcludes = mergeExcludes(gitignoreExcludes, configExcludes);
+  
+  if (gitignoreExcludes.length > 0) {
+    console.log(`📝 Found ${gitignoreExcludes.length} excludes from .gitignore`);
+  }
+  if (configExcludes.length > 0) {
+    console.log(`⚙️  Found ${configExcludes.length} excludes from config`);
+  }
+
   // Get all source files in the project
   const files: string[] = [];
   const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.py', '.java'];
@@ -36,12 +55,7 @@ export async function cmdGraph(args: ParsedArgs): Promise<void> {
         const fullPath = path.join(dir, entry.name);
         
         if (entry.isDirectory()) {
-          // Default excluded directories
-          const defaultExcludes = ['node_modules', '.git', 'dist', 'build', 'target', '.archctl', 'coverage'];
-          // Add user-defined excludes from config
-          const userExcludes = config.exclude || [];
-          const allExcludes = [...defaultExcludes, ...userExcludes];
-          
+          // Check if directory should be excluded (from .gitignore + config)
           if (allExcludes.includes(entry.name)) {
             continue;
           }
@@ -62,19 +76,10 @@ export async function cmdGraph(args: ParsedArgs): Promise<void> {
   walkDir(projectRoot);
   console.log(`📁 Found ${files.length} source files`);
 
-  // Filter to only files that are mapped to layers
-  const { resolveLayerForFile } = await import('../utils/layers');
-  const mappedFiles = files.filter(file => {
-    const layer = resolveLayerForFile(file, config.layers, config.layerMappings || []);
-    return layer !== null;
-  });
-
-  console.log(`📋 ${mappedFiles.length} files mapped to layers (${files.length - mappedFiles.length} unmapped files excluded)`);
-
   console.log('🔨 Building dependency graph...');
   const graph = await buildProjectGraph({
     projectRoot,
-    files: mappedFiles,
+    files,
     config,
   });
 

@@ -147,9 +147,16 @@ export function displayMustRunFromProject(projectRoot: string, currentDir: strin
  * Display help for unknown subcommand
  */
 export function displayUnknownSubcommand(subcommand: string | undefined): void {
-  console.error(`${messages.layers.help.unknownSubcommand} ${subcommand}`);
+  console.error(`${messages.layers.help.unknownSubcommand} ${subcommand || '(none)'}`);
   console.log(messages.layers.help.availableSubcommands);
   console.log(messages.layers.help.listUsage);
   console.log(messages.layers.help.addUsage);
+  console.log(messages.layers.help.addCustomUsage);
+  console.log(messages.layers.help.removeUsage);
   console.log(messages.layers.help.mapUsage);
+  console.log(messages.layers.help.mapWithExcludeUsage);
+  console.log(messages.layers.help.excludeOnlyUsage);
+  console.log(messages.layers.help.unmapUsage);
+  console.log(messages.layers.help.unmapExcludeUsage);
+  console.log(messages.layers.help.unmapSpecificExcludeUsage);
 }
