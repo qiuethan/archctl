@@ -51,15 +51,32 @@ export const messages = {
 
   // Init Command Messages
   init: {
+    welcome: '🏗️  Welcome to archctl! Let\'s set up your architecture configuration.\n',
     success: '✓ Initialized architecture config at:',
-    nextStepsHeader: '\nNext steps:',
+    nextStepsHeader: '\n✨ Next steps:',
     nextSteps: [
-      '  1. Edit the config to define your architecture layers',
-      '  2. Add rules to enforce architectural constraints',
+      '  1. Review and customize your layers in the config file',
+      '  2. Add layer mappings to map file paths to layers',
       '  3. Run `archctl lint` to check your codebase',
     ],
     alreadyExists: 'already exists. Use --force to overwrite or choose a different --out directory.',
     defaultConfigName: 'My Architecture',
+    
+    // Interactive prompts
+    prompts: {
+      projectName: 'What is your project name?',
+      useTemplate: 'Would you like to use a template?',
+      selectTemplate: 'Select an architecture template:',
+      customSetup: 'Custom (start from scratch)',
+      language: 'Primary programming language (optional):',
+      framework: 'Framework (optional):',
+      testing: 'Testing framework (optional):',
+    },
+    
+    // Template descriptions for selection
+    templateDescriptions: {
+      none: 'Start with an empty configuration',
+    },
   },
 
   // Sync Command Messages

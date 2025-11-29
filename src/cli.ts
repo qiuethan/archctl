@@ -41,7 +41,7 @@ async function main() {
 
   switch (cmd) {
     case 'init':
-      cmdInit(args);
+      await cmdInit(args);
       break;
 
     case 'sync':
