@@ -36,8 +36,13 @@ export async function cmdGraph(args: ParsedArgs): Promise<void> {
         const fullPath = path.join(dir, entry.name);
         
         if (entry.isDirectory()) {
-          // Skip common directories
-          if (['node_modules', '.git', 'dist', 'build', 'target', '.archctl', 'coverage'].includes(entry.name)) {
+          // Default excluded directories
+          const defaultExcludes = ['node_modules', '.git', 'dist', 'build', 'target', '.archctl', 'coverage'];
+          // Add user-defined excludes from config
+          const userExcludes = config.exclude || [];
+          const allExcludes = [...defaultExcludes, ...userExcludes];
+          
+          if (allExcludes.includes(entry.name)) {
             continue;
           }
           walkDir(fullPath, depth + 1);
@@ -57,10 +62,19 @@ export async function cmdGraph(args: ParsedArgs): Promise<void> {
   walkDir(projectRoot);
   console.log(`📁 Found ${files.length} source files`);
 
+  // Filter to only files that are mapped to layers
+  const { resolveLayerForFile } = await import('../utils/layers');
+  const mappedFiles = files.filter(file => {
+    const layer = resolveLayerForFile(file, config.layers, config.layerMappings || []);
+    return layer !== null;
+  });
+
+  console.log(`📋 ${mappedFiles.length} files mapped to layers (${files.length - mappedFiles.length} unmapped files excluded)`);
+
   console.log('🔨 Building dependency graph...');
   const graph = await buildProjectGraph({
     projectRoot,
-    files,
+    files: mappedFiles,
     config,
   });
 
@@ -77,10 +91,14 @@ export async function cmdGraph(args: ParsedArgs): Promise<void> {
 
   console.log(`\n📊 Graph analysis saved to: ${outputPath}`);
   console.log('\nSummary:');
-  console.log(`  Files: ${stats.fileCount}`);
+  console.log(`  Files analyzed: ${stats.fileCount}`);
   console.log(`  Dependencies: ${stats.edgeCount}`);
   console.log(`  Languages: ${Object.keys(stats.languageCounts).join(', ')}`);
-  console.log(`  Layers: ${Object.keys(stats.layerCounts).filter(l => l !== 'unmapped').join(', ')}`);
+  
+  const layers = Object.keys(stats.layerCounts).filter(l => l !== 'unmapped');
+  if (layers.length > 0) {
+    console.log(`  Layers: ${layers.join(', ')}`);
+  }
 }
 
 function generateReport(graph: any, stats: any, projectName: string) {

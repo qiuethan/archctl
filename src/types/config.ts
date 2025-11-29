@@ -45,6 +45,12 @@ export interface ArchctlConfig {
    */
   entryPoint?: string;
   
+  /**
+   * Directories to exclude from analysis (in addition to defaults)
+   * Example: ["tests", "scripts", "docs"]
+   */
+  exclude?: string[];
+  
   layers: LayerConfig[];
   layerMappings?: LayerMapping[];
   rules: ProjectRule[];
