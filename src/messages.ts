@@ -30,6 +30,10 @@ export const messages = {
       name: 'prompt',
       description: 'Generate AI prompts with architecture context',
     },
+    graph: {
+      name: 'graph',
+      description: 'Analyze project dependencies (experimental)',
+    },
   },
 
   // Init Command Options

@@ -90,6 +90,15 @@ export function normalizePath(
 }
 
 /**
+ * Simple path normalization that only converts backslashes to forward slashes
+ * Does NOT resolve relative paths or change the path structure
+ * Use this when you want to keep relative paths relative
+ */
+export function toForwardSlashes(inputPath: string): string {
+  return inputPath.replace(/\\/g, '/');
+}
+
+/**
  * Convert a path to be relative to a base directory
  * Handles both absolute and relative input paths
  */

@@ -11,6 +11,12 @@ export type { TemplateDefinition, TemplateLayer, TemplateRuleRef } from './templ
 // Re-export config types from config module
 export type { LayerConfig, LayerMapping, ArchctlConfig } from './config';
 
+// Re-export graph types from graph module
+export type { DependencyKind, ProjectFileNode, DependencyEdge, ProjectGraph } from './graph';
+
+// Re-export scanner types from scanner module
+export type { FileInfo, ScanResult, ProjectScanner } from './scanner';
+
 export interface ParsedArgs {
   _?: string[]; // Positional arguments
   [key: string]: string | boolean | string[] | undefined;

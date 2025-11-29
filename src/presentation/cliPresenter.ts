@@ -22,6 +22,7 @@ Commands:
   ${commands.sync.name.padEnd(10)}${commands.sync.description}
   ${commands.lint.name.padEnd(10)}${commands.lint.description}
   ${commands.prompt.name.padEnd(10)}${commands.prompt.description}
+  ${commands.graph.name.padEnd(10)}${commands.graph.description}
 
 Init Options:
   ${initOptions.out.flag.padEnd(12)}${initOptions.out.description}
