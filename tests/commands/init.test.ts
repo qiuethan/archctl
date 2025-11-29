@@ -64,10 +64,12 @@ describe('cmdInit', () => {
   });
 
   it('should create config with correct structure for custom setup', async () => {
-    vi.mocked(prompts.confirm).mockResolvedValueOnce(false); // useTemplate
+    vi.mocked(prompts.input).mockReset();
+    vi.mocked(prompts.confirm).mockReset();
     vi.mocked(prompts.input)
       .mockResolvedValueOnce('My Project') // project name
       .mockResolvedValueOnce('src/index.ts'); // entry point
+    vi.mocked(prompts.confirm).mockResolvedValueOnce(false); // useTemplate
 
     await cmdInit({ out: testOutDir });
 
@@ -110,6 +112,9 @@ describe('cmdInit', () => {
 
   it('should create config from template', async () => {
     // Mock template selection
+    vi.mocked(prompts.input).mockReset();
+    vi.mocked(prompts.confirm).mockReset();
+    vi.mocked(prompts.select).mockReset();
     vi.mocked(prompts.input)
       .mockResolvedValueOnce('My Project') // project name
       .mockResolvedValueOnce('src/main.ts'); // entry point

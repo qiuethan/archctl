@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadConfig, findConfigFile } from '../../src/config/loader';
-import type { ArchctlConfig } from '../../src/types';
+import { loadConfig, findConfigFile } from '../../../src/infrastructure/config/configService';
+import type { ArchctlConfig } from '../../../src/types';
 
 describe('loadConfig', () => {
   const testDir = path.join(process.cwd(), 'test-config-loader');
