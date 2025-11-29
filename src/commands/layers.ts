@@ -1,3 +1,4 @@
+import * as path from 'path';
 import type { ParsedArgs, ArchctlConfig, LayerConfig, LayerMapping } from '../types';
 import { findConfigFile, loadConfig, saveConfig } from '../config/loader';
 import { messages } from '../messages';
@@ -157,6 +158,19 @@ function cmdLayersMap(args: ParsedArgs): void {
     process.exit(1);
   }
 
+  // Get the project root (directory containing .archctl)
+  const projectRoot = path.dirname(path.dirname(configPath));
+  const currentDir = process.cwd();
+
+  // Check if current directory is within the project
+  const relativeToCurrent = path.relative(projectRoot, currentDir);
+  if (relativeToCurrent.startsWith('..')) {
+    console.error('Error: Must run this command from within the project directory.');
+    console.error(`Project root: ${projectRoot}`);
+    console.error(`Current directory: ${currentDir}`);
+    process.exit(1);
+  }
+
   const config = loadConfig(configPath);
 
   // Validate required arguments
@@ -187,17 +201,26 @@ function cmdLayersMap(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  // Process include paths (convert directories to globs)
-  const processedIncludes = includePaths.map((p) => normalizePathPattern(p));
+  // Process include paths (convert to relative to project root and normalize)
+  const processedIncludes = includePaths.map((p) => {
+    // Convert path to be relative to project root
+    const absolutePath = path.resolve(currentDir, p);
+    const relativeToRoot = path.relative(projectRoot, absolutePath);
+    // Normalize to forward slashes and add glob pattern if needed
+    return normalizePathPattern(relativeToRoot.replace(/\\/g, '/'));
+  });
 
   // Get exclude paths if provided
   let excludePaths: string[] | undefined;
   if (args.exclude) {
-    if (Array.isArray(args.exclude)) {
-      excludePaths = (args.exclude as string[]).map((p) => normalizePathPattern(p));
-    } else {
-      excludePaths = [normalizePathPattern(args.exclude as string)];
-    }
+    const excludeList = Array.isArray(args.exclude) ? (args.exclude as string[]) : [args.exclude as string];
+    excludePaths = excludeList.map((p) => {
+      // Convert path to be relative to project root
+      const absolutePath = path.resolve(currentDir, p);
+      const relativeToRoot = path.relative(projectRoot, absolutePath);
+      // Normalize to forward slashes and add glob pattern if needed
+      return normalizePathPattern(relativeToRoot.replace(/\\/g, '/'));
+    });
   }
 
   // Get priority
