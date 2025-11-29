@@ -62,20 +62,14 @@ describe('cmdInit', () => {
   });
 
   it('should create config with correct structure for custom setup', async () => {
-    // Mock custom setup responses
+    vi.mocked(prompts.confirm).mockResolvedValueOnce(false); // useTemplate
     vi.mocked(prompts.input)
-      .mockResolvedValueOnce('My Project') // project name
-      .mockResolvedValueOnce('TypeScript') // language
-      .mockResolvedValueOnce('Node.js') // framework
-      .mockResolvedValueOnce('Vitest'); // testing
+      .mockResolvedValueOnce('My Project'); // project name
 
     await cmdInit({ out: testOutDir });
 
     const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
     expect(config.name).toBe('My Project');
-    expect(config.language).toBe('TypeScript');
-    expect(config.framework).toBe('Node.js');
-    expect(config.testing).toBe('Vitest');
     expect(config.layers).toEqual([]);
     expect(config.layerMappings).toEqual([]);
     expect(config.rules).toEqual([]);

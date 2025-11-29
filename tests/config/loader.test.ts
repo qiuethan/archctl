@@ -23,9 +23,6 @@ describe('loadConfig', () => {
   it('should load a valid config file', () => {
     const validConfig: ArchctlConfig = {
       name: 'Test Architecture',
-      language: 'TypeScript',
-      framework: 'Node.js',
-      testing: 'Vitest',
       layers: [],
       layerMappings: [],
       rules: [],
@@ -91,7 +88,16 @@ describe('findConfigFile', () => {
   });
 
   it('should return null if no config found', () => {
-    const found = findConfigFile(nestedDir);
+    // Use a temp directory outside the project to avoid finding the actual config
+    const tempDir = path.join(require('os').tmpdir(), 'archctl-test-no-config');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    const found = findConfigFile(tempDir);
     expect(found).toBeNull();
+    
+    // Cleanup
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 });
