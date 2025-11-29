@@ -1,7 +1,6 @@
-import type { ParsedArgs, LayerConfig, LayerMapping } from '../types';
+import type { ParsedArgs } from '../types';
 import { findConfigFile, loadConfig, saveConfig } from '../infrastructure/config/configService';
-import { getLayerPreset, getAllLayerPresets } from '../infrastructure/layers/layerPresets';
-import * as layerService from '../infrastructure/layers/layerService';
+import * as layersService from '../services/layersService';
 import * as presenter from '../presentation/layersPresenter';
 
 /**
@@ -57,46 +56,32 @@ function cmdLayersAdd(args: ParsedArgs): void {
 
   const config = loadConfig(configPath);
 
-  let layerName: string;
-  let layerDescription: string;
+  try {
+    const newLayer = layersService.addLayer(config, {
+      presetId: args.preset as string | undefined,
+      name: args.name as string | undefined,
+      description: args.description as string | undefined,
+    });
 
-  // Check if using preset
-  if (args.preset) {
-    const preset = getLayerPreset(args.preset as string);
-    if (!preset) {
-      presenter.displayPresetNotFound(args.preset as string, getAllLayerPresets());
-      process.exit(1);
+    // Save config
+    saveConfig(configPath, config);
+
+    presenter.displayLayerAdded(newLayer, configPath);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.startsWith('Preset not found')) {
+        presenter.displayPresetNotFound(args.preset as string, layersService.getAvailablePresets());
+      } else if (error.message.startsWith('Layer already exists')) {
+        const layerName = error.message.split(': ')[1] || 'unknown';
+        presenter.displayLayerExists(layerName);
+      } else if (error.message.includes('Must provide')) {
+        presenter.displayMissingAddArgs();
+      } else {
+        console.error(error.message);
+      }
     }
-
-    layerName = preset.name;
-    layerDescription = (args.description as string) || preset.description;
-  } else if (args.name && args.description) {
-    layerName = args.name as string;
-    layerDescription = args.description as string;
-  } else {
-    presenter.displayMissingAddArgs();
     process.exit(1);
   }
-
-  // Check for duplicate
-  if (layerService.layerExists(config, layerName)) {
-    const existingLayer = layerService.findLayer(config, layerName)!;
-    presenter.displayLayerExists(existingLayer.name);
-    process.exit(1);
-  }
-
-  // Add the layer
-  const newLayer: LayerConfig = {
-    name: layerName,
-    description: layerDescription,
-  };
-
-  layerService.addLayer(config, newLayer);
-
-  // Save config
-  saveConfig(configPath, config);
-
-  presenter.displayLayerAdded(newLayer, configPath);
 }
 
 /**
@@ -110,84 +95,57 @@ function cmdLayersMap(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  // Get the project root and validate location
-  const projectRoot = layerService.getProjectRoot(configPath);
+  const projectRoot = layersService.getProjectRoot(configPath);
   const currentDir = process.cwd();
 
-  // Check if current directory is within the project
-  if (!layerService.validateWithinProject(projectRoot, currentDir)) {
+  // Validate current directory is within project
+  if (!layersService.validateWithinProject(projectRoot, currentDir)) {
     presenter.displayMustRunFromProject(projectRoot, currentDir);
     process.exit(1);
   }
 
   const config = loadConfig(configPath);
 
-  // Validate required arguments
-  if (!args.layer) {
-    presenter.displayMissingLayer();
-    process.exit(1);
-  }
-
-  const layerName = args.layer as string;
-
-  // Check if layer exists
-  if (!layerService.layerExists(config, layerName)) {
-    presenter.displayLayerNotFound(layerName);
-    process.exit(1);
-  }
-
-  // Get include paths
-  let includePaths: string[];
-  if (Array.isArray(args.include)) {
-    includePaths = args.include as string[];
-  } else if (args.include) {
-    includePaths = [args.include as string];
-  } else {
-    presenter.displayMissingInclude();
-    process.exit(1);
-  }
-
-  // Process include paths (convert to relative to project root and normalize)
-  const processedIncludes = layerService.processPathsForMapping(
-    projectRoot,
-    currentDir,
-    includePaths
-  );
-
-  // Get exclude paths if provided
-  let excludePaths: string[] | undefined;
-  if (args.exclude) {
-    const excludeList = Array.isArray(args.exclude) ? (args.exclude as string[]) : [args.exclude as string];
-    excludePaths = layerService.processPathsForMapping(
+  try {
+    // Parse and validate arguments (service layer)
+    const mappingInput = layersService.parseMappingArguments(
+      {
+        layerName: typeof args.layer === 'string' ? args.layer : undefined,
+        include: Array.isArray(args.include) || typeof args.include === 'string' ? args.include : undefined,
+        exclude: Array.isArray(args.exclude) || typeof args.exclude === 'string' ? args.exclude : undefined,
+        priority: typeof args.priority === 'string' || typeof args.priority === 'number' ? args.priority : undefined,
+      },
       projectRoot,
-      currentDir,
-      excludeList
+      currentDir
     );
+
+    // Add mapping (service layer)
+    const mapping = layersService.addLayerMapping(config, mappingInput);
+
+    // Save config (infrastructure layer)
+    saveConfig(configPath, config);
+
+    // Display success (presentation layer)
+    presenter.displayLayerMapped(
+      mappingInput.layerName,
+      mapping.include,
+      mapping.exclude,
+      mapping.priority,
+      configPath
+    );
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('Missing required argument: --layer')) {
+        presenter.displayMissingLayer();
+      } else if (error.message.includes('Missing required argument: --include')) {
+        presenter.displayMissingInclude();
+      } else if (error.message.startsWith('Layer not found')) {
+        const layerName = error.message.split(': ')[1] || args.layer as string;
+        presenter.displayLayerNotFound(layerName);
+      } else {
+        console.error(error.message);
+      }
+    }
+    process.exit(1);
   }
-
-  // Get priority
-  const priority = args.priority ? parseInt(args.priority as string, 10) : undefined;
-
-  // Create layer mapping
-  const mapping: LayerMapping = {
-    layer: layerName,
-    include: processedIncludes,
-  };
-
-  if (excludePaths && excludePaths.length > 0) {
-    mapping.exclude = excludePaths;
-  }
-
-  if (priority !== undefined && !isNaN(priority)) {
-    mapping.priority = priority;
-  }
-
-  // Add mapping
-  layerService.addLayerMapping(config, mapping);
-
-  // Save config
-  saveConfig(configPath, config);
-
-  // Display success message
-  presenter.displayLayerMapped(layerName, processedIncludes, excludePaths, priority, configPath);
 }
