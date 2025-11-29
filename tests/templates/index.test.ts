@@ -3,8 +3,6 @@ import {
   TEMPLATES,
   TEMPLATES_BY_ID,
   getTemplateById,
-  getTemplatesByLanguage,
-  getTemplatesByFramework,
 } from '../../src/templates';
 
 describe('Template Library', () => {
@@ -81,47 +79,6 @@ describe('Template Library', () => {
     });
   });
 
-  describe('getTemplatesByLanguage', () => {
-    it('should return templates for TypeScript', () => {
-      const templates = getTemplatesByLanguage('TypeScript');
-      expect(templates.length).toBeGreaterThan(0);
-      templates.forEach((template) => {
-        expect(template.language).toBe('TypeScript');
-      });
-    });
-
-    it('should be case-insensitive', () => {
-      const lower = getTemplatesByLanguage('typescript');
-      const upper = getTemplatesByLanguage('TYPESCRIPT');
-      expect(lower.length).toBe(upper.length);
-    });
-
-    it('should return empty array for non-existent language', () => {
-      const templates = getTemplatesByLanguage('Rust');
-      expect(templates).toEqual([]);
-    });
-  });
-
-  describe('getTemplatesByFramework', () => {
-    it('should return templates for Node.js', () => {
-      const templates = getTemplatesByFramework('Node.js');
-      expect(templates.length).toBeGreaterThan(0);
-      templates.forEach((template) => {
-        expect(template.framework).toBe('Node.js');
-      });
-    });
-
-    it('should be case-insensitive', () => {
-      const lower = getTemplatesByFramework('node.js');
-      const upper = getTemplatesByFramework('NODE.JS');
-      expect(lower.length).toBe(upper.length);
-    });
-
-    it('should return empty array for non-existent framework', () => {
-      const templates = getTemplatesByFramework('Django');
-      expect(templates).toEqual([]);
-    });
-  });
 
   describe('Example Templates', () => {
     it('should have clean-architecture template', () => {

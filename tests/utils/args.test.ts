@@ -17,7 +17,7 @@ describe('parseArgs', () => {
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBe('init');
-    expect(args).toEqual({});
+    expect(args).toEqual({ _: [] });
   });
 
   it('should parse boolean flags', () => {
@@ -25,7 +25,7 @@ describe('parseArgs', () => {
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBe('init');
-    expect(args).toEqual({ force: true });
+    expect(args).toEqual({ _: [], force: true });
   });
 
   it('should parse flags with values (space-separated)', () => {
@@ -33,7 +33,7 @@ describe('parseArgs', () => {
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBe('init');
-    expect(args).toEqual({ out: '.archctl' });
+    expect(args).toEqual({ _: [], out: '.archctl' });
   });
 
   it('should parse flags with values (equals syntax)', () => {
@@ -41,7 +41,7 @@ describe('parseArgs', () => {
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBe('init');
-    expect(args).toEqual({ out: '.archctl' });
+    expect(args).toEqual({ _: [], out: '.archctl' });
   });
 
   it('should parse multiple flags', () => {
@@ -50,6 +50,7 @@ describe('parseArgs', () => {
 
     expect(cmd).toBe('init');
     expect(args).toEqual({
+      _: [],
       out: 'architecture',
       force: true,
     });
@@ -60,7 +61,7 @@ describe('parseArgs', () => {
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBe('sync');
-    expect(args).toEqual({});
+    expect(args).toEqual({ _: [] });
   });
 
   it('should handle no command', () => {
@@ -68,7 +69,7 @@ describe('parseArgs', () => {
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBeUndefined();
-    expect(args).toEqual({});
+    expect(args).toEqual({ _: [] });
   });
 
   it('should parse complex flag combinations', () => {
@@ -84,6 +85,7 @@ describe('parseArgs', () => {
 
     expect(cmd).toBe('init');
     expect(args).toEqual({
+      _: [],
       out: 'config/arch',
       force: true,
       verbose: true,
