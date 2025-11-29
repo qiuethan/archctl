@@ -19,22 +19,18 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
   layers: [
     {
       name: 'domain',
-      path: 'src/domain',
       description: 'Core business logic, entities, and domain rules',
     },
     {
       name: 'application',
-      path: 'src/application',
       description: 'Use cases and application services',
     },
     {
       name: 'infrastructure',
-      path: 'src/infrastructure',
       description: 'External concerns: DB, APIs, file system',
     },
     {
       name: 'presentation',
-      path: 'src/presentation',
       description: 'UI, controllers, API endpoints',
     },
   ],

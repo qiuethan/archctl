@@ -1,20 +1,20 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { ArchConfig } from '../types';
+import type { ArchctlConfig } from '../types';
 import { messages } from '../messages';
 import { constants } from '../constants';
 
 /**
- * Load and validate architecture.config.json
+ * Load and validate archctl.config.json
  * TODO: Add JSON schema validation using ajv or zod
  */
-export function loadConfig(configPath: string): ArchConfig {
+export function loadConfig(configPath: string): ArchctlConfig {
   if (!fs.existsSync(configPath)) {
     throw new Error(`${messages.config.notFound} ${configPath}`);
   }
 
   const content = fs.readFileSync(configPath, 'utf-8');
-  const config = JSON.parse(content) as ArchConfig;
+  const config = JSON.parse(content) as ArchctlConfig;
 
   // TODO: Add proper validation
   validateConfig(config);
@@ -26,16 +26,26 @@ export function loadConfig(configPath: string): ArchConfig {
  * Validate configuration structure
  * TODO: Implement comprehensive validation
  */
-function validateConfig(config: ArchConfig): void {
+function validateConfig(config: ArchctlConfig): void {
   if (!config.name || typeof config.name !== 'string') {
     throw new Error(messages.config.invalidName);
   }
 
+  // Validate layers array
+  if (!Array.isArray(config.layers)) {
+    throw new Error('Config must have a layers array');
+  }
+
+  // Validate layer mappings if present
+  if (config.layerMappings && !Array.isArray(config.layerMappings)) {
+    throw new Error('layerMappings must be an array');
+  }
+
   // TODO: Add more validation rules
-  // - Validate layers array
   // - Validate rules array
   // - Check for required fields
   // - Validate rule types and severities
+  // - Validate layer mapping references
 }
 
 /**

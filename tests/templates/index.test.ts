@@ -34,7 +34,6 @@ describe('Template Library', () => {
         expect(template.layers.length).toBeGreaterThan(0);
         template.layers.forEach((layer) => {
           expect(layer.name).toBeTruthy();
-          expect(layer.path).toBeTruthy();
           expect(layer.description).toBeTruthy();
         });
       });

@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { getOutDir, ensureDir } from '../utils/fs';
-import type { ParsedArgs, ArchConfig } from '../types';
+import type { ParsedArgs, ArchctlConfig } from '../types';
 import { messages } from '../messages';
 import { constants } from '../constants';
 
 /**
  * Initialize a new architecture configuration
- * Creates the output directory and a skeleton architecture.config.json
+ * Creates the output directory and a skeleton archctl.config.json
  */
 export function cmdInit(args: ParsedArgs): void {
   const outDir = getOutDir(args);
@@ -21,12 +21,13 @@ export function cmdInit(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  const initialConfig: ArchConfig = {
+  const initialConfig: ArchctlConfig = {
     name: messages.init.defaultConfigName,
     language: constants.defaultConfig.language,
     framework: constants.defaultConfig.framework,
     testing: constants.defaultConfig.testing,
     layers: [],
+    layerMappings: [],
     rules: [],
   };
 

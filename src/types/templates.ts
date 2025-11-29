@@ -22,11 +22,10 @@ export interface TemplateRuleRef {
 }
 
 /**
- * Layer definition within a template
+ * Layer definition within a template (conceptual only, no file paths)
  */
 export interface TemplateLayer {
   name: string;
-  path: string;
   description: string;
 }
 

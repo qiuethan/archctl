@@ -19,17 +19,14 @@ export const modularMonolithTemplate: TemplateDefinition = {
   layers: [
     {
       name: 'features',
-      path: 'src/features',
       description: 'Independent feature modules',
     },
     {
       name: 'shared',
-      path: 'src/shared',
       description: 'Shared utilities and infrastructure',
     },
     {
       name: 'api',
-      path: 'src/api',
       description: 'API gateway and routing',
     },
   ],

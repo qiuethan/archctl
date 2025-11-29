@@ -19,22 +19,18 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
   layers: [
     {
       name: 'domain',
-      path: 'src/domain',
       description: 'Domain models, aggregates, and business rules',
     },
     {
       name: 'application',
-      path: 'src/application',
       description: 'Application services and use cases',
     },
     {
       name: 'infrastructure',
-      path: 'src/infrastructure',
       description: 'Persistence, messaging, external integrations',
     },
     {
       name: 'api',
-      path: 'src/api',
       description: 'REST/GraphQL API layer',
     },
   ],
