@@ -1,5 +1,5 @@
 import type { ParsedArgs } from '../types';
-import { findConfigFile, loadConfig } from '../config/loader';
+import { findConfigFile, loadConfig } from '../infrastructure/config/configService';
 import { messages } from '../messages';
 
 /**

@@ -42,24 +42,3 @@ export function getTemplateById(id: string): TemplateDefinition | undefined {
   return TEMPLATES_BY_ID[id];
 }
 
-/**
- * Get all templates suitable for a specific language
- * @param language - The programming language to filter by
- * @returns Array of matching template definitions
- */
-export function getTemplatesByLanguage(language: string): TemplateDefinition[] {
-  return TEMPLATES.filter(
-    (template) => template.language?.toLowerCase() === language.toLowerCase(),
-  );
-}
-
-/**
- * Get all templates suitable for a specific framework
- * @param framework - The framework to filter by
- * @returns Array of matching template definitions
- */
-export function getTemplatesByFramework(framework: string): TemplateDefinition[] {
-  return TEMPLATES.filter(
-    (template) => template.framework?.toLowerCase() === framework.toLowerCase(),
-  );
-}

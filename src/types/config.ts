@@ -37,16 +37,7 @@ export interface LayerMapping {
  */
 export interface ArchctlConfig {
   name: string;
-  language?: string;
-  framework?: string;
-  testing?: string;
-
-  /** Conceptual layers (name + description only) */
   layers: LayerConfig[];
-
-  /** Optional mapping rules from paths → layers */
   layerMappings?: LayerMapping[];
-
-  /** Project-specific rule instances */
   rules: ProjectRule[];
 }

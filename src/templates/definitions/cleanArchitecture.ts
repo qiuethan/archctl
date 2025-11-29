@@ -10,11 +10,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
   id: 'clean-architecture',
   label: 'Clean Architecture',
   description:
-    'Uncle Bob\'s Clean Architecture with domain-centric layers and strict dependency rules.',
-
-  language: 'TypeScript',
-  framework: 'Node.js',
-  testing: 'Vitest',
+    'Clean Architecture with domain-centric layers and strict dependency rules.',
 
   layers: [
     {

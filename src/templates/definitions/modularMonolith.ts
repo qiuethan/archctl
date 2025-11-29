@@ -12,10 +12,6 @@ export const modularMonolithTemplate: TemplateDefinition = {
   description:
     'Feature-based modules with clear boundaries and communication contracts.',
 
-  language: 'TypeScript',
-  framework: 'Node.js',
-  testing: 'Vitest',
-
   layers: [
     {
       name: 'features',

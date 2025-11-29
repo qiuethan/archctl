@@ -30,17 +30,12 @@ export interface TemplateLayer {
 }
 
 /**
- * A reusable architecture template that `archctl init` can materialize
- * into archctl.config.json.
+ * A template definition for a specific architecture style
  */
 export interface TemplateDefinition {
   id: string;
   label: string;
   description: string;
-
-  language?: string;
-  framework?: string;
-  testing?: string;
 
   layers: TemplateLayer[];
 

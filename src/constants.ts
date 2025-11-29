@@ -9,11 +9,4 @@ export const constants = {
 
   // Config file name
   configFileName: 'archctl.config.json',
-
-  // Default config values
-  defaultConfig: {
-    language: '',
-    framework: '',
-    testing: '',
-  },
 };

@@ -12,10 +12,6 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
   description:
     'Domain-Driven Design with microservices, bounded contexts, and event-driven communication.',
 
-  language: 'TypeScript',
-  framework: 'Node.js',
-  testing: 'Vitest',
-
   layers: [
     {
       name: 'domain',

@@ -75,9 +75,6 @@ export const messages = {
       useTemplate: 'Would you like to use a template?',
       selectTemplate: 'Select an architecture template:',
       customSetup: 'Custom (start from scratch)',
-      language: 'Primary programming language (optional):',
-      framework: 'Framework (optional):',
-      testing: 'Testing framework (optional):',
     },
     
     // Template descriptions for selection

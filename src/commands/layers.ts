@@ -1,8 +1,8 @@
-import * as path from 'path';
-import type { ParsedArgs, ArchctlConfig, LayerConfig, LayerMapping } from '../types';
-import { findConfigFile, loadConfig, saveConfig } from '../config/loader';
+import type { ParsedArgs, LayerConfig, LayerMapping } from '../types';
+import { findConfigFile, loadConfig, saveConfig } from '../infrastructure/config/configService';
+import { getLayerPreset, getAllLayerPresets } from '../infrastructure/layers/layerPresets';
+import * as layerService from '../infrastructure/layers/layerService';
 import { messages } from '../messages';
-import { getLayerPreset, getAllLayerPresets } from '../config/layerPresets';
 
 /**
  * Main entry point for layers command
@@ -121,12 +121,9 @@ function cmdLayersAdd(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  // Check for duplicate (case-insensitive)
-  const existingLayer = config.layers.find(
-    (layer) => layer.name.toLowerCase() === layerName.toLowerCase()
-  );
-
-  if (existingLayer) {
+  // Check for duplicate
+  if (layerService.layerExists(config, layerName)) {
+    const existingLayer = layerService.findLayer(config, layerName)!;
     console.error(`${messages.layers.add.duplicate} ${existingLayer.name}`);
     console.log(messages.layers.add.suggestList);
     process.exit(1);
@@ -138,7 +135,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
     description: layerDescription,
   };
 
-  config.layers.push(newLayer);
+  layerService.addLayer(config, newLayer);
 
   // Save config
   saveConfig(configPath, config);
@@ -158,13 +155,12 @@ function cmdLayersMap(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  // Get the project root (directory containing .archctl)
-  const projectRoot = path.dirname(path.dirname(configPath));
+  // Get the project root and validate location
+  const projectRoot = layerService.getProjectRoot(configPath);
   const currentDir = process.cwd();
 
   // Check if current directory is within the project
-  const relativeToCurrent = path.relative(projectRoot, currentDir);
-  if (relativeToCurrent.startsWith('..')) {
+  if (!layerService.validateWithinProject(projectRoot, currentDir)) {
     console.error('Error: Must run this command from within the project directory.');
     console.error(`Project root: ${projectRoot}`);
     console.error(`Current directory: ${currentDir}`);
@@ -182,8 +178,7 @@ function cmdLayersMap(args: ParsedArgs): void {
   const layerName = args.layer as string;
 
   // Check if layer exists
-  const layer = config.layers.find((l) => l.name === layerName);
-  if (!layer) {
+  if (!layerService.layerExists(config, layerName)) {
     console.error(`${messages.layers.map.layerNotFound} ${layerName}`);
     console.log(messages.layers.map.suggestList);
     console.log(messages.layers.map.suggestAdd);
@@ -202,25 +197,21 @@ function cmdLayersMap(args: ParsedArgs): void {
   }
 
   // Process include paths (convert to relative to project root and normalize)
-  const processedIncludes = includePaths.map((p) => {
-    // Convert path to be relative to project root
-    const absolutePath = path.resolve(currentDir, p);
-    const relativeToRoot = path.relative(projectRoot, absolutePath);
-    // Normalize to forward slashes and add glob pattern if needed
-    return normalizePathPattern(relativeToRoot.replace(/\\/g, '/'));
-  });
+  const processedIncludes = layerService.processPathsForMapping(
+    projectRoot,
+    currentDir,
+    includePaths
+  );
 
   // Get exclude paths if provided
   let excludePaths: string[] | undefined;
   if (args.exclude) {
     const excludeList = Array.isArray(args.exclude) ? (args.exclude as string[]) : [args.exclude as string];
-    excludePaths = excludeList.map((p) => {
-      // Convert path to be relative to project root
-      const absolutePath = path.resolve(currentDir, p);
-      const relativeToRoot = path.relative(projectRoot, absolutePath);
-      // Normalize to forward slashes and add glob pattern if needed
-      return normalizePathPattern(relativeToRoot.replace(/\\/g, '/'));
-    });
+    excludePaths = layerService.processPathsForMapping(
+      projectRoot,
+      currentDir,
+      excludeList
+    );
   }
 
   // Get priority
@@ -240,13 +231,8 @@ function cmdLayersMap(args: ParsedArgs): void {
     mapping.priority = priority;
   }
 
-  // Initialize layerMappings if needed
-  if (!config.layerMappings) {
-    config.layerMappings = [];
-  }
-
   // Add mapping
-  config.layerMappings.push(mapping);
+  layerService.addLayerMapping(config, mapping);
 
   // Save config
   saveConfig(configPath, config);
@@ -261,31 +247,4 @@ function cmdLayersMap(args: ParsedArgs): void {
   }
   console.log(`${messages.layers.map.success} "${layerName}": ${parts.join(', ')}`);
   console.log(`${messages.layers.common.configSaved} ${configPath}`);
-}
-
-/**
- * Normalize a path pattern for layer mapping
- * - If contains * or ?, treat as glob and return as-is
- * - If looks like a file (has extension), return as-is
- * - If looks like a directory, append /**
- */
-function normalizePathPattern(pattern: string): string {
-  // Already a glob pattern
-  if (pattern.includes('*') || pattern.includes('?')) {
-    return pattern;
-  }
-
-  // Check if it looks like a file (has extension in last segment)
-  const lastSegment = pattern.split(/[/\\]/).pop() || '';
-  const hasExtension = lastSegment.includes('.');
-
-  if (hasExtension) {
-    // Treat as file path
-    return pattern;
-  }
-
-  // Treat as directory, append /**
-  // Normalize path separators to forward slashes
-  const normalized = pattern.replace(/\\/g, '/');
-  return normalized.endsWith('/') ? `${normalized}**` : `${normalized}/**`;
 }
