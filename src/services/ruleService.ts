@@ -1,10 +1,79 @@
-import type { RuleConfig } from '../types/config';
+import type { RuleConfig, ArchctlConfig } from '../types/config';
 import type { RuleContext, RuleViolation, FileInfo, BaseRule } from '../types/rules';
 import { ForbiddenLayerImportRule } from '../infrastructure/rules/ForbiddenLayerImportRule';
 import { AllowedLayerImportRule } from '../infrastructure/rules/AllowedLayerImportRule';
 import { FilePatternLayerRule } from '../infrastructure/rules/FilePatternLayerRule';
 import { MaxDependenciesRule } from '../infrastructure/rules/MaxDependenciesRule';
 import { CyclicDependencyRule } from '../infrastructure/rules/CyclicDependencyRule';
+
+/**
+ * Rule management operations
+ */
+
+export interface AddRuleInput {
+  ruleConfig: RuleConfig;
+}
+
+/**
+ * Add a rule to the configuration
+ */
+export function addRule(config: ArchctlConfig, input: AddRuleInput): RuleConfig {
+  // Check if rule with same ID already exists
+  if (config.rules.some((r) => r.id === input.ruleConfig.id)) {
+    throw new Error(`Rule with ID "${input.ruleConfig.id}" already exists`);
+  }
+
+  // Add rule to config
+  config.rules.push(input.ruleConfig);
+
+  return input.ruleConfig;
+}
+
+/**
+ * Remove a rule from the configuration
+ */
+export function removeRule(config: ArchctlConfig, ruleId: string): void {
+  const index = config.rules.findIndex((r) => r.id === ruleId);
+  
+  if (index === -1) {
+    throw new Error(`Rule with ID "${ruleId}" not found`);
+  }
+
+  config.rules.splice(index, 1);
+}
+
+/**
+ * Get available rule kinds
+ */
+export function getAvailableRuleKinds(): Array<{ value: string; name: string; description: string }> {
+  return [
+    {
+      value: 'forbidden-layer-import',
+      name: 'Forbidden Layer Import',
+      description: 'Block imports from one layer to another',
+    },
+    {
+      value: 'allowed-layer-import',
+      name: 'Allowed Layer Import',
+      description: 'Whitelist allowed layer imports',
+    },
+    {
+      value: 'file-pattern-layer',
+      name: 'File Pattern Layer',
+      description: 'Enforce files matching pattern must be in specific layer',
+    },
+    {
+      value: 'max-dependencies',
+      name: 'Max Dependencies',
+      description: 'Limit dependencies per file',
+    },
+    {
+      value: 'cyclic-dependency',
+      name: 'Cyclic Dependency',
+      description: 'Detect circular dependencies',
+    },
+  ];
+}
 
 /**
  * Factory function to create rule instances from configuration

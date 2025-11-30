@@ -18,6 +18,10 @@ export const messages = {
       name: 'layers',
       description: 'Manage architecture layers and mappings',
     },
+    rules: {
+      name: 'rules',
+      description: 'Manage architecture rules',
+    },
     sync: {
       name: 'sync',
       description: 'Propagate architecture documentation',
@@ -29,10 +33,6 @@ export const messages = {
     prompt: {
       name: 'prompt',
       description: 'Generate AI prompts with architecture context',
-    },
-    graph: {
-      name: 'graph',
-      description: 'Analyze project dependencies (experimental)',
     },
   },
 

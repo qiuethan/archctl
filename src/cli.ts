@@ -6,7 +6,7 @@ import { cmdSync } from './commands/sync';
 import { cmdLint } from './commands/lint';
 import { cmdPrompt } from './commands/prompt';
 import { cmdLayers } from './commands/layers';
-import { cmdGraph } from './commands/graph';
+import { cmdRules } from './commands/rules';
 import * as presenter from './presentation/cliPresenter';
 
 async function main() {
@@ -22,7 +22,7 @@ async function main() {
       break;
 
     case 'lint':
-      cmdLint(args);
+      await cmdLint(args);
       break;
 
     case 'prompt':
@@ -33,8 +33,8 @@ async function main() {
       cmdLayers(args);
       break;
 
-    case 'graph':
-      await cmdGraph(args);
+    case 'rules':
+      cmdRules(args);
       break;
 
     case undefined:

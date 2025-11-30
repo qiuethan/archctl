@@ -19,10 +19,10 @@ Usage:
 Commands:
   ${commands.init.name.padEnd(10)}${commands.init.description}
   ${commands.layers.name.padEnd(10)}${commands.layers.description}
+  ${commands.rules.name.padEnd(10)}${commands.rules.description}
   ${commands.sync.name.padEnd(10)}${commands.sync.description}
   ${commands.lint.name.padEnd(10)}${commands.lint.description}
   ${commands.prompt.name.padEnd(10)}${commands.prompt.description}
-  ${commands.graph.name.padEnd(10)}${commands.graph.description}
 
 Init Options:
   ${initOptions.out.flag.padEnd(12)}${initOptions.out.description}
