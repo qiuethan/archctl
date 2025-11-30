@@ -17,7 +17,9 @@ export function displayWelcome(): void {
  * Display config already exists error
  */
 export function displayConfigExists(configPath: string): void {
-  console.error(`${colors.symbols.error} ${colors.path(configPath)} ${colors.error(messages.init.alreadyExists)}`);
+  console.error(
+    `${colors.symbols.error} ${colors.path(configPath)} ${colors.error(messages.init.alreadyExists)}`
+  );
   console.log(`${colors.dim('Use')} ${colors.code('--force')} ${colors.dim('to overwrite.')}`);
 }
 
@@ -25,7 +27,9 @@ export function displayConfigExists(configPath: string): void {
  * Display success message
  */
 export function displayInitSuccess(configPath: string): void {
-  console.log(`\n${colors.symbols.check} ${colors.success.bold(messages.init.success)} ${colors.path(configPath)}`);
+  console.log(
+    `\n${colors.symbols.check} ${colors.success.bold(messages.init.success)} ${colors.path(configPath)}`
+  );
   console.log(`\n${colors.bold(messages.init.nextStepsHeader)}`);
   messages.init.nextSteps.forEach((step, index) => {
     console.log(`  ${colors.primary((index + 1).toString() + '.')} ${colors.dim(step)}`);

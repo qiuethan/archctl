@@ -49,8 +49,12 @@ export function displayLayersList(config: ArchctlConfig): void {
  * Display success message for adding a layer
  */
 export function displayLayerAdded(layer: LayerConfig, configPath: string): void {
-  console.log(`${colors.symbols.success} ${colors.success(messages.layers.add.success)} ${formatLayer(layer.name)}: ${colors.dim(layer.description)}`);
-  console.log(`${colors.symbols.success} ${colors.success(messages.layers.common.configSaved)} ${colors.path(configPath)}`);
+  console.log(
+    `${colors.symbols.success} ${colors.success(messages.layers.add.success)} ${formatLayer(layer.name)}: ${colors.dim(layer.description)}`
+  );
+  console.log(
+    `${colors.symbols.success} ${colors.success(messages.layers.common.configSaved)} ${colors.path(configPath)}`
+  );
 }
 
 /**
@@ -70,9 +74,13 @@ export function displayLayerMapped(
   if (priority !== undefined) {
     parts.push(`priority: ${priority}`);
   }
-  console.log(`${colors.symbols.success} ${colors.success(messages.layers.map.success)} ${formatLayer(layerName)}: ${parts.join(', ')}`);
+  console.log(
+    `${colors.symbols.success} ${colors.success(messages.layers.map.success)} ${formatLayer(layerName)}: ${parts.join(', ')}`
+  );
   if (configPath) {
-    console.log(`${colors.symbols.success} ${colors.success(messages.layers.common.configSaved)} ${colors.path(configPath)}`);
+    console.log(
+      `${colors.symbols.success} ${colors.success(messages.layers.common.configSaved)} ${colors.path(configPath)}`
+    );
   }
 }
 
@@ -80,7 +88,9 @@ export function displayLayerMapped(
  * Display error: config not found
  */
 export function displayConfigNotFound(): void {
-  console.error(`${colors.symbols.error} ${colors.error('Configuration file not found.')} ${colors.dim('Run')} ${colors.code('archctl init')} ${colors.dim('to initialize.')}`);
+  console.error(
+    `${colors.symbols.error} ${colors.error('Configuration file not found.')} ${colors.dim('Run')} ${colors.code('archctl init')} ${colors.dim('to initialize.')}`
+  );
 }
 
 /**
@@ -98,7 +108,9 @@ export function displayLayerExists(existingLayerName: string): void {
  * Display error: layer not found
  */
 export function displayLayerNotFound(layerName: string): void {
-  console.error(`${colors.symbols.error} ${colors.error(messages.layers.map.layerNotFound)} ${formatLayer(layerName)}`);
+  console.error(
+    `${colors.symbols.error} ${colors.error(messages.layers.map.layerNotFound)} ${formatLayer(layerName)}`
+  );
   console.log(colors.dim(messages.layers.map.suggestList));
   console.log(colors.dim(messages.layers.map.suggestAdd));
 }

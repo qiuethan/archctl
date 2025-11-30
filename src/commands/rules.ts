@@ -221,7 +221,10 @@ async function cmdRulesAdd(_args: ParsedArgs): Promise<void> {
       });
 
       const allowedPackages = allowedPackagesInput
-        ? allowedPackagesInput.split(',').map((p) => p.trim()).filter((p) => p.length > 0)
+        ? allowedPackagesInput
+            .split(',')
+            .map((p) => p.trim())
+            .filter((p) => p.length > 0)
         : [];
 
       const applyToLayer = await confirm({

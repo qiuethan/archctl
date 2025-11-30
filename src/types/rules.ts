@@ -109,6 +109,23 @@ export interface RuleContext {
 }
 
 /**
+ * Position range in a file
+ */
+export interface PositionRange {
+  /** Starting line (1-indexed) */
+  startLine: number;
+
+  /** Starting column (0-indexed) */
+  startCol: number;
+
+  /** Ending line (1-indexed) */
+  endLine: number;
+
+  /** Ending column (0-indexed) */
+  endCol: number;
+}
+
+/**
  * A rule violation found during checking
  */
 export interface RuleViolation {
@@ -124,8 +141,11 @@ export interface RuleViolation {
   /** File where the violation occurred */
   file: string;
 
-  /** Optional line number */
+  /** Optional line number (deprecated, use range instead) */
   line?: number;
+
+  /** Position range for the violation */
+  range?: PositionRange;
 
   /** Optional suggestion for fixing */
   suggestion?: string;

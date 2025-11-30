@@ -11,25 +11,25 @@ export const colors = {
   error: chalk.red,
   warning: chalk.yellow,
   info: chalk.cyan,
-  
+
   // Emphasis
   bold: chalk.bold,
   dim: chalk.dim,
-  
+
   // Semantic colors
   primary: chalk.blue,
   secondary: chalk.magenta,
-  
+
   // Special formatting
   highlight: chalk.bgYellow.black,
   code: chalk.cyan,
   path: chalk.gray,
-  
+
   // Rule severity colors
   severityError: chalk.red.bold,
   severityWarning: chalk.yellow.bold,
   severityInfo: chalk.blue.bold,
-  
+
   // Symbols with colors
   symbols: {
     success: chalk.green('✓'),

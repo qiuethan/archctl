@@ -1,4 +1,10 @@
+import * as path from 'path';
 import { BaseRule, type RuleContext, type RuleViolation } from '../../types/rules';
+import {
+  findImportPositionForLanguage,
+  resolveImportSpecifier,
+  getFileStartPosition,
+} from '../../utils/astPosition';
 
 export interface AllowedLayerImportConfig {
   fromLayer: string;
@@ -34,11 +40,23 @@ export class AllowedLayerImportRule extends BaseRule {
 
       // If importing from a layer not in the allowed list, it's a violation
       if (toFile.layer && !this.allowedLayers.has(toFile.layer)) {
+        // Try to find the exact import position
+        const importSpecifier = resolveImportSpecifier(dep.from, dep.to, ctx.projectRoot);
+        const absolutePath = path.join(ctx.projectRoot, dep.from);
+        const range = importSpecifier
+          ? findImportPositionForLanguage(
+              absolutePath,
+              importSpecifier,
+              fromFile.language || 'unknown'
+            )
+          : null;
+
         violations.push({
           ruleId: this.id,
           severity: 'error',
           message: `File in "${this.fromLayer}" layer can only import from [${Array.from(this.allowedLayers).join(', ')}], but imports from "${toFile.layer}"`,
           file: dep.from,
+          range: range || getFileStartPosition(),
           suggestion: `Remove the import of "${dep.to}" or move it to an allowed layer`,
           metadata: {
             fromLayer: this.fromLayer,

@@ -1,4 +1,6 @@
+import * as path from 'path';
 import { BaseRule, type RuleContext, type RuleViolation } from '../../types/rules';
+import { findImportPositionForLanguage, getFileStartPosition } from '../../utils/astPosition';
 
 export interface ExternalDependencyConfig {
   allowedPackages: string[];
@@ -42,13 +44,25 @@ export class ExternalDependencyRule extends BaseRule {
         }
       }
 
-      // If there are disallowed imports, create a violation
+      // If there are disallowed imports, create a violation for the first one
       if (disallowedImports.length > 0) {
+        // Try to find position of the first disallowed import
+        const absolutePath = path.join(ctx.projectRoot, filePath);
+        const firstDisallowed = disallowedImports[0];
+        const range = firstDisallowed
+          ? findImportPositionForLanguage(
+              absolutePath,
+              firstDisallowed,
+              fileInfo.language || 'unknown'
+            )
+          : null;
+
         violations.push({
           ruleId: this.id,
           severity: 'error',
           message: `File imports disallowed external packages: ${disallowedImports.join(', ')}`,
           file: filePath,
+          range: range || getFileStartPosition(),
           suggestion: `Only the following packages are allowed: ${Array.from(this.allowedPackages).join(', ')}. Remove or replace the disallowed imports.`,
           metadata: {
             disallowedImports,
