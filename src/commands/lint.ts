@@ -4,6 +4,7 @@ import * as configService from '../services/configService';
 import * as graphService from '../services/graphService';
 import * as ruleService from '../services/ruleService';
 import { messages } from '../utils/messages';
+import { colors, formatFilePath, formatCount } from '../utils/colors';
 
 /**
  * Lint command - enforce architecture rules
@@ -24,12 +25,12 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
   const projectRoot = path.dirname(path.dirname(configPath));
 
-  console.log(`Configuration: ${configPath}`);
-  console.log(`Project: ${config.name}`);
-  console.log(`Checking ${config.rules.length} architecture rule(s)...\n`);
+  console.log(`${colors.dim('Configuration:')} ${colors.path(configPath)}`);
+  console.log(`${colors.dim('Project:')} ${colors.bold(config.name)}`);
+  console.log(`${colors.info('Checking')} ${colors.bold(config.rules.length.toString())} ${colors.info('architecture rule(s)...')}\n`);
 
   // Build dependency graph
-  console.log('Analyzing project dependencies...');
+  console.log(`${colors.dim('Analyzing project dependencies...')}`);
   const result = await graphService.analyzeProjectGraph({
     projectRoot,
     config,
@@ -39,7 +40,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
   const fileCount = result.stats.fileCount;
   const edgeCount = result.stats.edgeCount;
-  console.log(`Analyzed ${fileCount} file(s) with ${edgeCount} dependencies\n`);
+  console.log(`${colors.success('Analyzed')} ${colors.bold(fileCount.toString())} ${colors.dim('file(s) with')} ${colors.bold(edgeCount.toString())} ${colors.dim('dependencies')}\n`);
 
   // Load and instantiate rules
   const rules = ruleService.createRulesFromConfig(config.rules);
@@ -52,56 +53,56 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
   // Display results
   if (violations.length === 0) {
-    console.log('✅ No rule violations found!');
+    console.log(`${colors.symbols.check} ${colors.success.bold('No rule violations found!')}`);
     process.exit(0);
   }
 
   const summary = ruleService.getViolationSummary(violations);
-  console.log(`\n⚠️  Found ${summary.total} violation(s):`);
-  console.log(`   Errors: ${summary.errors}`);
-  console.log(`   Warnings: ${summary.warnings}`);
-  console.log(`   Info: ${summary.info}`);
-  console.log(`   Files affected: ${summary.filesAffected}`);
+  console.log(`\n${colors.symbols.warning} ${colors.warning.bold('Found')} ${colors.bold(summary.total.toString())} ${colors.warning.bold('violation(s):')}`);
+  console.log(`   ${colors.dim('Errors:')} ${formatCount(summary.errors, true)}`);
+  console.log(`   ${colors.dim('Warnings:')} ${formatCount(summary.warnings, true)}`);
+  console.log(`   ${colors.dim('Info:')} ${formatCount(summary.info, true)}`);
+  console.log(`   ${colors.dim('Files affected:')} ${colors.bold(summary.filesAffected.toString())}`);
 
   // Group by severity and display
   const grouped = ruleService.groupViolationsBySeverity(violations);
 
   if (grouped.errors.length > 0) {
-    console.log('\nErrors:');
+    console.log(`\n${colors.severityError('Errors:')}`);
     grouped.errors.forEach((v) => {
-      console.log(`   ${v.file}`);
-      console.log(`      ${v.message}`);
+      console.log(`   ${colors.symbols.error} ${formatFilePath(v.file)}`);
+      console.log(`      ${colors.error(v.message)}`);
       if (v.suggestion) {
-        console.log(`      💡 ${v.suggestion}`);
+        console.log(`      ${colors.symbols.lightbulb} ${colors.dim(v.suggestion)}`);
       }
     });
   }
 
   if (grouped.warnings.length > 0) {
-    console.log('\nWarnings:');
+    console.log(`\n${colors.severityWarning('Warnings:')}`);
     grouped.warnings.forEach((v) => {
-      console.log(`   ${v.file}`);
-      console.log(`      ${v.message}`);
+      console.log(`   ${colors.symbols.warning} ${formatFilePath(v.file)}`);
+      console.log(`      ${colors.warning(v.message)}`);
       if (v.suggestion) {
-        console.log(`      💡 ${v.suggestion}`);
+        console.log(`      ${colors.symbols.lightbulb} ${colors.dim(v.suggestion)}`);
       }
     });
   }
 
   if (grouped.info.length > 0) {
-    console.log('\nInformational:');
+    console.log(`\n${colors.severityInfo('Informational:')}`);
     grouped.info.forEach((v) => {
-      console.log(`   ${v.file}`);
-      console.log(`      ${v.message}`);
+      console.log(`   ${colors.symbols.info} ${formatFilePath(v.file)}`);
+      console.log(`      ${colors.info(v.message)}`);
     });
   }
 
   // Exit with error code if there are errors
   if (grouped.errors.length > 0) {
-    console.log('\nArchitecture validation failed');
+    console.log(`\n${colors.symbols.cross} ${colors.error.bold('Architecture validation failed')}`);
     process.exit(1);
   }
 
-  console.log('\nArchitecture validation passed');
+  console.log(`\n${colors.symbols.check} ${colors.success.bold('Architecture validation passed')}`);
   process.exit(0);
 }

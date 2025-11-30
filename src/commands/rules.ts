@@ -214,6 +214,40 @@ async function cmdRulesAdd(_args: ParsedArgs): Promise<void> {
       break;
     }
 
+    case 'external-dependency': {
+      const allowedPackagesInput = await input({
+        message: 'Allowed packages (comma-separated, or leave empty for none):',
+        default: '',
+      });
+
+      const allowedPackages = allowedPackagesInput
+        ? allowedPackagesInput.split(',').map((p) => p.trim()).filter((p) => p.length > 0)
+        : [];
+
+      const applyToLayer = await confirm({
+        message: 'Apply to specific layer only?',
+        default: false,
+      });
+
+      let layer: string | undefined;
+      if (applyToLayer) {
+        layer = await select({
+          message: 'Which layer:',
+          choices: config.layers.map((l) => ({ name: l.name, value: l.name })),
+        });
+      }
+
+      ruleConfig = {
+        kind: 'external-dependency',
+        id,
+        title,
+        description,
+        allowedPackages,
+        ...(layer && { layer }),
+      };
+      break;
+    }
+
     default:
       console.error('Unknown rule kind');
       process.exit(1);
