@@ -34,7 +34,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
   rules: [
     // Domain layer isolation - can only import from domain
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'domain-isolation',
       title: 'Domain Layer Isolation',
       description: 'Domain layer can only import from domain layer (pure domain)',
@@ -43,7 +43,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     // Application layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'application-dependencies',
       title: 'Application Layer Dependencies',
       description: 'Application layer can import from domain, infrastructure, and shared',
@@ -52,7 +52,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     // Infrastructure layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'infrastructure-dependencies',
       title: 'Infrastructure Layer Dependencies',
       description: 'Infrastructure layer can import from domain, shared, and infrastructure',
@@ -61,7 +61,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     // Presentation layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'presentation-dependencies',
       title: 'Presentation Layer Dependencies',
       description: 'Presentation layer can import from application, domain, and shared',
@@ -70,7 +70,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     // Shared layer isolation
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'shared-isolation',
       title: 'Shared Layer Isolation',
       description: 'Shared layer can only import from domain and shared',
@@ -79,7 +79,7 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     // Keep domain files modular
     {
-      kind: 'max-dependencies',
+      kind: 'max-dependencies' as const,
       id: 'max-deps-domain',
       title: 'Max Dependencies in Domain',
       description: 'Domain files should have at most 10 dependencies to maintain modularity',
@@ -88,11 +88,27 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     // Global dependency limit
     {
-      kind: 'max-dependencies',
+      kind: 'max-dependencies' as const,
       id: 'max-deps-global',
       title: 'Max Dependencies Global',
       description: 'No file should have more than 20 dependencies',
       maxDependencies: 20,
+    },
+    // Detect circular dependencies
+    {
+      kind: 'cyclic-dependency' as const,
+      id: 'no-cyclic-dependencies',
+      title: 'No Cyclic Dependencies',
+      description: 'Prevent circular dependencies between files',
+    },
+    // Domain should not import presentation
+    {
+      kind: 'forbidden-layer-import' as const,
+      id: 'domain-no-ui-awareness',
+      title: 'Domain No UI Awareness',
+      description: 'Domain layer should not know about presentation/UI',
+      fromLayer: 'domain',
+      toLayer: 'presentation',
     },
   ],
 };

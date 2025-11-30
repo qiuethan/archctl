@@ -34,7 +34,7 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
   rules: [
     // Domain layer isolation
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'domain-isolation',
       title: 'Domain Layer Isolation',
       description: 'Domain layer can only import from domain layer',
@@ -43,7 +43,7 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
     // Application layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'application-dependencies',
       title: 'Application Layer Dependencies',
       description: 'Application layer can import from domain and infrastructure',
@@ -52,7 +52,7 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
     // Infrastructure layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'infrastructure-dependencies',
       title: 'Infrastructure Layer Dependencies',
       description: 'Infrastructure layer can import from domain and infrastructure',
@@ -61,7 +61,7 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
     // API layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'api-dependencies',
       title: 'API Layer Dependencies',
       description: 'API layer can import from application and domain',
@@ -70,7 +70,7 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
     // Strict domain modularity
     {
-      kind: 'max-dependencies',
+      kind: 'max-dependencies' as const,
       id: 'max-deps-domain',
       title: 'Max Dependencies in Domain',
       description: 'Domain files should have at most 8 dependencies for DDD',
@@ -79,11 +79,18 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
     // Global dependency limit
     {
-      kind: 'max-dependencies',
+      kind: 'max-dependencies' as const,
       id: 'max-deps-global',
       title: 'Max Dependencies Global',
       description: 'No file should have more than 15 dependencies',
       maxDependencies: 15,
+    },
+    // Detect circular dependencies
+    {
+      kind: 'cyclic-dependency' as const,
+      id: 'no-cyclic-dependencies',
+      title: 'No Cyclic Dependencies',
+      description: 'Prevent circular dependencies between files',
     },
   ],
 };

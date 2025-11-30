@@ -4,6 +4,7 @@ import { ForbiddenLayerImportRule } from '../infrastructure/rules/ForbiddenLayer
 import { AllowedLayerImportRule } from '../infrastructure/rules/AllowedLayerImportRule';
 import { FilePatternLayerRule } from '../infrastructure/rules/FilePatternLayerRule';
 import { MaxDependenciesRule } from '../infrastructure/rules/MaxDependenciesRule';
+import { CyclicDependencyRule } from '../infrastructure/rules/CyclicDependencyRule';
 
 /**
  * Factory function to create rule instances from configuration
@@ -61,6 +62,15 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
             maxDependencies: config.maxDependencies,
             layer: config.layer,
           }
+        );
+        break;
+
+      case 'cyclic-dependency':
+        rule = new CyclicDependencyRule(
+          config.id,
+          config.title,
+          config.description,
+          {}
         );
         break;
 

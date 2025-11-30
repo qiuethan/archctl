@@ -25,6 +25,23 @@ import { noInfrastructureToDomainRule } from './definitions/noInfrastructureToDo
 import { noSharedStateBetweenMicroservicesRule } from './definitions/noSharedStateBetweenMicroservices';
 import { persistenceOnlyCRUDRule } from './definitions/persistenceOnlyCRUD';
 
+// Re-export individual rules for direct import
+export {
+  aggregateRootOnlyMutationRule,
+  domainEventsUsageRule,
+  domainModelsImmutableRule,
+  domainNoUIAwarenessRule,
+  limitPublicAPIExposureRule,
+  noBusinessLogicInControllersRule,
+  noBusinessLogicInRepositoriesRule,
+  noCyclicDependenciesRule,
+  noDomainExposureViaDTOsRule,
+  noFeatureCrossTalkRule,
+  noInfrastructureToDomainRule,
+  noSharedStateBetweenMicroservicesRule,
+  persistenceOnlyCRUDRule,
+};
+
 /**
  * Array of all available rule definitions
  * Add new rules here as they are created

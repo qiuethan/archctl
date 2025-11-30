@@ -54,6 +54,13 @@ export interface NaturalLanguageRuleConfig {
   severity?: 'info' | 'warning' | 'error';
 }
 
+export interface CyclicDependencyRuleConfig {
+  kind: 'cyclic-dependency';
+  id: string;
+  title: string;
+  description: string;
+}
+
 /**
  * Discriminated union of all rule config types
  */
@@ -62,6 +69,7 @@ export type RuleConfig =
   | AllowedLayerImportRuleConfig
   | FilePatternLayerRuleConfig
   | MaxDependenciesRuleConfig
+  | CyclicDependencyRuleConfig
   | NaturalLanguageRuleConfig;
 
 /**

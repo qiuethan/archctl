@@ -30,7 +30,7 @@ export const modularMonolithTemplate: TemplateDefinition = {
   rules: [
     // Features can only import from shared and themselves
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'features-dependencies',
       title: 'Feature Module Dependencies',
       description: 'Feature modules can only import from shared layer and themselves',
@@ -39,7 +39,7 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
     // Shared layer isolation
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'shared-isolation',
       title: 'Shared Layer Isolation',
       description: 'Shared layer can only import from shared',
@@ -48,7 +48,7 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
     // API layer dependencies
     {
-      kind: 'allowed-layer-import',
+      kind: 'allowed-layer-import' as const,
       id: 'api-dependencies',
       title: 'API Layer Dependencies',
       description: 'API layer can import from features and shared',
@@ -57,7 +57,7 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
     // Keep modules small
     {
-      kind: 'max-dependencies',
+      kind: 'max-dependencies' as const,
       id: 'max-deps-features',
       title: 'Max Dependencies in Features',
       description: 'Feature files should have at most 12 dependencies',
@@ -66,11 +66,18 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
     // Global dependency limit
     {
-      kind: 'max-dependencies',
+      kind: 'max-dependencies' as const,
       id: 'max-deps-global',
       title: 'Max Dependencies Global',
       description: 'No file should have more than 20 dependencies',
       maxDependencies: 20,
+    },
+    // Detect circular dependencies
+    {
+      kind: 'cyclic-dependency' as const,
+      id: 'no-cyclic-dependencies',
+      title: 'No Cyclic Dependencies',
+      description: 'Prevent circular dependencies between files',
     },
   ],
 };
