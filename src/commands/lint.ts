@@ -16,6 +16,13 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   const format = (_args.format as string) || 'text';
   const isJsonOutput = format === 'json';
 
+  // Debug: log the format flag
+  if (process.env.DEBUG_ARCHCTL) {
+    console.error('DEBUG: _args =', JSON.stringify(_args));
+    console.error('DEBUG: format =', format);
+    console.error('DEBUG: isJsonOutput =', isJsonOutput);
+  }
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;

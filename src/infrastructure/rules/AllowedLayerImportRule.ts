@@ -1,10 +1,5 @@
-import * as path from 'path';
 import { BaseRule, type RuleContext, type RuleViolation } from '../../types/rules';
-import {
-  findImportPositionForLanguage,
-  resolveImportSpecifier,
-  getFileStartPosition,
-} from '../../utils/astPosition';
+import { findViolationRange, getFileStartPosition } from '../../utils/astPosition';
 
 export interface AllowedLayerImportConfig {
   fromLayer: string;
@@ -40,16 +35,13 @@ export class AllowedLayerImportRule extends BaseRule {
 
       // If importing from a layer not in the allowed list, it's a violation
       if (toFile.layer && !this.allowedLayers.has(toFile.layer)) {
-        // Try to find the exact import position
-        const importSpecifier = resolveImportSpecifier(dep.from, dep.to, ctx.projectRoot);
-        const absolutePath = path.join(ctx.projectRoot, dep.from);
-        const range = importSpecifier
-          ? findImportPositionForLanguage(
-              absolutePath,
-              importSpecifier,
-              fromFile.language || 'unknown'
-            )
-          : null;
+        // Find the exact import position (language-agnostic)
+        const range = findViolationRange(
+          dep.from,
+          dep.to,
+          fromFile.language || 'unknown',
+          ctx.projectRoot
+        );
 
         violations.push({
           ruleId: this.id,
