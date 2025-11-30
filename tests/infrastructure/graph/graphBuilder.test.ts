@@ -43,14 +43,14 @@ describe('buildProjectGraph', () => {
 
     expect(Object.keys(graph.files)).toHaveLength(2);
     expect(graph.files['file1.ts']).toBeDefined();
-    expect(graph.files['file1.ts'].language).toBe('typescript');
+    expect(graph.files['file1.ts']!.language).toBe('typescript');
     expect(graph.files['file2.ts']).toBeDefined();
-    
+
     // Should have one edge from file1 to file2
     expect(graph.edges).toHaveLength(1);
-    expect(graph.edges[0].from).toBe('file1.ts');
-    expect(graph.edges[0].to).toBe('file2.ts');
-    expect(graph.edges[0].kind).toBe('import');
+    expect(graph.edges[0]!.from).toBe('file1.ts');
+    expect(graph.edges[0]!.to).toBe('file2.ts');
+    expect(graph.edges[0]!.kind).toBe('import');
   });
 
   it('should resolve layers for files', async () => {
@@ -61,12 +61,8 @@ describe('buildProjectGraph', () => {
 
     const config: ArchctlConfig = {
       name: 'test',
-      layers: [
-        { name: 'domain', description: 'Domain layer' },
-      ],
-      layerMappings: [
-        { layer: 'domain', include: ['domain/**'] },
-      ],
+      layers: [{ name: 'domain', description: 'Domain layer' }],
+      layerMappings: [{ layer: 'domain', include: ['domain/**'] }],
       rules: [],
     };
 
@@ -76,7 +72,7 @@ describe('buildProjectGraph', () => {
       config,
     });
 
-    expect(graph.files['domain/user.ts'].layer).toBe('domain');
+    expect(graph.files['domain/user.ts']!.layer).toBe('domain');
   });
 
   it('should handle Python files', async () => {
@@ -99,11 +95,11 @@ describe('buildProjectGraph', () => {
       config,
     });
 
-    expect(graph.files['main.py'].language).toBe('python');
-    expect(graph.files['utils.py'].language).toBe('python');
-    
+    expect(graph.files['main.py']!.language).toBe('python');
+    expect(graph.files['utils.py']!.language).toBe('python');
+
     // Should detect import
-    const edges = graph.edges.filter(e => e.from === 'main.py');
+    const edges = graph.edges.filter((e) => e.from === 'main.py');
     expect(edges.length).toBeGreaterThan(0);
   });
 
@@ -112,7 +108,10 @@ describe('buildProjectGraph', () => {
     const file2 = path.join(tempDir, 'src', 'main', 'java', 'com', 'example', 'Utils.java');
 
     fs.mkdirSync(path.dirname(file1), { recursive: true });
-    fs.writeFileSync(file1, `package com.example;\nimport com.example.Utils;\npublic class Main {}`);
+    fs.writeFileSync(
+      file1,
+      `package com.example;\nimport com.example.Utils;\npublic class Main {}`
+    );
     fs.writeFileSync(file2, `package com.example;\npublic class Utils {}`);
 
     const config: ArchctlConfig = {
@@ -128,8 +127,8 @@ describe('buildProjectGraph', () => {
       config,
     });
 
-    expect(graph.files['src/main/java/com/example/Main.java'].language).toBe('java');
-    expect(graph.files['src/main/java/com/example/Utils.java'].language).toBe('java');
+    expect(graph.files['src/main/java/com/example/Main.java']!.language).toBe('java');
+    expect(graph.files['src/main/java/com/example/Utils.java']!.language).toBe('java');
   });
 
   it('should compute graph statistics', async () => {
@@ -141,12 +140,8 @@ describe('buildProjectGraph', () => {
 
     const config: ArchctlConfig = {
       name: 'test',
-      layers: [
-        { name: 'app', description: 'App layer' },
-      ],
-      layerMappings: [
-        { layer: 'app', include: ['*.ts'] },
-      ],
+      layers: [{ name: 'app', description: 'App layer' }],
+      layerMappings: [{ layer: 'app', include: ['*.ts'] }],
       rules: [],
     };
 

@@ -6,10 +6,10 @@ import type { ProjectFileNode, DependencyEdge } from './graph';
 export interface FileInfo {
   /** Project-relative path with forward slashes */
   path: string;
-  
+
   /** Programming language identifier */
   language?: string;
-  
+
   /** File contents as UTF-8 string */
   contents: string;
 }
@@ -20,7 +20,7 @@ export interface FileInfo {
 export interface ScanResult {
   /** Additional or updated file nodes (usually none or one) */
   nodes?: ProjectFileNode[];
-  
+
   /** Discovered dependency edges */
   edges?: DependencyEdge[];
 }
@@ -31,17 +31,14 @@ export interface ScanResult {
 export interface ProjectScanner {
   /** Unique identifier for this scanner */
   id: string;
-  
+
   /**
    * Check if this scanner supports the given file
    */
   supports(file: FileInfo): boolean;
-  
+
   /**
    * Scan a file and extract dependencies
    */
-  scan(
-    file: FileInfo,
-    context: { projectRoot: string }
-  ): Promise<ScanResult>;
+  scan(file: FileInfo, context: { projectRoot: string }): Promise<ScanResult>;
 }

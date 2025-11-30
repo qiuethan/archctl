@@ -15,11 +15,7 @@ import { javaScanner } from './scanners/javaScanner';
 /**
  * Available scanners for dependency detection
  */
-const SCANNERS: ProjectScanner[] = [
-  tsJsScanner,
-  pythonScanner,
-  javaScanner,
-];
+const SCANNERS: ProjectScanner[] = [tsJsScanner, pythonScanner, javaScanner];
 
 /**
  * Options for building a project dependency graph
@@ -27,23 +23,23 @@ const SCANNERS: ProjectScanner[] = [
 export interface BuildGraphOptions {
   /** Absolute path to project root */
   projectRoot: string;
-  
+
   /** Project-relative paths to source files */
   files: string[];
-  
+
   /** Project configuration */
   config: ArchctlConfig;
 }
 
 /**
  * Build a complete project dependency graph
- * 
+ *
  * This function:
  * 1. Creates file nodes for all source files
  * 2. Resolves the language and layer for each file
  * 3. Runs language-specific scanners to detect dependencies
  * 4. Returns a complete graph with nodes and edges
- * 
+ *
  * @param options - Build options
  * @returns Complete project dependency graph
  */
@@ -63,9 +59,7 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
       const normalizedPath = toForwardSlashes(relPath);
 
       // Build absolute path - ensure relPath is not already absolute
-      const absPath = path.isAbsolute(relPath) 
-        ? relPath 
-        : path.join(projectRoot, relPath);
+      const absPath = path.isAbsolute(relPath) ? relPath : path.join(projectRoot, relPath);
       if (!fs.existsSync(absPath)) {
         console.warn(`File not found: ${absPath}`);
         continue;
@@ -77,11 +71,7 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
       const language = inferLanguageFromPath(normalizedPath);
 
       // Resolve layer
-      const layer = resolveLayerForFile(
-        normalizedPath,
-        config.layers,
-        config.layerMappings || []
-      );
+      const layer = resolveLayerForFile(normalizedPath, config.layers, config.layerMappings || []);
 
       // Create file node
       const node: ProjectFileNode = {
@@ -181,14 +171,14 @@ export function getGraphStats(graph: ProjectGraph): {
  * Get all dependencies of a file (outgoing edges)
  */
 export function getFileDependencies(graph: ProjectGraph, filePath: string): DependencyEdge[] {
-  return graph.edges.filter(edge => edge.from === filePath);
+  return graph.edges.filter((edge) => edge.from === filePath);
 }
 
 /**
  * Get all dependents of a file (incoming edges)
  */
 export function getFileDependents(graph: ProjectGraph, filePath: string): DependencyEdge[] {
-  return graph.edges.filter(edge => edge.to === filePath);
+  return graph.edges.filter((edge) => edge.to === filePath);
 }
 
 /**

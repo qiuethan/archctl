@@ -1,6 +1,16 @@
+/**
+ * Service for analyzing project dependency graph
+ */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import * as path from 'path';
 import * as fs from 'fs';
 import type { ArchctlConfig } from '../types/config';
+import type { ProjectGraph } from '../types/graph';
 import { buildProjectGraph, getGraphStats } from '../infrastructure/graph/graphBuilder';
 import { parseGitignore, mergeExcludes } from '../utils/gitignore';
 
@@ -10,8 +20,13 @@ export interface GraphAnalysisInput {
 }
 
 export interface GraphAnalysisResult {
-  graph: any;
-  stats: any;
+  graph: ProjectGraph;
+  stats: {
+    fileCount: number;
+    edgeCount: number;
+    languageCounts: Record<string, number>;
+    layerCounts: Record<string, number>;
+  };
   files: string[];
   excludeInfo: {
     gitignoreCount: number;
@@ -32,31 +47,31 @@ export interface GraphReport {
   topDependencies: Array<{ file: string; layer: string; dependencies: number }>;
   topDependents: Array<{ file: string; layer: string; dependents: number }>;
   layerInteractions: Record<string, Record<string, number>>;
-  graph: {
-    files: any;
-    edges: any[];
-  };
+  graph: ProjectGraph;
 }
 
 /**
  * Get all excludes (from .gitignore and config)
  */
-export function getProjectExcludes(projectRoot: string, config: ArchctlConfig): {
+export function getProjectExcludes(
+  projectRoot: string,
+  config: ArchctlConfig
+): {
   allExcludes: string[];
   gitignoreCount: number;
   configCount: number;
 } {
   // Parse .gitignore
   const gitignoreExcludes = parseGitignore(projectRoot);
-  
+
   // Filter config excludes to only include directories that exist
-  const configExcludes = (config.exclude || []).filter(dir => {
+  const configExcludes = (config.exclude || []).filter((dir) => {
     const dirPath = path.join(projectRoot, dir);
     return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
   });
-  
+
   const allExcludes = mergeExcludes(gitignoreExcludes, configExcludes);
-  
+
   return {
     allExcludes,
     gitignoreCount: gitignoreExcludes.length,
@@ -77,12 +92,12 @@ export function scanProjectFiles(
   function walkDir(dir: string, depth = 0) {
     // Skip deep nesting
     if (depth > 10) return;
-    
+
     try {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        
+
         if (entry.isDirectory()) {
           // Check if directory should be excluded
           if (excludes.includes(entry.name)) {
@@ -142,15 +157,20 @@ export async function analyzeProjectGraph(input: GraphAnalysisInput): Promise<Gr
  * Generate analysis report from graph
  */
 export function generateGraphReport(
-  graph: any,
-  stats: any,
+  graph: ProjectGraph,
+  stats: {
+    fileCount: number;
+    edgeCount: number;
+    languageCounts: Record<string, number>;
+    layerCounts: Record<string, number>;
+  },
   projectName: string
 ): GraphReport {
   // Calculate additional metrics
   const fileDeps = new Map<string, number>();
   const fileDepents = new Map<string, number>();
-  
-  graph.edges.forEach((edge: any) => {
+
+  graph.edges.forEach((edge) => {
     fileDeps.set(edge.from, (fileDeps.get(edge.from) || 0) + 1);
     fileDepents.set(edge.to, (fileDepents.get(edge.to) || 0) + 1);
   });
@@ -177,10 +197,10 @@ export function generateGraphReport(
 
   // Layer interaction matrix
   const layerInteractions: Record<string, Record<string, number>> = {};
-  graph.edges.forEach((edge: any) => {
+  graph.edges.forEach((edge) => {
     const fromLayer = graph.files[edge.from]?.layer || 'unmapped';
     const toLayer = graph.files[edge.to]?.layer || 'unmapped';
-    
+
     if (!layerInteractions[fromLayer]) {
       layerInteractions[fromLayer] = {};
     }

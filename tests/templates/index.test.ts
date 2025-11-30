@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  TEMPLATES,
-  TEMPLATES_BY_ID,
-  getTemplateById,
-} from '../../src/templates';
+import { TEMPLATES, TEMPLATES_BY_ID, getTemplateById } from '../../src/templates';
 
 describe('Template Library', () => {
   describe('TEMPLATES', () => {
@@ -82,7 +78,6 @@ describe('Template Library', () => {
     });
   });
 
-
   describe('Example Templates', () => {
     it('should have clean-architecture template', () => {
       const template = getTemplateById('clean-architecture');
@@ -131,7 +126,7 @@ describe('Template Library', () => {
 
     it('should have proper rule structure', () => {
       const template = getTemplateById('clean-architecture');
-      
+
       template?.rules.forEach((ruleConfig) => {
         // All rules must have these fields
         expect(ruleConfig.kind).toBeTruthy();

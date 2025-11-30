@@ -29,22 +29,20 @@ import type { LayerConfig, LayerMapping } from '../types/config';
 export function resolveLayerForFile(
   filePath: string,
   layers: LayerConfig[],
-  mappings: LayerMapping[] = [],
+  mappings: LayerMapping[] = []
 ): string | null {
   // Normalize path separators to forward slashes for consistent matching
   const normalized = filePath.replace(/\\/g, '/');
 
   // Sort mappings by priority (highest first)
   // If no priority is specified, default to 0
-  const sorted = [...mappings].sort(
-    (a, b) => (b.priority ?? 0) - (a.priority ?? 0),
-  );
+  const sorted = [...mappings].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 
   // Check each mapping in priority order
   for (const mapping of sorted) {
     // Check if file matches any include pattern
     const included = mapping.include.some((pattern) =>
-      minimatch(normalized, pattern, { dot: true }),
+      minimatch(normalized, pattern, { dot: true })
     );
 
     if (!included) {
@@ -53,7 +51,7 @@ export function resolveLayerForFile(
 
     // Check if file matches any exclude pattern
     const excluded = mapping.exclude?.some((pattern) =>
-      minimatch(normalized, pattern, { dot: true }),
+      minimatch(normalized, pattern, { dot: true })
     );
 
     if (excluded) {
@@ -63,9 +61,7 @@ export function resolveLayerForFile(
     // Validate that the layer exists in the config
     const layerExists = layers.some((layer) => layer.name === mapping.layer);
     if (!layerExists) {
-      console.warn(
-        `Warning: Layer mapping references non-existent layer "${mapping.layer}"`,
-      );
+      console.warn(`Warning: Layer mapping references non-existent layer "${mapping.layer}"`);
       continue;
     }
 
@@ -89,7 +85,7 @@ export function getFilesForLayer(
   layer: string,
   files: string[],
   layers: LayerConfig[],
-  mappings: LayerMapping[] = [],
+  mappings: LayerMapping[] = []
 ): string[] {
   return files.filter((file) => {
     const resolvedLayer = resolveLayerForFile(file, layers, mappings);
@@ -108,7 +104,7 @@ export function getFilesForLayer(
 export function groupFilesByLayer(
   files: string[],
   layers: LayerConfig[],
-  mappings: LayerMapping[] = [],
+  mappings: LayerMapping[] = []
 ): Map<string, string[]> {
   const grouped = new Map<string, string[]>();
 

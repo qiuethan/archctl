@@ -37,7 +37,7 @@ export function createCustomConfig(projectName: string, entryPoint: string): Arc
 export function createConfigFromTemplate(
   projectName: string,
   templateId: string,
-  entryPoint: string,
+  entryPoint: string
 ): ArchctlConfig {
   const template = getTemplateById(templateId);
 

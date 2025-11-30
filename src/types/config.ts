@@ -2,8 +2,6 @@
  * Configuration types for archctl project config
  */
 
-import type { ProjectRule } from './rules';
-
 /**
  * Discriminated union for rule configurations
  * Each rule type has a 'kind' field that determines which concrete class to instantiate
@@ -105,14 +103,14 @@ export interface LayerMapping {
  */
 export interface ArchctlConfig {
   name: string;
-  
+
   /**
    * Entry point file for the application (relative to project root)
    * Example: "src/index.ts", "src/main.ts", "app.js"
    * Used for code tracing and dependency analysis
    */
   entryPoint?: string;
-  
+
   /**
    * Directories to exclude from dependency analysis
    * Note: Automatically reads from .gitignore if present
@@ -120,10 +118,10 @@ export interface ArchctlConfig {
    * Example: ["tests", "scripts", "docs", "examples"]
    */
   exclude?: string[];
-  
+
   layers: LayerConfig[];
   layerMappings?: LayerMapping[];
-  
+
   /**
    * Concrete rule configurations using discriminated union
    * These are instantiated into BaseRule instances at runtime

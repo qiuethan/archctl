@@ -39,13 +39,11 @@ export function cmdLayers(args: ParsedArgs): void {
 /**
  * List all layers and their mappings
  */
-function cmdLayersList(args: ParsedArgs): void {
-  let configPath: string;
+function cmdLayersList(_args: ParsedArgs): void {
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
-    configPath = result.configPath;
     config = result.config;
   } catch (error) {
     presenter.displayConfigNotFound();
@@ -60,7 +58,7 @@ function cmdLayersList(args: ParsedArgs): void {
 function cmdLayersAdd(args: ParsedArgs): void {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;
@@ -104,7 +102,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
 function cmdLayersMap(args: ParsedArgs): void {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;
@@ -128,9 +126,18 @@ function cmdLayersMap(args: ParsedArgs): void {
     const mappingInput = layersService.parseMappingArguments(
       {
         layerName: typeof args.layer === 'string' ? args.layer : undefined,
-        include: Array.isArray(args.include) || typeof args.include === 'string' ? args.include : undefined,
-        exclude: Array.isArray(args.exclude) || typeof args.exclude === 'string' ? args.exclude : undefined,
-        priority: typeof args.priority === 'string' || typeof args.priority === 'number' ? args.priority : undefined,
+        include:
+          Array.isArray(args.include) || typeof args.include === 'string'
+            ? args.include
+            : undefined,
+        exclude:
+          Array.isArray(args.exclude) || typeof args.exclude === 'string'
+            ? args.exclude
+            : undefined,
+        priority:
+          typeof args.priority === 'string' || typeof args.priority === 'number'
+            ? args.priority
+            : undefined,
       },
       projectRoot,
       currentDir
@@ -157,7 +164,7 @@ function cmdLayersMap(args: ParsedArgs): void {
       } else if (error.message.includes('Missing required argument: --include')) {
         presenter.displayMissingInclude();
       } else if (error.message.startsWith('Layer not found')) {
-        const layerName = error.message.split(': ')[1] || args.layer as string;
+        const layerName = error.message.split(': ')[1] || (args.layer as string);
         presenter.displayLayerNotFound(layerName);
       } else {
         console.error(`Failed to map layer: ${error.message}`);
@@ -173,7 +180,7 @@ function cmdLayersMap(args: ParsedArgs): void {
 export function cmdLayersRemove(args: ParsedArgs): void {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;
@@ -213,7 +220,7 @@ export function cmdLayersRemove(args: ParsedArgs): void {
 export function cmdLayersUnmap(args: ParsedArgs): void {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;

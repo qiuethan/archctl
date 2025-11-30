@@ -33,12 +33,12 @@ export function saveConfig(configPath: string, config: ArchctlConfig): void {
  */
 export function findAndLoadConfig(): { configPath: string; config: ArchctlConfig } {
   const configPath = findConfig();
-  
+
   if (!configPath) {
     throw new Error('No archctl.config.json found. Run `archctl init` first.');
   }
-  
+
   const config = loadConfig(configPath);
-  
+
   return { configPath, config };
 }

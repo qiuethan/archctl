@@ -9,29 +9,29 @@ export interface CyclicDependencyConfig {
  * Uses Tarjan's algorithm to find strongly connected components
  */
 export class CyclicDependencyRule extends BaseRule {
-  constructor(id: string, title: string, description: string, config: CyclicDependencyConfig) {
+  constructor(id: string, title: string, description: string, _config: CyclicDependencyConfig) {
     super(id, title, description);
   }
 
   check(ctx: RuleContext): RuleViolation[] {
     const violations: RuleViolation[] = [];
-    
+
     // Build adjacency list
     const graph = new Map<string, Set<string>>();
     for (const [file] of ctx.files) {
       graph.set(file, new Set());
     }
-    
+
     for (const dep of ctx.dependencies) {
       const fromSet = graph.get(dep.from);
       if (fromSet) {
         fromSet.add(dep.to);
       }
     }
-    
+
     // Find strongly connected components (cycles)
     const cycles = this.findStronglyConnectedComponents(graph);
-    
+
     // Report cycles with more than one node
     for (const cycle of cycles) {
       if (cycle.length > 1) {
@@ -51,7 +51,7 @@ export class CyclicDependencyRule extends BaseRule {
         }
       }
     }
-    
+
     return violations;
   }
 

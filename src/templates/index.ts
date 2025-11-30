@@ -30,7 +30,7 @@ export const TEMPLATES: TemplateDefinition[] = [
  * Automatically generated from TEMPLATES
  */
 export const TEMPLATES_BY_ID: Record<string, TemplateDefinition> = Object.fromEntries(
-  TEMPLATES.map((def) => [def.id, def]),
+  TEMPLATES.map((def) => [def.id, def])
 );
 
 /**
@@ -41,4 +41,3 @@ export const TEMPLATES_BY_ID: Record<string, TemplateDefinition> = Object.fromEn
 export function getTemplateById(id: string): TemplateDefinition | undefined {
   return TEMPLATES_BY_ID[id];
 }
-

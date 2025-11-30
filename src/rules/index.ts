@@ -67,7 +67,7 @@ export const RULE_DEFINITIONS: RuleDefinition[] = [
  * Automatically generated from RULE_DEFINITIONS
  */
 export const RULES_BY_ID: Record<string, RuleDefinition> = Object.fromEntries(
-  RULE_DEFINITIONS.map((def) => [def.id, def]),
+  RULE_DEFINITIONS.map((def) => [def.id, def])
 );
 
 /**
@@ -86,9 +86,7 @@ export function getRuleById(id: string): RuleDefinition | undefined {
  */
 export function getRulesByTags(tags: string[]): RuleDefinition[] {
   const tagSet = new Set(tags);
-  return RULE_DEFINITIONS.filter((rule) =>
-    rule.tags?.some((tag) => tagSet.has(tag)),
-  );
+  return RULE_DEFINITIONS.filter((rule) => rule.tags?.some((tag) => tagSet.has(tag)));
 }
 
 /**

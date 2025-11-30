@@ -25,7 +25,7 @@ export function displayRulesList(rules: RuleConfig[]): void {
   }
 
   console.log(`\nDefined Rules (${rules.length}):\n`);
-  
+
   for (const rule of rules) {
     console.log(`  [${rule.id}]`);
     console.log(`    Type: ${rule.kind}`);

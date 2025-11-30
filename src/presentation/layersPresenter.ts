@@ -1,4 +1,4 @@
-import type { ArchctlConfig, LayerConfig, LayerMapping } from '../types';
+import type { ArchctlConfig, LayerConfig } from '../types';
 import { messages } from '../utils/messages';
 
 /**
@@ -86,7 +86,9 @@ export function displayConfigNotFound(): void {
  * Display error: layer already exists
  */
 export function displayLayerExists(existingLayerName: string): void {
-  console.error(`A layer with the name "${existingLayerName}" already exists. Please choose a different name.`);
+  console.error(
+    `A layer with the name "${existingLayerName}" already exists. Please choose a different name.`
+  );
   console.error(`${messages.layers.add.duplicate} ${existingLayerName}`);
   console.log(messages.layers.add.suggestList);
 }
@@ -113,7 +115,10 @@ export function displayMissingAddArgs(): void {
 /**
  * Display error: preset not found
  */
-export function displayPresetNotFound(presetId: string, availablePresets: Array<{id: string; description: string}>): void {
+export function displayPresetNotFound(
+  presetId: string,
+  availablePresets: Array<{ id: string; description: string }>
+): void {
   console.error(`${messages.layers.add.presetNotFound} ${presetId}`);
   console.log(messages.layers.add.availablePresets);
   availablePresets.forEach((p) => {
@@ -161,12 +166,18 @@ export function displayUnmapSuccess(
 ): void {
   if (result.excludePath) {
     if (result.includePath) {
-      console.log(`✓ Removed exclude "${result.excludePath}" from layer "${result.layerName}" mapping "${result.includePath}"`);
+      console.log(
+        `✓ Removed exclude "${result.excludePath}" from layer "${result.layerName}" mapping "${result.includePath}"`
+      );
     } else {
-      console.log(`✓ Removed exclude "${result.excludePath}" from all "${result.layerName}" mappings`);
+      console.log(
+        `✓ Removed exclude "${result.excludePath}" from all "${result.layerName}" mappings`
+      );
     }
   } else if (result.includePath) {
-    console.log(`✓ Removed mapping for layer "${result.layerName}" with path "${result.includePath}"`);
+    console.log(
+      `✓ Removed mapping for layer "${result.layerName}" with path "${result.includePath}"`
+    );
   } else {
     console.log(`✓ Removed all mappings for layer "${result.layerName}"`);
   }

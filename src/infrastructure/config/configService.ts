@@ -41,6 +41,7 @@ export function saveConfig(configPath: string, config: ArchctlConfig): void {
 export function findConfigFile(startDir: string = process.cwd()): string | null {
   let currentDir = startDir;
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Check in .archctl subdirectory first (preferred location)
     const archctlPath = path.join(currentDir, constants.defaultOutDir, constants.configFileName);

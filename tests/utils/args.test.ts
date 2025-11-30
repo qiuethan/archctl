@@ -73,14 +73,7 @@ describe('parseArgs', () => {
   });
 
   it('should parse complex flag combinations', () => {
-    process.argv = [
-      'node',
-      'cli.js',
-      'init',
-      '--out=config/arch',
-      '--force',
-      '--verbose',
-    ];
+    process.argv = ['node', 'cli.js', 'init', '--out=config/arch', '--force', '--verbose'];
     const { cmd, args } = parseArgs();
 
     expect(cmd).toBe('init');

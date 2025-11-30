@@ -9,8 +9,7 @@ import type { TemplateDefinition } from '../../types/templates';
 export const cleanArchitectureTemplate: TemplateDefinition = {
   id: 'clean-architecture',
   label: 'Clean Architecture',
-  description:
-    'Clean Architecture with domain-centric layers and strict dependency rules.',
+  description: 'Clean Architecture with domain-centric layers and strict dependency rules.',
 
   layers: [
     {

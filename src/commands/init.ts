@@ -41,7 +41,7 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
   });
 
   // Sanitize entry point path if provided
-  const entryPoint = entryPointInput.trim() 
+  const entryPoint = entryPointInput.trim()
     ? sanitizePathForConfig(entryPointInput.trim(), process.cwd())
     : '';
 
@@ -91,4 +91,3 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
 
   presenter.displayInitSuccess(configPath);
 }
-

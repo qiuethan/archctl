@@ -40,7 +40,8 @@ export const javaScanner: ProjectScanner = {
       console.warn(`Failed to parse Java imports in ${file.path}:`, error);
     }
 
-    return { edges };
+    // Satisfy async requirement
+    return await Promise.resolve({ edges });
   },
 };
 
@@ -102,11 +103,7 @@ function buildJavaFileIndex(projectRoot: string): Map<string, string> {
 /**
  * Recursively index Java files in a directory
  */
-function indexJavaFiles(
-  dir: string,
-  projectRoot: string,
-  index: Map<string, string>
-): void {
+function indexJavaFiles(dir: string, projectRoot: string, index: Map<string, string>): void {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -114,7 +111,12 @@ function indexJavaFiles(
 
     if (entry.isDirectory()) {
       // Skip common non-source directories
-      if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'target' || entry.name === 'build') {
+      if (
+        entry.name === 'node_modules' ||
+        entry.name === '.git' ||
+        entry.name === 'target' ||
+        entry.name === 'build'
+      ) {
         continue;
       }
       indexJavaFiles(fullPath, projectRoot, index);
@@ -146,7 +148,7 @@ function extractFQCN(filePath: string): string | null {
   // Try to find the package structure
   // Look for common Java source roots
   const javaRoots = ['src/main/java/', 'src/test/java/', 'src/'];
-  
+
   for (const root of javaRoots) {
     const index = withoutExt.indexOf(root);
     if (index !== -1) {
@@ -163,10 +165,7 @@ function extractFQCN(filePath: string): string | null {
 /**
  * Resolve a Java import to a project-relative file path
  */
-function resolveJavaImport(
-  importName: string,
-  index: Map<string, string>
-): string | null {
+function resolveJavaImport(importName: string, index: Map<string, string>): string | null {
   // Direct lookup in index
   if (index.has(importName)) {
     return index.get(importName) || null;

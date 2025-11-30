@@ -89,14 +89,16 @@ describe('findConfigFile', () => {
 
   it('should return null if no config found', () => {
     // Use a temp directory outside the project to avoid finding the actual config
-    const tempDir = path.join(require('os').tmpdir(), 'archctl-test-no-config');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const os = require('os') as { tmpdir: () => string };
+    const tempDir = path.join(os.tmpdir(), 'archctl-test-no-config');
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
-    
+
     const found = findConfigFile(tempDir);
     expect(found).toBeNull();
-    
+
     // Cleanup
     fs.rmSync(tempDir, { recursive: true, force: true });
   });

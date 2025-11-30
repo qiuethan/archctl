@@ -3,12 +3,7 @@ import * as path from 'path';
 /**
  * Supported language identifiers
  */
-export type LanguageId = 
-  | "typescript" 
-  | "javascript" 
-  | "python" 
-  | "java" 
-  | "other";
+export type LanguageId = 'typescript' | 'javascript' | 'python' | 'java' | 'other';
 
 /**
  * Map of file extensions to language IDs
@@ -17,16 +12,16 @@ const EXTENSION_MAP: Record<string, LanguageId> = {
   // TypeScript
   '.ts': 'typescript',
   '.tsx': 'typescript',
-  
+
   // JavaScript
   '.js': 'javascript',
   '.jsx': 'javascript',
   '.mjs': 'javascript',
   '.cjs': 'javascript',
-  
+
   // Python
   '.py': 'python',
-  
+
   // Java
   '.java': 'java',
 };

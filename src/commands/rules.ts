@@ -17,7 +17,7 @@ export function cmdRules(args: ParsedArgs): void {
       break;
 
     case 'add':
-      cmdRulesAdd(args);
+      void cmdRulesAdd(args);
       break;
 
     case 'remove':
@@ -33,13 +33,11 @@ export function cmdRules(args: ParsedArgs): void {
 /**
  * List all rules
  */
-function cmdRulesList(args: ParsedArgs): void {
-  let configPath: string;
+function cmdRulesList(_args: ParsedArgs): void {
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
-    configPath = result.configPath;
     config = result.config;
   } catch (error) {
     presenter.displayConfigNotFound();
@@ -51,10 +49,10 @@ function cmdRulesList(args: ParsedArgs): void {
 /**
  * Add a custom rule interactively
  */
-async function cmdRulesAdd(args: ParsedArgs): Promise<void> {
+async function cmdRulesAdd(_args: ParsedArgs): Promise<void> {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;
@@ -224,10 +222,10 @@ async function cmdRulesAdd(args: ParsedArgs): Promise<void> {
   // Add rule via service
   try {
     const addedRule = ruleService.addRule(config, { ruleConfig });
-    
+
     // Save config
     configService.saveConfig(configPath, config);
-    
+
     // Display success
     presenter.displayRuleAdded(addedRule, configPath);
   } catch (error) {
@@ -241,10 +239,10 @@ async function cmdRulesAdd(args: ParsedArgs): Promise<void> {
 /**
  * Remove a rule
  */
-function cmdRulesRemove(args: ParsedArgs): void {
+function cmdRulesRemove(_args: ParsedArgs): void {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;
@@ -254,7 +252,7 @@ function cmdRulesRemove(args: ParsedArgs): void {
     process.exit(1);
   }
 
-  const ruleId = args.id as string | undefined;
+  const ruleId = _args.id as string | undefined;
 
   if (!ruleId) {
     console.error('Missing required argument: --id <rule-id>');
@@ -263,10 +261,10 @@ function cmdRulesRemove(args: ParsedArgs): void {
 
   try {
     ruleService.removeRule(config, ruleId);
-    
+
     // Save config
     configService.saveConfig(configPath, config);
-    
+
     // Display success
     presenter.displayRuleRemoved(ruleId, configPath);
   } catch (error) {

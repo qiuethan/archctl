@@ -5,8 +5,7 @@ export const domainNoUIAwarenessRule: RuleDefinition = {
   label: 'Domain must not depend on UI',
   kind: 'dependency',
   defaultSeverity: 'error',
-  description:
-    'The Domain layer must not reference UI-related code. Domain should be UI-agnostic.',
+  description: 'The Domain layer must not reference UI-related code. Domain should be UI-agnostic.',
   defaultConfig: {
     fromLayers: ['domain'],
     toLayersForbidden: ['ui', 'presentation'],

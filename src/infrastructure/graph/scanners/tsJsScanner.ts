@@ -112,7 +112,8 @@ export const tsJsScanner: ProjectScanner = {
       console.warn(`Failed to parse ${file.path}:`, error);
     }
 
-    return { edges };
+    // Satisfy async requirement
+    return await Promise.resolve({ edges });
   },
 };
 
@@ -121,11 +122,7 @@ export const tsJsScanner: ProjectScanner = {
  * Only resolves local imports (relative or absolute within project)
  * Returns null for external modules
  */
-function resolveImport(
-  specifier: string,
-  fromFile: string,
-  projectRoot: string
-): string | null {
+function resolveImport(specifier: string, fromFile: string, projectRoot: string): string | null {
   // Ignore external modules (no leading . or /)
   if (!specifier.startsWith('.') && !specifier.startsWith('/')) {
     return null;

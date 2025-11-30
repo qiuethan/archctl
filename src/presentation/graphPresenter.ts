@@ -1,10 +1,14 @@
-import type { GraphAnalysisResult, GraphReport } from '../services/graphService';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
+import type { GraphAnalysisResult } from '../services/graphService';
 
 /**
  * Display scanning progress
  */
 export function displayScanningStart(): void {
-  console.log('🔍 Scanning project files...');
+  console.log(' Scanning project files...');
 }
 
 /**
@@ -52,13 +56,13 @@ export function displayReportSaved(outputPath: string): void {
  */
 export function displaySummary(result: GraphAnalysisResult): void {
   const { stats } = result;
-  
+
   console.log('\nSummary:');
   console.log(`  Files analyzed: ${stats.fileCount}`);
   console.log(`  Dependencies: ${stats.edgeCount}`);
   console.log(`  Languages: ${Object.keys(stats.languageCounts).join(', ')}`);
-  
-  const layers = Object.keys(stats.layerCounts).filter(l => l !== 'unmapped');
+
+  const layers = Object.keys(stats.layerCounts).filter((l) => l !== 'unmapped');
   if (layers.length > 0) {
     console.log(`  Layers: ${layers.join(', ')}`);
   }

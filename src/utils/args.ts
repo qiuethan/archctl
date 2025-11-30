@@ -47,7 +47,7 @@ export function parseArgs() {
  */
 function addArgValue(args: ParsedArgs, key: string, value: string): void {
   const existing = args[key];
-  
+
   if (existing === undefined || existing === true) {
     // First value for this key
     args[key] = value;

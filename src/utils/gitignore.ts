@@ -8,7 +8,7 @@ import * as path from 'path';
  */
 export function parseGitignore(projectRoot: string): string[] {
   const gitignorePath = path.join(projectRoot, '.gitignore');
-  
+
   if (!fs.existsSync(gitignorePath)) {
     return [];
   }
@@ -22,13 +22,13 @@ export function parseGitignore(projectRoot: string): string[] {
       // Remove comments and trim
       const commentSplit = line.split('#');
       line = (commentSplit[0] || '').trim();
-      
+
       // Skip empty lines
       if (!line) continue;
-      
+
       // Skip negation patterns (!)
       if (line.startsWith('!')) continue;
-      
+
       // Skip file patterns (contains extension or wildcard in filename)
       if (line.includes('*.') || line.includes('.')) {
         // Check if it's a file pattern vs directory pattern
@@ -37,17 +37,17 @@ export function parseGitignore(projectRoot: string): string[] {
           continue; // Skip file patterns
         }
       }
-      
+
       // Extract directory name
       // Remove leading/trailing slashes
       line = line.replace(/^\/+|\/+$/g, '');
-      
+
       // Skip patterns with path separators (we only want top-level dirs)
       if (line.includes('/')) continue;
-      
+
       // Skip glob patterns for now (could be enhanced later)
       if (line.includes('*') || line.includes('?') || line.includes('[')) continue;
-      
+
       // Only add if the directory actually exists
       if (line) {
         const dirPath = path.join(projectRoot, line);

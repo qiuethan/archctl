@@ -9,8 +9,7 @@ import type { TemplateDefinition } from '../../types/templates';
 export const modularMonolithTemplate: TemplateDefinition = {
   id: 'modular-monolith',
   label: 'Modular Monolith',
-  description:
-    'Feature-based modules with clear boundaries and communication contracts.',
+  description: 'Feature-based modules with clear boundaries and communication contracts.',
 
   layers: [
     {

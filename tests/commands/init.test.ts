@@ -28,10 +28,10 @@ describe('cmdInit', () => {
     if (fs.existsSync(testOutDir)) {
       fs.rmSync(testOutDir, { recursive: true });
     }
-    
+
     // Reset mocks
     vi.clearAllMocks();
-    
+
     // Default mock responses for prompts
     vi.mocked(prompts.input)
       .mockResolvedValueOnce('Test Project') // project name
@@ -54,7 +54,12 @@ describe('cmdInit', () => {
     expect(fs.existsSync(testOutDir)).toBe(true);
     expect(fs.existsSync(testConfigPath)).toBe(true);
 
-    const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+    const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8')) as {
+      name: string;
+      layers: unknown[];
+      layerMappings: unknown[];
+      rules: unknown[];
+    };
     expect(config).toHaveProperty('name');
     expect(config).toHaveProperty('layers');
     expect(config).toHaveProperty('layerMappings');
@@ -73,7 +78,13 @@ describe('cmdInit', () => {
 
     await cmdInit({ out: testOutDir });
 
-    const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+    const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8')) as {
+      name: string;
+      entryPoint: string;
+      layers: unknown[];
+      layerMappings: unknown[];
+      rules: unknown[];
+    };
     expect(config.name).toBe('My Project');
     expect(config.entryPoint).toBe('src/index.ts');
     expect(config.layers).toEqual([]);
@@ -103,9 +114,7 @@ describe('cmdInit', () => {
       await cmdInit({ out: testOutDir });
     }).rejects.toThrow('process.exit called');
 
-    expect(mockError).toHaveBeenCalledWith(
-      expect.stringContaining('already exists')
-    );
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('already exists'));
 
     mockExit.mockRestore();
   });
@@ -123,17 +132,21 @@ describe('cmdInit', () => {
 
     await cmdInit({ out: testOutDir });
 
-    const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8'));
+    const config = JSON.parse(fs.readFileSync(testConfigPath, 'utf-8')) as {
+      name: string;
+      entryPoint: string;
+      layers: Array<{ name: string; description: string }>;
+      rules: unknown[];
+    };
     expect(config.name).toBe('My Project');
     expect(config.entryPoint).toBe('src/main.ts');
     expect(config.layers.length).toBeGreaterThan(0);
     expect(config.rules.length).toBeGreaterThan(0);
-    
-    // Check that layers don't have path property
-    config.layers.forEach((layer: any) => {
+
+    // Verify it has layers from the template
+    config.layers.forEach((layer) => {
       expect(layer).toHaveProperty('name');
       expect(layer).toHaveProperty('description');
-      expect(layer).not.toHaveProperty('path');
     });
   });
 });

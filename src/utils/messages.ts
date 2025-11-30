@@ -67,7 +67,7 @@ export const messages = {
 
   // Init Command Messages
   init: {
-    welcome: '🏗️  Welcome to archctl! Let\'s set up your architecture configuration.\n',
+    welcome: "🏗️  Welcome to archctl! Let's set up your architecture configuration.\n",
     success: '✓ Initialized architecture config at:',
     nextStepsHeader: '\n✨ Next steps:',
     nextSteps: [
@@ -75,9 +75,10 @@ export const messages = {
       '  2. Add layer mappings to map file paths to layers',
       '  3. Run `archctl lint` to check your codebase',
     ],
-    alreadyExists: 'already exists. Use --force to overwrite or choose a different --out directory.',
+    alreadyExists:
+      'already exists. Use --force to overwrite or choose a different --out directory.',
     defaultConfigName: 'My Architecture',
-    
+
     // Interactive prompts
     prompts: {
       projectName: 'What is your project name?',
@@ -86,7 +87,7 @@ export const messages = {
       selectTemplate: 'Select an architecture template:',
       customSetup: 'Custom (start from scratch)',
     },
-    
+
     // Template descriptions for selection
     templateDescriptions: {
       none: 'Start with an empty configuration',
@@ -148,7 +149,8 @@ export const messages = {
       layersHeader: '\n📦 Defined Layers:',
       mappingsHeader: '\n🗺️  Layer Mappings:',
       noMappings: 'No layer mappings defined yet.',
-      suggestMap: 'Use `archctl layers map --layer <name> --include <path>` to map files to layers.',
+      suggestMap:
+        'Use `archctl layers map --layer <name> --include <path>` to map files to layers.',
     },
 
     // Add subcommand
@@ -178,16 +180,26 @@ export const messages = {
     help: {
       unknownSubcommand: 'Error: Unknown layers subcommand:',
       availableSubcommands: '\nAvailable subcommands:',
-      listUsage: '  archctl layers list                                          # List all layers and mappings',
-      addUsage: '  archctl layers add --preset <id>                             # Add layer from preset',
-      addCustomUsage: '  archctl layers add --name <name> --description <desc>        # Add custom layer',
-      removeUsage: '  archctl layers remove --layer <name>                         # Remove layer and all mappings',
-      mapUsage: '  archctl layers map --layer <name> --include <path>           # Map files to layer',
-      mapWithExcludeUsage: '  archctl layers map --layer <name> --include <path> --exclude <path>  # Map with exclusions',
-      excludeOnlyUsage: '  archctl layers map --layer <name> --exclude <path>           # Add excludes to all layer mappings',
-      unmapUsage: '  archctl layers unmap --layer <name> [--include <path>]      # Remove mapping(s)',
-      unmapExcludeUsage: '  archctl layers unmap --layer <name> --exclude <path>         # Remove exclude from all layer mappings',
-      unmapSpecificExcludeUsage: '  archctl layers unmap --layer <name> --include <path> --exclude <path>  # Remove specific exclude',
+      listUsage:
+        '  archctl layers list                                          # List all layers and mappings',
+      addUsage:
+        '  archctl layers add --preset <id>                             # Add layer from preset',
+      addCustomUsage:
+        '  archctl layers add --name <name> --description <desc>        # Add custom layer',
+      removeUsage:
+        '  archctl layers remove --layer <name>                         # Remove layer and all mappings',
+      mapUsage:
+        '  archctl layers map --layer <name> --include <path>           # Map files to layer',
+      mapWithExcludeUsage:
+        '  archctl layers map --layer <name> --include <path> --exclude <path>  # Map with exclusions',
+      excludeOnlyUsage:
+        '  archctl layers map --layer <name> --exclude <path>           # Add excludes to all layer mappings',
+      unmapUsage:
+        '  archctl layers unmap --layer <name> [--include <path>]      # Remove mapping(s)',
+      unmapExcludeUsage:
+        '  archctl layers unmap --layer <name> --exclude <path>         # Remove exclude from all layer mappings',
+      unmapSpecificExcludeUsage:
+        '  archctl layers unmap --layer <name> --include <path> --exclude <path>  # Remove specific exclude',
     },
 
     // Common

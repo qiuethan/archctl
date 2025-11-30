@@ -37,7 +37,8 @@ export const pythonScanner: ProjectScanner = {
       console.warn(`Failed to parse Python imports in ${file.path}:`, error);
     }
 
-    return { edges };
+    // Satisfy async requirement
+    return await Promise.resolve({ edges });
   },
 };
 
@@ -83,11 +84,8 @@ function resolvePythonImport(
   // Convert module name to path candidates
   // e.g., "foo.bar" -> ["foo/bar.py", "foo/bar/__init__.py"]
   const modulePath = moduleName.replace(/\./g, path.sep);
-  
-  const candidates = [
-    `${modulePath}.py`,
-    path.join(modulePath, '__init__.py'),
-  ];
+
+  const candidates = [`${modulePath}.py`, path.join(modulePath, '__init__.py')];
 
   // Try resolving from project root
   for (const candidate of candidates) {

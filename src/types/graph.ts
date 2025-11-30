@@ -5,7 +5,7 @@
 /**
  * Type of dependency relationship between files
  */
-export type DependencyKind = "import" | "include" | "other";
+export type DependencyKind = 'import' | 'include' | 'other';
 
 /**
  * A node in the project graph representing a source file
@@ -13,13 +13,13 @@ export type DependencyKind = "import" | "include" | "other";
 export interface ProjectFileNode {
   /** Unique identifier (project-relative path with forward slashes) */
   id: string;
-  
+
   /** Project-relative path (same as id for now) */
   path: string;
-  
+
   /** Programming language of the file */
   language?: string;
-  
+
   /** Architectural layer this file belongs to */
   layer?: string;
 }
@@ -30,16 +30,16 @@ export interface ProjectFileNode {
 export interface DependencyEdge {
   /** Source file id (project-relative path) */
   from: string;
-  
+
   /** Target file id (project-relative path) */
   to: string;
-  
+
   /** Type of dependency */
   kind: DependencyKind;
-  
+
   /** Confidence level (0-1); static scanners should use 0.9-1 */
   confidence: number;
-  
+
   /** Scanner that detected this dependency (e.g., "ts-js-import") */
   source: string;
 }
@@ -50,7 +50,7 @@ export interface DependencyEdge {
 export interface ProjectGraph {
   /** Map of file id to file node */
   files: Record<string, ProjectFileNode>;
-  
+
   /** List of all dependency edges */
   edges: DependencyEdge[];
 }

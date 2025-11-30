@@ -1,5 +1,6 @@
 import type { RuleConfig, ArchctlConfig } from '../types/config';
 import type { RuleContext, RuleViolation, FileInfo, BaseRule } from '../types/rules';
+import type { GraphReport } from './graphService';
 import { ForbiddenLayerImportRule } from '../infrastructure/rules/ForbiddenLayerImportRule';
 import { AllowedLayerImportRule } from '../infrastructure/rules/AllowedLayerImportRule';
 import { FilePatternLayerRule } from '../infrastructure/rules/FilePatternLayerRule';
@@ -34,7 +35,7 @@ export function addRule(config: ArchctlConfig, input: AddRuleInput): RuleConfig 
  */
 export function removeRule(config: ArchctlConfig, ruleId: string): void {
   const index = config.rules.findIndex((r) => r.id === ruleId);
-  
+
   if (index === -1) {
     throw new Error(`Rule with ID "${ruleId}" not found`);
   }
@@ -45,7 +46,11 @@ export function removeRule(config: ArchctlConfig, ruleId: string): void {
 /**
  * Get available rule kinds
  */
-export function getAvailableRuleKinds(): Array<{ value: string; name: string; description: string }> {
+export function getAvailableRuleKinds(): Array<{
+  value: string;
+  name: string;
+  description: string;
+}> {
   return [
     {
       value: 'forbidden-layer-import',
@@ -87,60 +92,35 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
 
     switch (config.kind) {
       case 'forbidden-layer-import':
-        rule = new ForbiddenLayerImportRule(
-          config.id,
-          config.title,
-          config.description,
-          {
-            fromLayer: config.fromLayer,
-            toLayer: config.toLayer,
-          }
-        );
+        rule = new ForbiddenLayerImportRule(config.id, config.title, config.description, {
+          fromLayer: config.fromLayer,
+          toLayer: config.toLayer,
+        });
         break;
 
       case 'allowed-layer-import':
-        rule = new AllowedLayerImportRule(
-          config.id,
-          config.title,
-          config.description,
-          {
-            fromLayer: config.fromLayer,
-            allowedLayers: config.allowedLayers,
-          }
-        );
+        rule = new AllowedLayerImportRule(config.id, config.title, config.description, {
+          fromLayer: config.fromLayer,
+          allowedLayers: config.allowedLayers,
+        });
         break;
 
       case 'file-pattern-layer':
-        rule = new FilePatternLayerRule(
-          config.id,
-          config.title,
-          config.description,
-          {
-            pattern: config.pattern,
-            requiredLayer: config.requiredLayer,
-          }
-        );
+        rule = new FilePatternLayerRule(config.id, config.title, config.description, {
+          pattern: config.pattern,
+          requiredLayer: config.requiredLayer,
+        });
         break;
 
       case 'max-dependencies':
-        rule = new MaxDependenciesRule(
-          config.id,
-          config.title,
-          config.description,
-          {
-            maxDependencies: config.maxDependencies,
-            layer: config.layer,
-          }
-        );
+        rule = new MaxDependenciesRule(config.id, config.title, config.description, {
+          maxDependencies: config.maxDependencies,
+          layer: config.layer,
+        });
         break;
 
       case 'cyclic-dependency':
-        rule = new CyclicDependencyRule(
-          config.id,
-          config.title,
-          config.description,
-          {}
-        );
+        rule = new CyclicDependencyRule(config.id, config.title, config.description, {});
         break;
 
       case 'natural-language':
@@ -148,10 +128,11 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
         console.warn(`Natural language rule "${config.id}" not yet implemented`);
         continue;
 
-      default:
+      default: {
         // TypeScript exhaustiveness check
         const _exhaustive: never = config;
         throw new Error(`Unknown rule kind: ${(_exhaustive as RuleConfig).kind}`);
+      }
     }
 
     rules.push(rule);
@@ -163,17 +144,25 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
 /**
  * Build a rule context from graph analysis results
  */
-export function buildRuleContext(graphAnalysis: any, config: any, projectRoot: string): RuleContext {
+export function buildRuleContext(
+  graphAnalysis: GraphReport,
+  config: ArchctlConfig,
+  projectRoot: string
+): RuleContext {
   const files = new Map<string, FileInfo>();
 
   // Build file info map from graph
-  for (const [filePath, fileData] of Object.entries(graphAnalysis.graph.files)) {
-    const data = fileData as any;
-    
+  const graphFiles = graphAnalysis.graph.files as Record<
+    string,
+    { layer?: string; language?: string; imports?: string[] }
+  >;
+  for (const [filePath, fileData] of Object.entries(graphFiles)) {
+    const data = fileData;
+
     // Count dependencies for this file
-    const dependencyCount = graphAnalysis.graph.edges.filter(
-      (edge: any) => edge.from === filePath
-    ).length;
+    const dependencyCount = (
+      graphAnalysis.graph.edges as Array<{ from: string; to: string }>
+    ).filter((edge) => edge.from === filePath).length;
 
     files.set(filePath, {
       path: filePath,
@@ -186,7 +175,7 @@ export function buildRuleContext(graphAnalysis: any, config: any, projectRoot: s
 
   return {
     files,
-    dependencies: graphAnalysis.graph.edges,
+    dependencies: graphAnalysis.graph.edges as Array<{ from: string; to: string }>,
     layers: config.layers || [],
     layerMappings: config.layerMappings || [],
     projectRoot,
@@ -221,9 +210,9 @@ export function groupViolationsBySeverity(violations: RuleViolation[]): {
   info: RuleViolation[];
 } {
   return {
-    errors: violations.filter(v => v.severity === 'error'),
-    warnings: violations.filter(v => v.severity === 'warning'),
-    info: violations.filter(v => v.severity === 'info'),
+    errors: violations.filter((v) => v.severity === 'error'),
+    warnings: violations.filter((v) => v.severity === 'warning'),
+    info: violations.filter((v) => v.severity === 'info'),
   };
 }
 
@@ -253,7 +242,7 @@ export function getViolationSummary(violations: RuleViolation[]): {
   filesAffected: number;
 } {
   const grouped = groupViolationsBySeverity(violations);
-  const fileSet = new Set(violations.map(v => v.file));
+  const fileSet = new Set(violations.map((v) => v.file));
 
   return {
     total: violations.length,

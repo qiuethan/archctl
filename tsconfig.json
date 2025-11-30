@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    // Where TS looks for source files
-    "rootDir": "./src",
     // Where compiled JS goes
     "outDir": "./dist",
 
@@ -32,5 +30,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

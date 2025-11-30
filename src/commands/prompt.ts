@@ -11,10 +11,10 @@ import { messages } from '../utils/messages';
  * - Include relevant code examples and constraints
  * - Support different prompt templates (feature, refactor, debug)
  */
-export function cmdPrompt(args: ParsedArgs): void {
+export function cmdPrompt(_args: ParsedArgs): void {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;

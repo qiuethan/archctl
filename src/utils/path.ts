@@ -37,7 +37,7 @@ export interface NormalizedPathOptions {
 export function parsePath(inputPath: string, basePath: string = process.cwd()): PathInfo {
   const isAbsolute = path.isAbsolute(inputPath);
   const absolute = isAbsolute ? path.normalize(inputPath) : path.resolve(basePath, inputPath);
-  
+
   let exists = false;
   let isFile: boolean | null = null;
   let isDirectory: boolean | null = null;
@@ -70,14 +70,8 @@ export function parsePath(inputPath: string, basePath: string = process.cwd()): 
  * - Converts to forward slashes if requested
  * - Optionally validates existence
  */
-export function normalizePath(
-  inputPath: string,
-  options: NormalizedPathOptions = {}
-): string {
-  const {
-    basePath = process.cwd(),
-    forwardSlashes = false,
-  } = options;
+export function normalizePath(inputPath: string, options: NormalizedPathOptions = {}): string {
+  const { basePath = process.cwd(), forwardSlashes = false } = options;
 
   const isAbsolute = path.isAbsolute(inputPath);
   let normalized = isAbsolute ? path.normalize(inputPath) : path.resolve(basePath, inputPath);
@@ -108,9 +102,7 @@ export function toRelativePath(
   currentDir: string = process.cwd()
 ): string {
   // First resolve the input path (could be relative to currentDir)
-  const absolutePath = path.isAbsolute(inputPath)
-    ? inputPath
-    : path.resolve(currentDir, inputPath);
+  const absolutePath = path.isAbsolute(inputPath) ? inputPath : path.resolve(currentDir, inputPath);
 
   // Then make it relative to basePath
   const relativePath = path.relative(basePath, absolutePath);
@@ -226,11 +218,9 @@ export function sanitizePathForConfig(
   currentDir: string = process.cwd()
 ): string {
   const relativePath = toRelativePath(inputPath, projectRoot, currentDir);
-  
+
   // Remove leading ./
-  const cleaned = relativePath.startsWith('./') 
-    ? relativePath.substring(2) 
-    : relativePath;
+  const cleaned = relativePath.startsWith('./') ? relativePath.substring(2) : relativePath;
 
   return cleaned;
 }

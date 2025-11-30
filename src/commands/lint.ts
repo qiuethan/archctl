@@ -9,10 +9,10 @@ import { messages } from '../utils/messages';
  * Lint command - enforce architecture rules
  * Analyzes the codebase and checks for rule violations
  */
-export async function cmdLint(args: ParsedArgs): Promise<void> {
+export async function cmdLint(_args: ParsedArgs): Promise<void> {
   let configPath: string;
   let config;
-  
+
   try {
     const result = configService.findAndLoadConfig();
     configPath = result.configPath;
@@ -34,24 +34,22 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
     projectRoot,
     config,
   });
-  
-  const graphAnalysis = graphService.generateGraphReport(
-    result.graph,
-    result.stats,
-    config.name
-  );
-  
-  console.log(`Analyzed ${result.stats.fileCount} file(s) with ${result.stats.edgeCount} dependencies\n`);
+
+  const graphAnalysis = graphService.generateGraphReport(result.graph, result.stats, config.name);
+
+  const fileCount = result.stats.fileCount;
+  const edgeCount = result.stats.edgeCount;
+  console.log(`Analyzed ${fileCount} file(s) with ${edgeCount} dependencies\n`);
 
   // Load and instantiate rules
   const rules = ruleService.createRulesFromConfig(config.rules);
-  
+
   // Build rule context from graph analysis
   const ruleContext = ruleService.buildRuleContext(graphAnalysis, config, projectRoot);
-  
+
   // Check all rules
   const violations = ruleService.checkRules(rules, ruleContext);
-  
+
   // Display results
   if (violations.length === 0) {
     console.log('✅ No rule violations found!');
@@ -64,13 +62,13 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
   console.log(`   Warnings: ${summary.warnings}`);
   console.log(`   Info: ${summary.info}`);
   console.log(`   Files affected: ${summary.filesAffected}`);
-  
+
   // Group by severity and display
   const grouped = ruleService.groupViolationsBySeverity(violations);
-  
+
   if (grouped.errors.length > 0) {
     console.log('\nErrors:');
-    grouped.errors.forEach(v => {
+    grouped.errors.forEach((v) => {
       console.log(`   ${v.file}`);
       console.log(`      ${v.message}`);
       if (v.suggestion) {
@@ -78,10 +76,10 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
       }
     });
   }
-  
+
   if (grouped.warnings.length > 0) {
     console.log('\nWarnings:');
-    grouped.warnings.forEach(v => {
+    grouped.warnings.forEach((v) => {
       console.log(`   ${v.file}`);
       console.log(`      ${v.message}`);
       if (v.suggestion) {
@@ -92,7 +90,7 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
 
   if (grouped.info.length > 0) {
     console.log('\nInformational:');
-    grouped.info.forEach(v => {
+    grouped.info.forEach((v) => {
       console.log(`   ${v.file}`);
       console.log(`      ${v.message}`);
     });
@@ -103,7 +101,7 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
     console.log('\nArchitecture validation failed');
     process.exit(1);
   }
-  
+
   console.log('\nArchitecture validation passed');
   process.exit(0);
 }

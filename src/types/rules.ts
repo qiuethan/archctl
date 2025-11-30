@@ -5,13 +5,7 @@
 /**
  * Rule kinds determine which enforcement engine processes the rule
  */
-export type RuleKind =
-  | 'dependency'
-  | 'location'
-  | 'tests'
-  | 'naming'
-  | 'complexity'
-  | 'semantic';
+export type RuleKind = 'dependency' | 'location' | 'tests' | 'naming' | 'complexity' | 'semantic';
 
 /**
  * Rule severity levels
@@ -96,20 +90,20 @@ export interface FileInfo {
 export interface RuleContext {
   /** All files in the project */
   files: Map<string, FileInfo>;
-  
+
   /** Dependency graph edges */
   dependencies: Array<{ from: string; to: string }>;
-  
+
   /** Layer configuration */
   layers: Array<{ name: string; description: string }>;
-  
+
   /** Layer mappings */
   layerMappings: Array<{
     layer: string;
     include: string[];
     exclude?: string[];
   }>;
-  
+
   /** Project root directory */
   projectRoot: string;
 }
@@ -120,22 +114,22 @@ export interface RuleContext {
 export interface RuleViolation {
   /** Rule ID that was violated */
   ruleId: string;
-  
+
   /** Severity of the violation */
   severity: RuleSeverity;
-  
+
   /** Human-readable message */
   message: string;
-  
+
   /** File where the violation occurred */
   file: string;
-  
+
   /** Optional line number */
   line?: number;
-  
+
   /** Optional suggestion for fixing */
   suggestion?: string;
-  
+
   /** Additional metadata */
   metadata?: Record<string, unknown>;
 }
