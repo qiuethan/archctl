@@ -1,0 +1,45 @@
+{
+  "name": "archctl-vscode",
+  "displayName": "Archctl",
+  "description": "Architecture rules enforcement for VS Code",
+  "version": "0.1.0",
+  "publisher": "archctl",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:archctl.runCheck",
+    "workspaceContains:.archctl/archctl.config.json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "archctl.runCheck",
+        "title": "Archctl: Run Architecture Check"
+      },
+      {
+        "command": "archctl.clearDiagnostics",
+        "title": "Archctl: Clear Diagnostics"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
