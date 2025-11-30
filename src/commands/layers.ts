@@ -40,14 +40,17 @@ export function cmdLayers(args: ParsedArgs): void {
  * List all layers and their mappings
  */
 function cmdLayersList(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
-
-  const config = configService.loadConfig(configPath);
   presenter.displayLayersList(config);
 }
 
@@ -55,14 +58,17 @@ function cmdLayersList(args: ParsedArgs): void {
  * Add a new layer to the configuration
  */
 function cmdLayersAdd(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
-
-  const config = configService.loadConfig(configPath);
 
   try {
     const newLayer = layersService.addLayer(config, {
@@ -85,7 +91,7 @@ function cmdLayersAdd(args: ParsedArgs): void {
       } else if (error.message.includes('Must provide')) {
         presenter.displayMissingAddArgs();
       } else {
-        console.error(error.message);
+        console.error(`Failed to add layer: ${error.message}`);
       }
     }
     process.exit(1);
@@ -96,9 +102,14 @@ function cmdLayersAdd(args: ParsedArgs): void {
  * Map files/folders to a layer
  */
 function cmdLayersMap(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
@@ -111,8 +122,6 @@ function cmdLayersMap(args: ParsedArgs): void {
     presenter.displayMustRunFromProject(projectRoot, currentDir);
     process.exit(1);
   }
-
-  const config = configService.loadConfig(configPath);
 
   try {
     // Parse and validate arguments (service layer)
@@ -151,7 +160,7 @@ function cmdLayersMap(args: ParsedArgs): void {
         const layerName = error.message.split(': ')[1] || args.layer as string;
         presenter.displayLayerNotFound(layerName);
       } else {
-        console.error(error.message);
+        console.error(`Failed to map layer: ${error.message}`);
       }
     }
     process.exit(1);
@@ -162,18 +171,21 @@ function cmdLayersMap(args: ParsedArgs): void {
  * Remove a layer
  */
 export function cmdLayersRemove(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = configService.loadConfig(configPath);
-
   // Validate required arguments
   if (!args.layer) {
-    console.error('Error: Missing required argument --layer');
+    console.error('Missing required argument: --layer <name>');
     process.exit(1);
   }
 
@@ -185,11 +197,10 @@ export function cmdLayersRemove(args: ParsedArgs): void {
     // Save config
     configService.saveConfig(configPath, config);
 
-    console.log(`✓ Removed layer "${layerName}" and all its mappings`);
-    console.log(`✓ Config saved to: ${configPath}`);
+    presenter.displayLayerRemoved(layerName, configPath);
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
+      console.error(`Failed to remove layer: ${error.message}`);
     }
     process.exit(1);
   }
@@ -200,14 +211,17 @@ export function cmdLayersRemove(args: ParsedArgs): void {
  * Can remove entire mappings, or just exclude patterns
  */
 export function cmdLayersUnmap(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
-
-  const config = configService.loadConfig(configPath);
 
   try {
     // Service layer handles validation and business logic
@@ -225,7 +239,7 @@ export function cmdLayersUnmap(args: ParsedArgs): void {
     presenter.displayUnmapSuccess(result, configPath);
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
+      console.error(`Failed to unmap layer: ${error.message}`);
     }
     process.exit(1);
   }

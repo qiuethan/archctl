@@ -79,13 +79,14 @@ export function displayLayerMapped(
  * Display error: config not found
  */
 export function displayConfigNotFound(): void {
-  console.error(messages.layers.common.configNotFound);
+  console.error('Configuration file not found. Run `archctl init` to initialize.');
 }
 
 /**
  * Display error: layer already exists
  */
 export function displayLayerExists(existingLayerName: string): void {
+  console.error(`A layer with the name "${existingLayerName}" already exists. Please choose a different name.`);
   console.error(`${messages.layers.add.duplicate} ${existingLayerName}`);
   console.log(messages.layers.add.suggestList);
 }
@@ -138,9 +139,17 @@ export function displayMissingInclude(): void {
  * Display error: must run from within project
  */
 export function displayMustRunFromProject(projectRoot: string, currentDir: string): void {
-  console.error('Error: Must run this command from within the project directory.');
+  console.error('Command must be run from within the project directory.');
   console.error(`Project root: ${projectRoot}`);
   console.error(`Current directory: ${currentDir}`);
+}
+
+/**
+ * Display success message for layer removal
+ */
+export function displayLayerRemoved(layerName: string, configPath: string): void {
+  console.log(`\n✓ Removed layer "${layerName}" and all its mappings`);
+  console.log(`${messages.layers.common.configSaved} ${configPath}`);
 }
 
 /**

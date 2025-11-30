@@ -14,7 +14,7 @@ export function displayRuleAdded(rule: RuleConfig, configPath: string): void {
 
 export function displayRuleRemoved(ruleId: string, configPath: string): void {
   console.log(`\n✓ Removed rule "${ruleId}"`);
-  console.log(`✓ Config saved to: ${configPath}`);
+  console.log(`✓ Configuration saved to: ${configPath}`);
 }
 
 export function displayRulesList(rules: RuleConfig[]): void {
@@ -24,7 +24,7 @@ export function displayRulesList(rules: RuleConfig[]): void {
     return;
   }
 
-  console.log(`\n📋 Defined Rules (${rules.length}):\n`);
+  console.log(`\nDefined Rules (${rules.length}):\n`);
   
   for (const rule of rules) {
     console.log(`  [${rule.id}]`);
@@ -36,11 +36,11 @@ export function displayRulesList(rules: RuleConfig[]): void {
 }
 
 export function displayConfigNotFound(): void {
-  console.error('Error: No config file found. Run `archctl init` first.');
+  console.error('Configuration file not found. Run `archctl init` to initialize.');
 }
 
 export function displayUnknownSubcommand(subcommand: string | undefined): void {
-  console.error(`Error: Unknown rules subcommand: ${subcommand || '(none)'}`);
+  console.error(`Unknown subcommand: ${subcommand || '(none)'}`);
   console.log('\nAvailable subcommands:');
   console.log('  archctl rules list                    # List all rules');
   console.log('  archctl rules add                     # Add a custom rule (interactive)');

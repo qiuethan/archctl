@@ -34,14 +34,17 @@ export function cmdRules(args: ParsedArgs): void {
  * List all rules
  */
 function cmdRulesList(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
-
-  const config = configService.loadConfig(configPath);
   presenter.displayRulesList(config.rules);
 }
 
@@ -49,16 +52,19 @@ function cmdRulesList(args: ParsedArgs): void {
  * Add a custom rule interactively
  */
 async function cmdRulesAdd(args: ParsedArgs): Promise<void> {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = configService.loadConfig(configPath);
-
-  console.log('🔧 Add a custom architecture rule\n');
+  console.log('Add Custom Architecture Rule\n');
 
   // Select rule type
   const ruleKinds = ruleService.getAvailableRuleKinds();
@@ -226,7 +232,7 @@ async function cmdRulesAdd(args: ParsedArgs): Promise<void> {
     presenter.displayRuleAdded(addedRule, configPath);
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
+      console.error(`Failed to add rule: ${error.message}`);
     }
     process.exit(1);
   }
@@ -236,19 +242,22 @@ async function cmdRulesAdd(args: ParsedArgs): Promise<void> {
  * Remove a rule
  */
 function cmdRulesRemove(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     presenter.displayConfigNotFound();
     process.exit(1);
   }
 
-  const config = configService.loadConfig(configPath);
-
   const ruleId = args.id as string | undefined;
 
   if (!ruleId) {
-    console.error('Error: Must provide --id <rule-id>');
+    console.error('Missing required argument: --id <rule-id>');
     process.exit(1);
   }
 
@@ -262,7 +271,7 @@ function cmdRulesRemove(args: ParsedArgs): void {
     presenter.displayRuleRemoved(ruleId, configPath);
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
+      console.error(`Failed to add rule: ${error.message}`);
     }
     process.exit(1);
   }

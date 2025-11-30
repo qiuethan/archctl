@@ -24,12 +24,12 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
 
   const projectRoot = path.dirname(path.dirname(configPath));
 
-  console.log(`📋 Found config: ${configPath}`);
-  console.log(`📦 Project: ${config.name}`);
-  console.log(`🔍 Checking ${config.rules.length} rules...\n`);
+  console.log(`Configuration: ${configPath}`);
+  console.log(`Project: ${config.name}`);
+  console.log(`Checking ${config.rules.length} architecture rule(s)...\n`);
 
   // Build dependency graph
-  console.log('🔨 Building dependency graph...');
+  console.log('Analyzing project dependencies...');
   const result = await graphService.analyzeProjectGraph({
     projectRoot,
     config,
@@ -41,7 +41,7 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
     config.name
   );
   
-  console.log(`✅ Analyzed ${result.stats.fileCount} files, ${result.stats.edgeCount} dependencies\n`);
+  console.log(`Analyzed ${result.stats.fileCount} file(s) with ${result.stats.edgeCount} dependencies\n`);
 
   // Load and instantiate rules
   const rules = ruleService.createRulesFromConfig(config.rules);
@@ -69,7 +69,7 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
   const grouped = ruleService.groupViolationsBySeverity(violations);
   
   if (grouped.errors.length > 0) {
-    console.log('\n❌ Errors:');
+    console.log('\nErrors:');
     grouped.errors.forEach(v => {
       console.log(`   ${v.file}`);
       console.log(`      ${v.message}`);
@@ -80,7 +80,7 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
   }
   
   if (grouped.warnings.length > 0) {
-    console.log('\n⚠️  Warnings:');
+    console.log('\nWarnings:');
     grouped.warnings.forEach(v => {
       console.log(`   ${v.file}`);
       console.log(`      ${v.message}`);
@@ -91,7 +91,7 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
   }
 
   if (grouped.info.length > 0) {
-    console.log('\nℹ️  Info:');
+    console.log('\nInformational:');
     grouped.info.forEach(v => {
       console.log(`   ${v.file}`);
       console.log(`      ${v.message}`);
@@ -100,10 +100,10 @@ export async function cmdLint(args: ParsedArgs): Promise<void> {
 
   // Exit with error code if there are errors
   if (grouped.errors.length > 0) {
-    console.log('\n❌ Linting failed due to errors');
+    console.log('\nArchitecture validation failed');
     process.exit(1);
   }
   
-  console.log('\n✅ Linting passed (warnings only)');
+  console.log('\nArchitecture validation passed');
   process.exit(0);
 }

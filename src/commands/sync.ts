@@ -11,9 +11,14 @@ import { messages } from '../utils/messages';
  * - Sync with external tools (ADRs, wikis, etc.)
  */
 export function cmdSync(args: ParsedArgs): void {
-  const configPath = configService.findConfig();
-
-  if (!configPath) {
+  let configPath: string;
+  let config;
+  
+  try {
+    const result = configService.findAndLoadConfig();
+    configPath = result.configPath;
+    config = result.config;
+  } catch (error) {
     console.error(messages.common.noConfigFound);
     process.exit(1);
   }
