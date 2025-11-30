@@ -37,11 +37,14 @@ describe('Template Library', () => {
       });
     });
 
-    it('should have valid rule references in each template', () => {
+    it('should have valid rule configs in each template', () => {
       TEMPLATES.forEach((template) => {
-        template.rules.forEach((ruleRef) => {
-          expect(ruleRef.ruleId).toBeTruthy();
-          expect(typeof ruleRef.ruleId).toBe('string');
+        template.rules.forEach((ruleConfig) => {
+          expect(ruleConfig.kind).toBeTruthy();
+          expect(typeof ruleConfig.kind).toBe('string');
+          expect(ruleConfig.id).toBeTruthy();
+          expect(ruleConfig.title).toBeTruthy();
+          expect(ruleConfig.description).toBeTruthy();
         });
       });
     });
@@ -106,30 +109,36 @@ describe('Template Library', () => {
     });
   });
 
-  describe('Template Rule References', () => {
-    it('should reference valid rule IDs', () => {
-      // This test ensures templates reference rules that exist
-      // In a real implementation, you'd import RULES_BY_ID and validate
+  describe('Template Rule Configs', () => {
+    it('should have valid rule kinds', () => {
       const template = getTemplateById('clean-architecture');
       expect(template).toBeDefined();
       expect(template?.rules.length).toBeGreaterThan(0);
 
-      template?.rules.forEach((ruleRef) => {
-        expect(ruleRef.ruleId).toMatch(/^[a-z-]+$/);
+      const validKinds = [
+        'forbidden-layer-import',
+        'allowed-layer-import',
+        'file-pattern-layer',
+        'max-dependencies',
+        'cyclic-dependency',
+      ];
+
+      template?.rules.forEach((ruleConfig) => {
+        expect(validKinds).toContain(ruleConfig.kind);
+        expect(ruleConfig.id).toMatch(/^[a-z-]+$/);
       });
     });
 
-    it('should have proper severity overrides when specified', () => {
+    it('should have proper rule structure', () => {
       const template = getTemplateById('clean-architecture');
-      const ruleWithOverride = template?.rules.find(
-        (r) => r.severityOverride !== undefined,
-      );
-
-      if (ruleWithOverride) {
-        expect(['info', 'warning', 'error']).toContain(
-          ruleWithOverride.severityOverride,
-        );
-      }
+      
+      template?.rules.forEach((ruleConfig) => {
+        // All rules must have these fields
+        expect(ruleConfig.kind).toBeTruthy();
+        expect(ruleConfig.id).toBeTruthy();
+        expect(ruleConfig.title).toBeTruthy();
+        expect(ruleConfig.description).toBeTruthy();
+      });
     });
   });
 });
