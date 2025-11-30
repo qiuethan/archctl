@@ -1,6 +1,5 @@
-import type { ArchctlConfig, ProjectRule } from '../types';
+import type { ArchctlConfig } from '../types';
 import { TEMPLATES, getTemplateById } from '../templates';
-import { RULES_BY_ID } from '../rules';
 
 /**
  * Application service for initialization logic
@@ -46,32 +45,7 @@ export function createConfigFromTemplate(
     throw new Error(`Template not found: ${templateId}`);
   }
 
-  // Convert template rules to project rules
-  const rules: ProjectRule[] = template.rules
-    .map((ruleRef) => {
-      const ruleDef = RULES_BY_ID[ruleRef.ruleId];
-      if (!ruleDef) {
-        console.warn(`Warning: Rule "${ruleRef.ruleId}" not found in rule library`);
-        return null;
-      }
-
-      const projectRule: ProjectRule = {
-        id: ruleRef.ruleId,
-        kind: ruleDef.kind,
-        enabled: ruleRef.enabled ?? true,
-        severity: ruleRef.severityOverride ?? ruleDef.defaultSeverity,
-        description: ruleDef.description,
-        config: {
-          ...ruleDef.defaultConfig,
-          ...(ruleRef.configOverride ?? {}),
-        },
-        sourceRuleId: ruleDef.id,
-        sourceTemplateId: template.id,
-      };
-      return projectRule;
-    })
-    .filter((rule): rule is ProjectRule => rule !== null);
-
+  // Templates now provide concrete RuleConfig objects directly
   const config: ArchctlConfig = {
     name: projectName,
     exclude: ['node_modules', '.git', 'dist', 'build', 'target', '.archctl', 'coverage'],
@@ -80,7 +54,7 @@ export function createConfigFromTemplate(
       description: layer.description,
     })),
     layerMappings: [],
-    rules,
+    rules: template.rules, // Direct copy of RuleConfig objects
   };
 
   if (entryPoint) {

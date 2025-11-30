@@ -6,7 +6,7 @@
 export type { RuleKind, RuleSeverity, RuleDefinition, ProjectRule } from './rules';
 
 // Re-export template types from templates module
-export type { TemplateDefinition, TemplateLayer, TemplateRuleRef } from './templates';
+export type { TemplateDefinition, TemplateLayer } from './templates';
 
 // Re-export config types from config module
 export type { LayerConfig, LayerMapping, ArchctlConfig } from './config';

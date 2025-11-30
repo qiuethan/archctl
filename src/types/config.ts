@@ -5,6 +5,66 @@
 import type { ProjectRule } from './rules';
 
 /**
+ * Discriminated union for rule configurations
+ * Each rule type has a 'kind' field that determines which concrete class to instantiate
+ */
+
+export interface ForbiddenLayerImportRuleConfig {
+  kind: 'forbidden-layer-import';
+  id: string;
+  title: string;
+  description: string;
+  fromLayer: string;
+  toLayer: string;
+}
+
+export interface AllowedLayerImportRuleConfig {
+  kind: 'allowed-layer-import';
+  id: string;
+  title: string;
+  description: string;
+  fromLayer: string;
+  allowedLayers: string[];
+}
+
+export interface FilePatternLayerRuleConfig {
+  kind: 'file-pattern-layer';
+  id: string;
+  title: string;
+  description: string;
+  pattern: string;
+  requiredLayer: string;
+}
+
+export interface MaxDependenciesRuleConfig {
+  kind: 'max-dependencies';
+  id: string;
+  title: string;
+  description: string;
+  maxDependencies: number;
+  layer?: string;
+}
+
+export interface NaturalLanguageRuleConfig {
+  kind: 'natural-language';
+  id: string;
+  title: string;
+  description: string;
+  prompt: string;
+  severity?: 'info' | 'warning' | 'error';
+}
+
+/**
+ * Discriminated union of all rule config types
+ */
+export type RuleConfig =
+  | ForbiddenLayerImportRuleConfig
+  | AllowedLayerImportRuleConfig
+  | FilePatternLayerRuleConfig
+  | MaxDependenciesRuleConfig
+  | NaturalLanguageRuleConfig;
+
+/**
  * Conceptual layer definition (no file paths)
  */
 export interface LayerConfig {
@@ -55,5 +115,10 @@ export interface ArchctlConfig {
   
   layers: LayerConfig[];
   layerMappings?: LayerMapping[];
-  rules: ProjectRule[];
+  
+  /**
+   * Concrete rule configurations using discriminated union
+   * These are instantiated into BaseRule instances at runtime
+   */
+  rules: RuleConfig[];
 }

@@ -28,28 +28,49 @@ export const modularMonolithTemplate: TemplateDefinition = {
   ],
 
   rules: [
+    // Features can only import from shared and themselves
     {
-      ruleId: 'no-feature-crosstalk',
-      enabled: true,
-      severityOverride: 'error',
+      kind: 'allowed-layer-import',
+      id: 'features-dependencies',
+      title: 'Feature Module Dependencies',
+      description: 'Feature modules can only import from shared layer and themselves',
+      fromLayer: 'features',
+      allowedLayers: ['shared', 'features'],
     },
+    // Shared layer isolation
     {
-      ruleId: 'no-business-logic-in-controllers',
-      enabled: true,
+      kind: 'allowed-layer-import',
+      id: 'shared-isolation',
+      title: 'Shared Layer Isolation',
+      description: 'Shared layer can only import from shared',
+      fromLayer: 'shared',
+      allowedLayers: ['shared'],
     },
+    // API layer dependencies
     {
-      ruleId: 'limit-public-api-exposure',
-      enabled: true,
-      severityOverride: 'error',
+      kind: 'allowed-layer-import',
+      id: 'api-dependencies',
+      title: 'API Layer Dependencies',
+      description: 'API layer can import from features and shared',
+      fromLayer: 'api',
+      allowedLayers: ['features', 'shared', 'api'],
     },
+    // Keep modules small
     {
-      ruleId: 'no-cyclic-dependencies',
-      enabled: true,
+      kind: 'max-dependencies',
+      id: 'max-deps-features',
+      title: 'Max Dependencies in Features',
+      description: 'Feature files should have at most 12 dependencies',
+      maxDependencies: 12,
+      layer: 'features',
     },
+    // Global dependency limit
     {
-      ruleId: 'domain-events-usage',
-      enabled: true,
-      severityOverride: 'warning',
+      kind: 'max-dependencies',
+      id: 'max-deps-global',
+      title: 'Max Dependencies Global',
+      description: 'No file should have more than 20 dependencies',
+      maxDependencies: 20,
     },
   ],
 };

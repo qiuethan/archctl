@@ -32,38 +32,67 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
   ],
 
   rules: [
+    // Domain layer isolation - can only import from domain
     {
-      ruleId: 'no-infrastructure-to-domain',
-      enabled: true,
+      kind: 'allowed-layer-import',
+      id: 'domain-isolation',
+      title: 'Domain Layer Isolation',
+      description: 'Domain layer can only import from domain layer (pure domain)',
+      fromLayer: 'domain',
+      allowedLayers: ['domain'],
     },
+    // Application layer dependencies
     {
-      ruleId: 'domain-no-ui-awareness',
-      enabled: true,
+      kind: 'allowed-layer-import',
+      id: 'application-dependencies',
+      title: 'Application Layer Dependencies',
+      description: 'Application layer can import from domain, infrastructure, and shared',
+      fromLayer: 'application',
+      allowedLayers: ['domain', 'infrastructure', 'shared', 'application'],
     },
+    // Infrastructure layer dependencies
     {
-      ruleId: 'no-domain-exposure-via-dtos',
-      enabled: true,
+      kind: 'allowed-layer-import',
+      id: 'infrastructure-dependencies',
+      title: 'Infrastructure Layer Dependencies',
+      description: 'Infrastructure layer can import from domain, shared, and infrastructure',
+      fromLayer: 'infrastructure',
+      allowedLayers: ['domain', 'shared', 'infrastructure'],
     },
+    // Presentation layer dependencies
     {
-      ruleId: 'no-business-logic-in-controllers',
-      enabled: true,
+      kind: 'allowed-layer-import',
+      id: 'presentation-dependencies',
+      title: 'Presentation Layer Dependencies',
+      description: 'Presentation layer can import from application, domain, and shared',
+      fromLayer: 'presentation',
+      allowedLayers: ['application', 'domain', 'shared', 'presentation'],
     },
+    // Shared layer isolation
     {
-      ruleId: 'aggregate-root-only-mutation',
-      enabled: true,
+      kind: 'allowed-layer-import',
+      id: 'shared-isolation',
+      title: 'Shared Layer Isolation',
+      description: 'Shared layer can only import from domain and shared',
+      fromLayer: 'shared',
+      allowedLayers: ['domain', 'shared'],
     },
+    // Keep domain files modular
     {
-      ruleId: 'domain-models-immutable',
-      enabled: true,
-      severityOverride: 'error',
+      kind: 'max-dependencies',
+      id: 'max-deps-domain',
+      title: 'Max Dependencies in Domain',
+      description: 'Domain files should have at most 10 dependencies to maintain modularity',
+      maxDependencies: 10,
+      layer: 'domain',
     },
+    // Global dependency limit
     {
-      ruleId: 'domain-events-usage',
-      enabled: true,
-    },
-    {
-      ruleId: 'no-cyclic-dependencies',
-      enabled: true,
+      kind: 'max-dependencies',
+      id: 'max-deps-global',
+      title: 'Max Dependencies Global',
+      description: 'No file should have more than 20 dependencies',
+      maxDependencies: 20,
     },
   ],
 };

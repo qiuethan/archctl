@@ -126,33 +126,32 @@ export function addLayerMapping(
     input.includePaths
   );
 
-  // Check for existing mappings and merge if found
+  // Check for existing mapping for this layer
   if (config.layerMappings) {
-    for (const existingMapping of config.layerMappings) {
-      if (existingMapping.layer === input.layerName) {
-        // Check if any include path already exists
-        for (const includePath of processedIncludes) {
-          if (existingMapping.include.includes(includePath)) {
-            // Merge excludes instead of throwing error
-            if (processedExcludes && processedExcludes.length > 0) {
-              const currentExcludes = existingMapping.exclude || [];
-              const mergedExcludes = [...new Set([...currentExcludes, ...processedExcludes])];
-              existingMapping.exclude = mergedExcludes;
-            }
-            
-            // Update priority if provided
-            if (input.priority !== undefined && !isNaN(input.priority)) {
-              existingMapping.priority = input.priority;
-            }
-            
-            return existingMapping; // Return the updated mapping
-          }
-        }
+    const existingMapping = config.layerMappings.find(m => m.layer === input.layerName);
+    
+    if (existingMapping) {
+      // Merge new includes into existing mapping
+      const mergedIncludes = [...new Set([...existingMapping.include, ...processedIncludes])];
+      existingMapping.include = mergedIncludes;
+      
+      // Merge excludes if provided
+      if (processedExcludes && processedExcludes.length > 0) {
+        const currentExcludes = existingMapping.exclude || [];
+        const mergedExcludes = [...new Set([...currentExcludes, ...processedExcludes])];
+        existingMapping.exclude = mergedExcludes;
       }
+      
+      // Update priority if provided
+      if (input.priority !== undefined && !isNaN(input.priority)) {
+        existingMapping.priority = input.priority;
+      }
+      
+      return existingMapping;
     }
   }
 
-  // Create new layer mapping (no duplicate found)
+  // Create new layer mapping (no existing mapping for this layer)
   const mapping: LayerMapping = {
     layer: input.layerName,
     include: processedIncludes,
