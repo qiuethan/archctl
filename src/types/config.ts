@@ -59,6 +59,15 @@ export interface CyclicDependencyRuleConfig {
   description: string;
 }
 
+export interface ExternalDependencyRuleConfig {
+  kind: 'external-dependency';
+  id: string;
+  title: string;
+  description: string;
+  allowedPackages: string[];
+  layer?: string;
+}
+
 /**
  * Discriminated union of all rule config types
  */
@@ -68,6 +77,7 @@ export type RuleConfig =
   | FilePatternLayerRuleConfig
   | MaxDependenciesRuleConfig
   | CyclicDependencyRuleConfig
+  | ExternalDependencyRuleConfig
   | NaturalLanguageRuleConfig;
 
 /**

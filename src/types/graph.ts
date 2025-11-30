@@ -22,6 +22,9 @@ export interface ProjectFileNode {
 
   /** Architectural layer this file belongs to */
   layer?: string;
+
+  /** External library imports (e.g., npm packages, pip modules) */
+  imports?: string[];
 }
 
 /**

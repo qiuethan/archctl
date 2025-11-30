@@ -1,0 +1,78 @@
+{
+  "name": "Example Project with External Dependency Rule",
+  "entryPoint": "src/index.ts",
+  "layers": [
+    {
+      "name": "domain",
+      "description": "Core business logic"
+    },
+    {
+      "name": "infrastructure",
+      "description": "External integrations and persistence"
+    },
+    {
+      "name": "presentation",
+      "description": "UI and API layer"
+    }
+  ],
+  "layerMappings": [
+    {
+      "layer": "domain",
+      "include": ["src/domain/**"]
+    },
+    {
+      "layer": "infrastructure",
+      "include": ["src/infrastructure/**"]
+    },
+    {
+      "layer": "presentation",
+      "include": ["src/presentation/**", "src/api/**"]
+    }
+  ],
+  "rules": [
+    {
+      "kind": "external-dependency",
+      "id": "domain-no-external-deps",
+      "title": "Domain Layer - No External Dependencies",
+      "description": "Domain layer should not import any external libraries to maintain purity",
+      "allowedPackages": [],
+      "layer": "domain"
+    },
+    {
+      "kind": "external-dependency",
+      "id": "infrastructure-allowed-deps",
+      "title": "Infrastructure Layer - Allowed External Dependencies",
+      "description": "Infrastructure layer can only use approved external libraries",
+      "allowedPackages": [
+        "axios",
+        "pg",
+        "mongodb",
+        "redis",
+        "aws-sdk"
+      ],
+      "layer": "infrastructure"
+    },
+    {
+      "kind": "external-dependency",
+      "id": "global-allowed-deps",
+      "title": "Global - Allowed External Dependencies",
+      "description": "All files can only import from this approved list of packages",
+      "allowedPackages": [
+        "react",
+        "react-dom",
+        "express",
+        "axios",
+        "lodash",
+        "date-fns",
+        "zod",
+        "pg",
+        "mongodb",
+        "redis",
+        "aws-sdk",
+        "@types/node",
+        "@types/react",
+        "@types/express"
+      ]
+    }
+  ]
+}

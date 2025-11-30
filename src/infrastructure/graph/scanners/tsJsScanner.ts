@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
 import type { ProjectScanner, FileInfo, ScanResult } from '../../../types/scanner';
-import type { DependencyEdge } from '../../../types/graph';
+import type { DependencyEdge, ProjectFileNode } from '../../../types/graph';
 import { toForwardSlashes } from '../../../utils/path';
 
 /**
@@ -18,6 +18,7 @@ export const tsJsScanner: ProjectScanner = {
 
   async scan(file: FileInfo, context: { projectRoot: string }): Promise<ScanResult> {
     const edges: DependencyEdge[] = [];
+    const externalImports: string[] = [];
 
     try {
       // Parse the file using TypeScript compiler API
@@ -44,6 +45,12 @@ export const tsJsScanner: ProjectScanner = {
                 confidence: 0.99,
                 source: 'ts-js-import',
               });
+            } else if (isExternalModule(importPath)) {
+              // Track external imports
+              const packageName = extractPackageName(importPath);
+              if (packageName && !externalImports.includes(packageName)) {
+                externalImports.push(packageName);
+              }
             }
           }
         }
@@ -61,6 +68,12 @@ export const tsJsScanner: ProjectScanner = {
                 confidence: 0.99,
                 source: 'ts-js-import',
               });
+            } else if (isExternalModule(importPath)) {
+              // Track external imports
+              const packageName = extractPackageName(importPath);
+              if (packageName && !externalImports.includes(packageName)) {
+                externalImports.push(packageName);
+              }
             }
           }
         }
@@ -80,6 +93,12 @@ export const tsJsScanner: ProjectScanner = {
                   confidence: 0.98,
                   source: 'ts-js-import',
                 });
+              } else if (isExternalModule(importPath)) {
+                // Track external imports
+                const packageName = extractPackageName(importPath);
+                if (packageName && !externalImports.includes(packageName)) {
+                  externalImports.push(packageName);
+                }
               }
             }
           }
@@ -98,6 +117,12 @@ export const tsJsScanner: ProjectScanner = {
                   confidence: 0.98,
                   source: 'ts-js-import',
                 });
+              } else if (isExternalModule(importPath)) {
+                // Track external imports
+                const packageName = extractPackageName(importPath);
+                if (packageName && !externalImports.includes(packageName)) {
+                  externalImports.push(packageName);
+                }
               }
             }
           }
@@ -113,6 +138,21 @@ export const tsJsScanner: ProjectScanner = {
     }
 
     // Satisfy async requirement
+    if (externalImports.length > 0) {
+      const node: ProjectFileNode = {
+        id: file.path,
+        path: file.path,
+        imports: externalImports,
+      };
+      if (file.language) {
+        node.language = file.language;
+      }
+      return await Promise.resolve({
+        edges,
+        nodes: [node],
+      });
+    }
+
     return await Promise.resolve({ edges });
   },
 };
@@ -189,4 +229,37 @@ function tryResolveFile(basePath: string): string | null {
   }
 
   return null;
+}
+
+/**
+ * Check if an import specifier is an external module
+ */
+function isExternalModule(specifier: string): boolean {
+  // External modules don't start with . or /
+  return !specifier.startsWith('.') && !specifier.startsWith('/');
+}
+
+/**
+ * Extract the package name from an import specifier
+ * Examples:
+ * - 'react' -> 'react'
+ * - 'react/jsx-runtime' -> 'react'
+ * - '@types/node' -> '@types/node'
+ * - '@babel/core/lib/config' -> '@babel/core'
+ */
+function extractPackageName(specifier: string): string | null {
+  if (!specifier) return null;
+
+  // Handle scoped packages (@scope/package)
+  if (specifier.startsWith('@')) {
+    const parts = specifier.split('/');
+    if (parts.length >= 2) {
+      return `${parts[0]}/${parts[1]}`;
+    }
+    return specifier;
+  }
+
+  // Handle regular packages
+  const parts = specifier.split('/');
+  return parts[0] || null;
 }

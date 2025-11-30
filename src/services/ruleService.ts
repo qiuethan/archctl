@@ -6,6 +6,7 @@ import { AllowedLayerImportRule } from '../infrastructure/rules/AllowedLayerImpo
 import { FilePatternLayerRule } from '../infrastructure/rules/FilePatternLayerRule';
 import { MaxDependenciesRule } from '../infrastructure/rules/MaxDependenciesRule';
 import { CyclicDependencyRule } from '../infrastructure/rules/CyclicDependencyRule';
+import { ExternalDependencyRule } from '../infrastructure/rules/ExternalDependencyRule';
 
 /**
  * Rule management operations
@@ -77,6 +78,11 @@ export function getAvailableRuleKinds(): Array<{
       name: 'Cyclic Dependency',
       description: 'Detect circular dependencies',
     },
+    {
+      value: 'external-dependency',
+      name: 'External Dependency',
+      description: 'Enforce allowed external library imports',
+    },
   ];
 }
 
@@ -121,6 +127,13 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
 
       case 'cyclic-dependency':
         rule = new CyclicDependencyRule(config.id, config.title, config.description, {});
+        break;
+
+      case 'external-dependency':
+        rule = new ExternalDependencyRule(config.id, config.title, config.description, {
+          allowedPackages: config.allowedPackages,
+          layer: config.layer,
+        });
         break;
 
       case 'natural-language':
