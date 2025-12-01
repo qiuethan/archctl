@@ -10,12 +10,14 @@ import type { TemplateDefinition } from '../../types/templates';
 export const cleanArchitectureTemplate: TemplateDefinition = {
   id: 'clean-architecture',
   label: 'Clean Architecture',
-  description: 'Clean Architecture with domain-centric layers, dependency inversion, and strict boundary enforcement.',
+  description:
+    'Clean Architecture with domain-centric layers, dependency inversion, and strict boundary enforcement.',
 
   layers: [
     {
       name: 'domain',
-      description: 'Core business logic: entities, value objects, domain services, and business rules',
+      description:
+        'Core business logic: entities, value objects, domain services, and business rules',
     },
     {
       name: 'application',
@@ -23,7 +25,8 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
     {
       name: 'infrastructure',
-      description: 'External concerns: database, file system, external APIs, and third-party services',
+      description:
+        'External concerns: database, file system, external APIs, and third-party services',
     },
     {
       name: 'presentation',
@@ -46,7 +49,8 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
       kind: 'allowed-layer-import' as const,
       id: 'application-dependencies',
       title: 'Application Layer Dependencies',
-      description: 'Application layer orchestrates domain logic and may depend on infrastructure interfaces',
+      description:
+        'Application layer orchestrates domain logic and may depend on infrastructure interfaces',
       fromLayer: 'application',
       allowedLayers: ['domain', 'application'],
     },
@@ -55,7 +59,8 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
       kind: 'allowed-layer-import' as const,
       id: 'infrastructure-dependencies',
       title: 'Infrastructure Layer Dependencies',
-      description: 'Infrastructure implements domain interfaces and may reference application layer',
+      description:
+        'Infrastructure implements domain interfaces and may reference application layer',
       fromLayer: 'infrastructure',
       allowedLayers: ['domain', 'application', 'infrastructure'],
     },
@@ -73,7 +78,8 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
       kind: 'max-dependencies' as const,
       id: 'max-deps-domain',
       title: 'Domain Layer Modularity',
-      description: 'Domain files should have minimal dependencies to maintain single responsibility',
+      description:
+        'Domain files should have minimal dependencies to maintain single responsibility',
       maxDependencies: 8,
       layer: 'domain',
     },
@@ -90,7 +96,8 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
       kind: 'cyclic-dependency' as const,
       id: 'no-cyclic-dependencies',
       title: 'No Circular Dependencies',
-      description: 'Circular dependencies violate clean architecture principles and must be eliminated',
+      description:
+        'Circular dependencies violate clean architecture principles and must be eliminated',
     },
     // Domain must not depend on presentation
     {

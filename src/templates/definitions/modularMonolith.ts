@@ -10,7 +10,8 @@ import type { TemplateDefinition } from '../../types/templates';
 export const modularMonolithTemplate: TemplateDefinition = {
   id: 'modular-monolith',
   label: 'Modular Monolith',
-  description: 'Vertical slice architecture with independent feature modules and explicit inter-module contracts.',
+  description:
+    'Vertical slice architecture with independent feature modules and explicit inter-module contracts.',
 
   layers: [
     {
@@ -19,7 +20,8 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
     {
       name: 'shared',
-      description: 'Shared kernel: common utilities, cross-cutting concerns, and reusable components',
+      description:
+        'Shared kernel: common utilities, cross-cutting concerns, and reusable components',
     },
     {
       name: 'api',
@@ -77,14 +79,16 @@ export const modularMonolithTemplate: TemplateDefinition = {
       kind: 'cyclic-dependency' as const,
       id: 'no-cyclic-dependencies',
       title: 'No Circular Dependencies',
-      description: 'Circular dependencies indicate improper module boundaries and must be eliminated',
+      description:
+        'Circular dependencies indicate improper module boundaries and must be eliminated',
     },
     // Prevent feature cross-talk
     {
       kind: 'forbidden-layer-import' as const,
       id: 'no-direct-feature-coupling',
       title: 'No Direct Feature Coupling',
-      description: 'Features should communicate through events or shared contracts, not direct imports',
+      description:
+        'Features should communicate through events or shared contracts, not direct imports',
       fromLayer: 'features',
       toLayer: 'features',
     },

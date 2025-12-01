@@ -20,7 +20,8 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
     {
       name: 'application',
-      description: 'Application services, command handlers, query handlers, and use case orchestration',
+      description:
+        'Application services, command handlers, query handlers, and use case orchestration',
     },
     {
       name: 'infrastructure',
@@ -38,7 +39,8 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
       kind: 'allowed-layer-import' as const,
       id: 'domain-isolation',
       title: 'Domain Model Purity',
-      description: 'Domain layer must be technology-agnostic and only reference other domain components',
+      description:
+        'Domain layer must be technology-agnostic and only reference other domain components',
       fromLayer: 'domain',
       allowedLayers: ['domain'],
     },
@@ -47,7 +49,8 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
       kind: 'allowed-layer-import' as const,
       id: 'application-dependencies',
       title: 'Application Service Dependencies',
-      description: 'Application services orchestrate domain logic and define infrastructure interfaces',
+      description:
+        'Application services orchestrate domain logic and define infrastructure interfaces',
       fromLayer: 'application',
       allowedLayers: ['domain', 'application'],
     },
@@ -56,7 +59,8 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
       kind: 'allowed-layer-import' as const,
       id: 'infrastructure-dependencies',
       title: 'Infrastructure Implementation',
-      description: 'Infrastructure implements repository and adapter interfaces defined by application layer',
+      description:
+        'Infrastructure implements repository and adapter interfaces defined by application layer',
       fromLayer: 'infrastructure',
       allowedLayers: ['domain', 'application', 'infrastructure'],
     },
@@ -91,7 +95,8 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
       kind: 'cyclic-dependency' as const,
       id: 'no-cyclic-dependencies',
       title: 'No Circular Dependencies',
-      description: 'Circular dependencies indicate improper aggregate boundaries and must be resolved',
+      description:
+        'Circular dependencies indicate improper aggregate boundaries and must be resolved',
     },
     // Domain must not depend on infrastructure
     {
@@ -107,7 +112,8 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
       kind: 'forbidden-layer-import' as const,
       id: 'domain-no-api',
       title: 'Domain API Independence',
-      description: 'Domain model must not depend on API layer to maintain bounded context integrity',
+      description:
+        'Domain model must not depend on API layer to maintain bounded context integrity',
       fromLayer: 'domain',
       toLayer: 'api',
     },

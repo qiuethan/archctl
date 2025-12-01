@@ -1,19 +1,38 @@
 {
   "name": "archctl-vscode",
-  "displayName": "Archctl",
-  "description": "Architecture rules enforcement for VS Code",
+  "displayName": "Archctl - Architecture Linter",
+  "description": "Enforce clean architecture patterns and dependency rules in your codebase with real-time feedback",
   "version": "0.1.0",
   "publisher": "archctl",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.75.0"
   },
   "categories": [
-    "Linters"
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "architecture",
+    "clean architecture",
+    "dependency",
+    "linter",
+    "layered architecture",
+    "hexagonal",
+    "ddd",
+    "domain driven design",
+    "code quality"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/qiuethan/archctl"
   },
+  "bugs": {
+    "url": "https://github.com/qiuethan/archctl/issues"
+  },
+  "homepage": "https://github.com/qiuethan/archctl#readme",
+  "license": "MIT",
   "activationEvents": [
     "onStartupFinished",
     "workspaceContains:.archctl/archctl.config.json"
@@ -23,13 +42,30 @@
     "commands": [
       {
         "command": "archctl.runCheck",
-        "title": "Archctl: Run Architecture Check"
+        "title": "Archctl: Run Architecture Check",
+        "icon": "$(layers)"
       },
       {
         "command": "archctl.clearDiagnostics",
-        "title": "Archctl: Clear Diagnostics"
+        "title": "Archctl: Clear Diagnostics",
+        "icon": "$(clear-all)"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Archctl",
+      "properties": {
+        "archctl.autoRunOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run architecture checks when files are saved"
+        },
+        "archctl.debounceDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay in milliseconds before running checks after file changes"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
