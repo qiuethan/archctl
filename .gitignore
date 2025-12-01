@@ -45,8 +45,3 @@ test-architecture/
 test-config-loader/
 test-find-config/
 test-output/
-
-# Architecture output (for testing)
-architecture/
-.archctl/
-
