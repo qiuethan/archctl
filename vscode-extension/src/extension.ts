@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
   if (workspaceFolders && workspaceFolders.length > 0) {
     // Run check after a short delay to let workspace settle
     setTimeout(async () => {
-      const results = await checkService.runChecksForWorkspace(workspaceFolders[0].uri.fsPath);
+      const results = await checkService.runChecksForWorkspace(workspaceFolders[0]!.uri.fsPath);
       if (results.length > 0) {
         await runArchctlCheck();
       }
@@ -83,7 +83,7 @@ async function runArchctlCheck(): Promise<void> {
     return;
   }
 
-  const workspaceRoot = workspaceFolders[0].uri.fsPath;
+  const workspaceRoot = workspaceFolders[0]!.uri.fsPath;
 
   // Run checks for all projects in workspace
   const results = await checkService.runChecksForWorkspace(workspaceRoot);

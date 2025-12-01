@@ -403,7 +403,7 @@ function generateLayersTab(layerData: ReturnType<typeof prepareLayerData>): stri
           <table class="matrix-table">
             <thead>
               <tr>
-                <th>From \ To</th>
+                <th>From \\ To</th>
                 ${layers.map((l) => `<th>${escapeHtml(l.name)}</th>`).join('')}
               </tr>
             </thead>
@@ -417,7 +417,7 @@ function generateLayersTab(layerData: ReturnType<typeof prepareLayerData>): stri
                     .map((toLayer) => {
                       const count = interactions[fromLayer.name]?.[toLayer.name] || 0;
                       const intensity = count > 0 ? Math.min(Math.log10(count + 1) / 2, 1) : 0;
-                      return `<td class="matrix-cell" style="background-color: rgba(59, 130, 246, ${intensity})" title="${count} dependencies">${count > 0 ? count : ''}</td>`;
+                      return `<td class="matrix-cell" style="background-color: rgba(0, 0, 0, ${intensity})" title="${count} dependencies">${count > 0 ? count : ''}</td>`;
                     })
                     .join('')}
                 </tr>
@@ -435,7 +435,7 @@ function generateLayersTab(layerData: ReturnType<typeof prepareLayerData>): stri
 /**
  * Generate graph tab content
  */
-function generateGraphTab(graphData: ReturnType<typeof prepareGraphData>): string {
+function generateGraphTab(_graphData: ReturnType<typeof prepareGraphData>): string {
   return `
     <div class="tab-content" id="graph">
       <div class="section">
@@ -550,8 +550,8 @@ function getStyles(): string {
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #f8fafc;
-      color: #1e293b;
+      background: white;
+      color: #000;
       line-height: 1.6;
     }
 
@@ -561,29 +561,30 @@ function getStyles(): string {
     }
 
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: white;
+      color: #000;
       padding: 2rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-bottom: 2px solid #000;
     }
 
     .header-content h1 {
       font-size: 2rem;
       margin-bottom: 0.5rem;
+      font-weight: 600;
     }
 
     .meta {
       display: flex;
       gap: 1.5rem;
       font-size: 0.9rem;
-      opacity: 0.9;
+      color: #666;
     }
 
     .tabs {
       background: white;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 1px solid #ddd;
       display: flex;
-      gap: 0.5rem;
+      gap: 0;
       padding: 0 2rem;
       overflow-x: auto;
     }
@@ -594,21 +595,21 @@ function getStyles(): string {
       padding: 1rem 1.5rem;
       font-size: 0.95rem;
       font-weight: 500;
-      color: #64748b;
+      color: #666;
       cursor: pointer;
-      border-bottom: 3px solid transparent;
+      border-bottom: 2px solid transparent;
       transition: all 0.2s;
       white-space: nowrap;
     }
 
     .tab-btn:hover {
-      color: #475569;
-      background: #f8fafc;
+      color: #000;
+      background: #f5f5f5;
     }
 
     .tab-btn.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
+      color: #000;
+      border-bottom-color: #000;
     }
 
     .content {
@@ -633,26 +634,25 @@ function getStyles(): string {
     .card {
       background: white;
       padding: 1.5rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border-left: 4px solid #e2e8f0;
+      border: 1px solid #ddd;
+      margin-bottom: 1rem;
     }
 
     .card.good {
-      border-left-color: #10b981;
+      border-left: 3px solid #000;
     }
 
     .card.warning {
-      border-left-color: #f59e0b;
+      border-left: 3px solid #666;
     }
 
     .card.error {
-      border-left-color: #ef4444;
+      border-left: 3px solid #000;
     }
 
     .card h3 {
-      font-size: 0.9rem;
-      color: #64748b;
+      font-size: 0.75rem;
+      color: #666;
       margin-bottom: 0.5rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -661,43 +661,43 @@ function getStyles(): string {
     .stat-value, .health-score {
       font-size: 2.5rem;
       font-weight: 700;
-      color: #1e293b;
+      color: #000;
       margin: 0.5rem 0;
     }
 
     .health-card.good .health-score {
-      color: #10b981;
+      color: #000;
     }
 
     .health-card.warning .health-score {
-      color: #f59e0b;
+      color: #000;
     }
 
     .health-card.error .health-score {
-      color: #ef4444;
+      color: #000;
     }
 
     .stat-label, .health-label {
       font-size: 0.9rem;
-      color: #64748b;
+      color: #666;
     }
 
     .section {
       background: white;
       padding: 1.5rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #ddd;
       margin-bottom: 1.5rem;
     }
 
     .section h2 {
       font-size: 1.25rem;
       margin-bottom: 0.5rem;
-      color: #1e293b;
+      color: #000;
+      font-weight: 600;
     }
 
     .section-desc {
-      color: #64748b;
+      color: #666;
       font-size: 0.9rem;
       margin-bottom: 1rem;
     }
@@ -719,18 +719,16 @@ function getStyles(): string {
       align-items: center;
       gap: 1rem;
       padding: 0.75rem;
-      background: #f8fafc;
-      border-radius: 0.375rem;
-      transition: background 0.2s;
+      border-bottom: 1px solid #eee;
     }
 
     .list-item:hover {
-      background: #f1f5f9;
+      background: #f9f9f9;
     }
 
     .list-rank {
       font-weight: 600;
-      color: #94a3b8;
+      color: #999;
       min-width: 2rem;
     }
 
@@ -744,7 +742,7 @@ function getStyles(): string {
 
     .list-item-count {
       font-weight: 600;
-      color: #667eea;
+      color: #000;
       min-width: 2rem;
       text-align: right;
     }
@@ -752,75 +750,76 @@ function getStyles(): string {
     .file-path {
       font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
       font-size: 0.85rem;
-      color: #475569;
-      background: #e2e8f0;
+      color: #000;
+      background: #f5f5f5;
       padding: 0.125rem 0.375rem;
-      border-radius: 0.25rem;
     }
 
     .badge {
       display: inline-block;
       padding: 0.125rem 0.5rem;
       font-size: 0.75rem;
-      font-weight: 600;
-      border-radius: 0.25rem;
+      font-weight: 500;
+      border: 1px solid #ddd;
       text-transform: uppercase;
       letter-spacing: 0.025em;
+      background: white;
+      color: #000;
     }
 
     .badge-domain {
-      background: #dbeafe;
-      color: #1e40af;
+      background: white;
+      color: #000;
     }
 
     .badge-application {
-      background: #d1fae5;
-      color: #065f46;
+      background: white;
+      color: #000;
     }
 
     .badge-infrastructure {
-      background: #fef3c7;
-      color: #92400e;
+      background: white;
+      color: #000;
     }
 
     .badge-presentation {
-      background: #fce7f3;
-      color: #9f1239;
+      background: white;
+      color: #000;
     }
 
     .badge-shared {
-      background: #e0e7ff;
-      color: #3730a3;
+      background: white;
+      color: #000;
     }
 
     .badge-unmapped {
-      background: #f1f5f9;
-      color: #64748b;
+      background: white;
+      color: #666;
     }
 
     .badge-error {
-      background: #fee2e2;
-      color: #991b1b;
+      background: #000;
+      color: white;
     }
 
     .badge-warning {
-      background: #fef3c7;
-      color: #92400e;
+      background: #666;
+      color: white;
     }
 
     .badge-info {
-      background: #dbeafe;
-      color: #1e40af;
+      background: white;
+      color: #000;
     }
 
     .count-badge {
       display: inline-block;
-      background: #e2e8f0;
-      color: #475569;
+      background: #f5f5f5;
+      color: #000;
       padding: 0.125rem 0.5rem;
-      border-radius: 0.25rem;
       font-size: 0.85rem;
       font-weight: 600;
+      border: 1px solid #ddd;
     }
 
     .chart-container {
@@ -842,7 +841,7 @@ function getStyles(): string {
     .bar-label {
       min-width: 120px;
       font-weight: 500;
-      color: #475569;
+      color: #000;
     }
 
     .bar-container {
@@ -854,41 +853,40 @@ function getStyles(): string {
 
     .bar {
       height: 2rem;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      border-radius: 0.25rem;
+      background: #000;
       transition: width 0.3s ease;
     }
 
     .bar-value {
       font-weight: 600;
-      color: #475569;
+      color: #000;
       min-width: 3rem;
     }
 
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      color: #64748b;
+      color: #666;
     }
 
     .empty-icon {
       font-size: 4rem;
       margin-bottom: 1rem;
-      color: #10b981;
+      color: #000;
     }
 
     .empty-state h3 {
       font-size: 1.5rem;
       margin-bottom: 0.5rem;
-      color: #1e293b;
+      color: #000;
     }
 
     .violation-summary {
       display: flex;
       gap: 2rem;
       padding: 1rem;
-      background: #f8fafc;
-      border-radius: 0.5rem;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
       justify-content: center;
     }
 
@@ -900,25 +898,25 @@ function getStyles(): string {
       display: block;
       font-size: 2rem;
       font-weight: 700;
-      color: #1e293b;
+      color: #000;
     }
 
     .summary-item.error .summary-count {
-      color: #ef4444;
+      color: #000;
     }
 
     .summary-item.warning .summary-count {
-      color: #f59e0b;
+      color: #000;
     }
 
     .summary-item.info .summary-count {
-      color: #3b82f6;
+      color: #000;
     }
 
     .summary-label {
       display: block;
-      font-size: 0.85rem;
-      color: #64748b;
+      font-size: 0.75rem;
+      color: #666;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -939,24 +937,22 @@ function getStyles(): string {
 
     .violation-item {
       padding: 1rem;
-      border-left: 4px solid #e2e8f0;
-      background: #f8fafc;
-      border-radius: 0.375rem;
+      border: 1px solid #ddd;
+      border-left: 3px solid #ddd;
+      background: white;
+      margin-bottom: 0.5rem;
     }
 
     .violation-item.error {
-      border-left-color: #ef4444;
-      background: #fef2f2;
+      border-left-color: #000;
     }
 
     .violation-item.warning {
-      border-left-color: #f59e0b;
-      background: #fffbeb;
+      border-left-color: #666;
     }
 
     .violation-item.info {
-      border-left-color: #3b82f6;
-      background: #eff6ff;
+      border-left-color: #999;
     }
 
     .violation-header {
@@ -968,11 +964,11 @@ function getStyles(): string {
 
     .line-number {
       font-size: 0.85rem;
-      color: #64748b;
+      color: #666;
     }
 
     .violation-message {
-      color: #1e293b;
+      color: #000;
       margin-bottom: 0.5rem;
     }
 
@@ -981,10 +977,10 @@ function getStyles(): string {
       align-items: start;
       gap: 0.5rem;
       padding: 0.75rem;
-      background: white;
-      border-radius: 0.25rem;
+      background: #f9f9f9;
+      border: 1px solid #eee;
       font-size: 0.9rem;
-      color: #475569;
+      color: #000;
     }
 
     .suggestion-icon {
@@ -1005,32 +1001,31 @@ function getStyles(): string {
     .matrix-table td {
       padding: 0.75rem;
       text-align: center;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #ddd;
     }
 
     .matrix-table th {
-      background: #f8fafc;
+      background: #f5f5f5;
       font-weight: 600;
-      color: #475569;
+      color: #000;
     }
 
     .matrix-cell {
       font-weight: 600;
-      color: #1e293b;
+      color: #000;
       cursor: help;
     }
 
     .graph-container {
       width: 100%;
       height: 600px;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.5rem;
-      background: #fafafa;
+      border: 1px solid #ddd;
+      background: #f9f9f9;
       margin-top: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #64748b;
+      color: #666;
     }
 
     .graph-controls {
@@ -1038,8 +1033,8 @@ function getStyles(): string {
       gap: 1rem;
       align-items: center;
       padding: 1rem;
-      background: #f8fafc;
-      border-radius: 0.5rem;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
       flex-wrap: wrap;
     }
 
@@ -1048,22 +1043,21 @@ function getStyles(): string {
       align-items: center;
       gap: 0.5rem;
       font-size: 0.9rem;
-      color: #475569;
+      color: #000;
     }
 
     .graph-controls select,
     .graph-controls button {
       padding: 0.375rem 0.75rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.25rem;
+      border: 1px solid #ddd;
       background: white;
-      color: #475569;
+      color: #000;
       cursor: pointer;
       font-size: 0.9rem;
     }
 
     .graph-controls button:hover {
-      background: #f8fafc;
+      background: #f5f5f5;
     }
 
     @media (max-width: 768px) {
