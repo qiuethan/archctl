@@ -244,7 +244,7 @@ Releases are managed by maintainers:
 
 - Open a [Discussion](https://github.com/qiuethan/archctl/discussions)
 - Join our community chat (coming soon)
-- Email: archctl@example.com
+- Email: ethanqiu@gmail.com
 
 ## License
 
