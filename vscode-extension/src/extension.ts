@@ -99,7 +99,7 @@ async function runArchctlCheck(): Promise<void> {
   }
 
   try {
-    vscode.window.setStatusBarMessage('$(sync~spin) Running Archctl check...', 2000);
+    vscode.window.setStatusBarMessage('Running Archctl check...', 2000);
 
     // Run archctl check with JSON output
     // Try local dev version first, then fall back to npx
@@ -247,7 +247,7 @@ async function runArchctlCheck(): Promise<void> {
         diagnostic.relatedInformation = [
           new vscode.DiagnosticRelatedInformation(
             new vscode.Location(vscode.Uri.file(absolutePath), range),
-            `💡 ${issue.suggestion}`
+            `Suggestion: ${issue.suggestion}`
           ),
         ];
       }
@@ -269,11 +269,11 @@ async function runArchctlCheck(): Promise<void> {
     const warningCount = issues.filter((i) => i.severity === 'warning').length;
 
     if (issues.length === 0) {
-      vscode.window.setStatusBarMessage('$(check) Archctl: No issues found', 5000);
+      vscode.window.setStatusBarMessage('Archctl: No issues found', 5000);
       vscode.window.showInformationMessage('Archctl: No issues found');
     } else {
       const message = `Archctl: ${errorCount} error(s), ${warningCount} warning(s)`;
-      vscode.window.setStatusBarMessage('$(warning) ' + message, 5000);
+      vscode.window.setStatusBarMessage(message, 5000);
       vscode.window.showInformationMessage(message);
     }
   } catch (error: any) {
@@ -331,7 +331,7 @@ async function runArchctlCheck(): Promise<void> {
             diagnostic.relatedInformation = [
               new vscode.DiagnosticRelatedInformation(
                 new vscode.Location(vscode.Uri.file(absolutePath), range),
-                `💡 ${issue.suggestion}`
+                `Suggestion: ${issue.suggestion}`
               ),
             ];
           }
@@ -348,7 +348,7 @@ async function runArchctlCheck(): Promise<void> {
 
         const errorCount = issues.filter((i) => i.severity === 'error').length;
         const warningCount = issues.filter((i) => i.severity === 'warning').length;
-        const message = `$(warning) Archctl: ${errorCount} error(s), ${warningCount} warning(s)`;
+        const message = `Archctl: ${errorCount} error(s), ${warningCount} warning(s)`;
         vscode.window.setStatusBarMessage(message, 5000);
         
         return;
