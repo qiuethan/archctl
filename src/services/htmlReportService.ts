@@ -67,6 +67,7 @@ export function generateHtmlReport(data: HtmlReportData): string {
     </main>
   </div>
 
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     ${getScripts(graphData)}
   </script>
@@ -126,8 +127,8 @@ function prepareGraphData(report: GraphReport) {
   }));
 
   const edges = report.graph.edges.map((edge) => ({
-    from: edge.from,
-    to: edge.to,
+    source: edge.from,
+    target: edge.to,
     kind: edge.kind,
   }));
 
@@ -1101,10 +1102,198 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
     // Graph data
     const graphData = ${JSON.stringify(graphData)};
 
-    // Simple graph visualization (placeholder - can be enhanced with a library like D3.js or vis.js)
-    const graphContainer = document.getElementById('graph-container');
-    if (graphContainer && graphData.nodes.length > 0) {
-      graphContainer.innerHTML = '<p>Interactive graph visualization</p><p style="font-size: 0.9rem; margin-top: 0.5rem;">Nodes: ' + graphData.nodes.length + ' | Edges: ' + graphData.edges.length + '</p><p style="font-size: 0.85rem; color: #94a3b8; margin-top: 1rem;">Full interactive graph with zoom/pan can be added using libraries like D3.js or vis.js</p>';
+    let simulation;
+    let svg;
+    let g;
+    let link;
+    let node;
+    let label;
+    let showLabels = true;
+    let currentLayer = '';
+
+    function initGraph() {
+      const container = document.getElementById('graph-container');
+      if (!container) {
+        console.error('Graph container not found');
+        return;
+      }
+      
+      if (graphData.nodes.length === 0) {
+        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">No graph data available</div>';
+        return;
+      }
+
+      console.log('Initializing graph with container width:', container.clientWidth);
+
+      // Clear container
+      container.innerHTML = '';
+
+      const width = container.clientWidth;
+      const height = 600;
+
+      // Create SVG
+      svg = d3.select('#graph-container')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .style('background', '#f9f9f9')
+        .style('border', '1px solid #ddd');
+
+      // Add zoom behavior
+      const zoom = d3.zoom()
+        .scaleExtent([0.1, 4])
+        .on('zoom', (event) => {
+          g.attr('transform', event.transform);
+        });
+
+      svg.call(zoom);
+
+      // Create container group
+      g = svg.append('g');
+
+      // Filter data based on layer
+      const filteredNodes = currentLayer 
+        ? graphData.nodes.filter(n => n.layer === currentLayer)
+        : graphData.nodes;
+      
+      const nodeIds = new Set(filteredNodes.map(n => n.id));
+      const filteredEdges = graphData.edges.filter(e => 
+        nodeIds.has(e.source) && nodeIds.has(e.target)
+      );
+
+      // Create force simulation
+      simulation = d3.forceSimulation(filteredNodes)
+        .force('link', d3.forceLink(filteredEdges)
+          .id(d => d.id)
+          .distance(100)
+          .strength(0.5))
+        .force('charge', d3.forceManyBody().strength(-300))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(30))
+        .force('x', d3.forceX(width / 2).strength(0.1))
+        .force('y', d3.forceY(height / 2).strength(0.1));
+
+      // Create links
+      link = g.append('g')
+        .selectAll('line')
+        .data(filteredEdges)
+        .join('line')
+        .attr('stroke', '#ddd')
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.6);
+
+      // Create nodes
+      node = g.append('g')
+        .selectAll('circle')
+        .data(filteredNodes)
+        .join('circle')
+        .attr('r', 6)
+        .attr('fill', '#000')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 2)
+        .style('cursor', 'pointer')
+        .call(d3.drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended))
+        .on('mouseover', function(event, d) {
+          d3.select(this)
+            .attr('r', 8)
+            .attr('fill', '#666');
+          
+          // Show tooltip
+          const tooltip = d3.select('body').append('div')
+            .attr('class', 'graph-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'white')
+            .style('border', '1px solid #ddd')
+            .style('padding', '8px')
+            .style('border-radius', '4px')
+            .style('pointer-events', 'none')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .html('<strong>' + d.id + '</strong><br/>Layer: ' + d.layer)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+          d3.select(this)
+            .attr('r', 6)
+            .attr('fill', '#000');
+          d3.selectAll('.graph-tooltip').remove();
+        });
+
+      // Create labels
+      label = g.append('g')
+        .selectAll('text')
+        .data(filteredNodes)
+        .join('text')
+        .text(d => d.label)
+        .attr('font-size', 10)
+        .attr('dx', 10)
+        .attr('dy', 4)
+        .attr('fill', '#000')
+        .style('pointer-events', 'none')
+        .style('display', showLabels ? 'block' : 'none');
+
+      // Update positions on tick
+      simulation.on('tick', () => {
+        link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+        node
+          .attr('cx', d => d.x)
+          .attr('cy', d => d.y);
+
+        label
+          .attr('x', d => d.x)
+          .attr('y', d => d.y);
+      });
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    // Initialize graph when graph tab is shown
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.tab === 'graph') {
+          setTimeout(() => {
+            if (!svg) {
+              console.log('Initializing graph with', graphData.nodes.length, 'nodes and', graphData.edges.length, 'edges');
+              initGraph();
+            }
+          }, 100);
+        }
+      });
+    });
+
+    // Show labels toggle
+    const showLabelsCheckbox = document.getElementById('showLabels');
+    if (showLabelsCheckbox) {
+      showLabelsCheckbox.addEventListener('change', (e) => {
+        showLabels = e.target.checked;
+        if (label) {
+          label.style('display', showLabels ? 'block' : 'none');
+        }
+      });
     }
 
     // Layer filter
@@ -1116,6 +1305,24 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
         option.value = layer;
         option.textContent = layer;
         layerFilter.appendChild(option);
+      });
+
+      layerFilter.addEventListener('change', (e) => {
+        currentLayer = e.target.value;
+        initGraph();
+      });
+    }
+
+    // Reset zoom
+    const resetZoomBtn = document.getElementById('resetZoom');
+    if (resetZoomBtn) {
+      resetZoomBtn.addEventListener('click', () => {
+        if (svg) {
+          svg.transition().duration(750).call(
+            d3.zoom().transform,
+            d3.zoomIdentity
+          );
+        }
       });
     }
 
