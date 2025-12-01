@@ -11,6 +11,10 @@ build/
 *.js.map
 *.d.ts.map
 
+# Package artifacts
+*.vsix
+*.tgz
+
 # Environment variables
 .env
 .env.local
