@@ -23,6 +23,7 @@ Archctl is a CLI tool and VS Code extension that helps teams maintain clean arch
 - **Enforce Layer Boundaries** - Prevent unwanted dependencies between architectural layers
 - **Dependency Rules** - Control which modules can import from which layers
 - **Cyclic Dependency Detection** - Find and eliminate circular dependencies
+- **Interactive HTML Reports** - Beautiful visualizations with health scores and dependency graphs
 - **Template-Based Setup** - Start quickly with Clean Architecture, Hexagonal, or custom templates
 - **Multi-Language Support** - Works with TypeScript, JavaScript, Python, Java, and more
 - **VS Code Integration** - Real-time feedback with inline diagnostics
@@ -82,8 +83,24 @@ Check your codebase for architecture violations.
 archctl lint [options]
 
 Options:
-  --format <type>    Output format: text (default) or json
+  --format <type>    Output format: text (default), json, or html
+  --output <file>    Output file path (for html format)
 ```
+
+**HTML Report:**
+Generate an interactive HTML report with visualizations:
+
+```bash
+archctl lint --format html
+archctl lint --format html --output report.html
+```
+
+The HTML report includes:
+- Architecture health score
+- Interactive dependency graphs
+- Layer interaction matrices
+- Violation details with suggestions
+- Top dependencies and most imported files
 
 ### `archctl graph`
 
