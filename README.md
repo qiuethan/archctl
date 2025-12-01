@@ -14,23 +14,23 @@
 
 ---
 
-## 🎯 What is Archctl?
+## What is Archctl?
 
 Archctl is a CLI tool and VS Code extension that helps teams maintain clean architecture by enforcing dependency rules, layer boundaries, and architectural patterns. Think of it as ESLint for your architecture.
 
 ### Key Features
 
-- ✅ **Enforce Layer Boundaries** - Prevent unwanted dependencies between architectural layers
-- ✅ **Dependency Rules** - Control which modules can import from which layers
-- ✅ **Cyclic Dependency Detection** - Find and eliminate circular dependencies
-- ✅ **Template-Based Setup** - Start quickly with Clean Architecture, Hexagonal, or custom templates
-- ✅ **Multi-Language Support** - Works with TypeScript, JavaScript, Python, Java, and more
-- ✅ **VS Code Integration** - Real-time feedback with inline diagnostics
-- ✅ **CI/CD Ready** - Fail builds on architecture violations
+- **Enforce Layer Boundaries** - Prevent unwanted dependencies between architectural layers
+- **Dependency Rules** - Control which modules can import from which layers
+- **Cyclic Dependency Detection** - Find and eliminate circular dependencies
+- **Template-Based Setup** - Start quickly with Clean Architecture, Hexagonal, or custom templates
+- **Multi-Language Support** - Works with TypeScript, JavaScript, Python, Java, and more
+- **VS Code Integration** - Real-time feedback with inline diagnostics
+- **CI/CD Ready** - Fail builds on architecture violations
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -61,7 +61,7 @@ archctl graph
 
 ---
 
-## 📋 Commands
+## Commands
 
 ### `archctl init`
 
@@ -124,7 +124,7 @@ Commands:
 
 ---
 
-## 🏗️ Architecture Templates
+## Architecture Templates
 
 Archctl comes with built-in templates for common architectural patterns:
 
@@ -164,7 +164,7 @@ Ports and Adapters pattern with clear separation between core logic and external
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 The `.archctl/archctl.config.json` file defines your architecture:
 
@@ -224,7 +224,7 @@ The `.archctl/archctl.config.json` file defines your architecture:
 
 ---
 
-## 🔧 Available Rules
+## Available Rules
 
 ### Dependency Rules
 
@@ -240,7 +240,7 @@ The `.archctl/archctl.config.json` file defines your architecture:
 
 ---
 
-## 🎨 VS Code Extension
+## VS Code Extension
 
 Install the Archctl VS Code extension for real-time architecture feedback:
 
@@ -255,7 +255,7 @@ The extension will automatically:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
@@ -281,13 +281,13 @@ npm run dev
 
 ---
 
-## 📝 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Archctl is inspired by:
 - Clean Architecture by Robert C. Martin
@@ -297,7 +297,7 @@ Archctl is inspired by:
 
 ---
 
-## 📚 Resources
+## Resources
 
 - [Documentation](https://github.com/qiuethan/archctl/wiki)
 - [Examples](https://github.com/qiuethan/archctl/tree/main/examples)
@@ -307,5 +307,5 @@ Archctl is inspired by:
 ---
 
 <p align="center">
-  Made with ❤️ by the Archctl team
+  Made with love by the Archctl team
 </p>
