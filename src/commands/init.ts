@@ -89,5 +89,25 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
   // Write config file
   configService.saveConfig(configPath, config);
 
-  presenter.displayInitSuccess(configPath);
+  // Copy AI setup guide
+  const aiGuideSourcePath = path.join(
+    __dirname,
+    '..',
+    'templates',
+    'static',
+    constants.aiSetupGuideFileName
+  );
+  const aiGuideDestPath = path.join(outDir, constants.aiSetupGuideFileName);
+  let aiGuidePath: string | undefined;
+
+  try {
+    if (fs.existsSync(aiGuideSourcePath)) {
+      fs.copyFileSync(aiGuideSourcePath, aiGuideDestPath);
+      aiGuidePath = aiGuideDestPath;
+    }
+  } catch (error) {
+    // Silently fail if AI guide cannot be copied
+  }
+
+  presenter.displayInitSuccess(configPath, aiGuidePath);
 }

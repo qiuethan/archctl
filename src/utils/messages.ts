@@ -2,6 +2,8 @@
  * Centralized message strings for easy editing and localization
  */
 
+import packageJson from '../../package.json';
+
 export const messages = {
   // CLI Help and Info
   cliName: 'archctl - Architecture Control CLI',
@@ -213,7 +215,7 @@ export const messages = {
   common: {
     noConfigFound: 'Configuration file not found. Run `archctl init` first.',
     unknownCommand: 'Unknown command:',
-    version: 'archctl v0.1.0',
+    version: `archctl v${packageJson.version}`,
     error: 'Error:',
     failedToLoadConfig: 'Failed to load config:',
   },

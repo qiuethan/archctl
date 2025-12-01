@@ -9,4 +9,7 @@ export const constants = {
 
   // Config file name
   configFileName: 'archctl.config.json',
+
+  // AI setup guide file name
+  aiSetupGuideFileName: 'ARCHCTL_SETUP.md',
 };

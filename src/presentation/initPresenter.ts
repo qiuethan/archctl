@@ -26,10 +26,17 @@ export function displayConfigExists(configPath: string): void {
 /**
  * Display success message
  */
-export function displayInitSuccess(configPath: string): void {
+export function displayInitSuccess(configPath: string, setupGuidePath?: string): void {
   console.log(
     `\n${colors.symbols.check} ${colors.success.bold(messages.init.success)} ${colors.path(configPath)}`
   );
+
+  if (setupGuidePath) {
+    console.log(
+      `\n${colors.symbols.info} ${colors.dim('Configuration reference created:')} ${colors.path(setupGuidePath)}`
+    );
+  }
+
   console.log(`\n${colors.bold(messages.init.nextStepsHeader)}`);
   messages.init.nextSteps.forEach((step, index) => {
     console.log(`  ${colors.primary((index + 1).toString() + '.')} ${colors.dim(step)}`);
