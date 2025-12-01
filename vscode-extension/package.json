@@ -2,7 +2,7 @@
   "name": "archctl-vscode",
   "displayName": "Archctl - Architecture Linter",
   "description": "Enforce clean architecture patterns and dependency rules in your codebase with real-time feedback",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "publisher": "qiuethan",
   "icon": "icon.png",
   "engines": {

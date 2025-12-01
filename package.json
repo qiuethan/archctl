@@ -1,6 +1,6 @@
 {
   "name": "archctl",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Enforce clean architecture patterns and dependency rules in your codebase with powerful linting and real-time feedback",
   "type": "commonjs",
   "main": "dist/src/cli.js",
@@ -8,8 +8,9 @@
     "archctl": "dist/src/cli.js"
   },
   "scripts": {
-    "build": "npm run lint && npm run lint:arch && npm run format:check && npm run test && npm run typecheck && tsc",
-    "build:fast": "tsc",
+    "build": "npm run lint && npm run lint:arch && npm run format:check && npm run test && npm run typecheck && tsc && npm run copy:static",
+    "build:fast": "tsc && npm run copy:static",
+    "copy:static": "node -e \"require('fs').cpSync('src/templates/static', 'dist/src/templates/static', {recursive: true})\"",
     "dev": "ts-node src/cli.ts",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
