@@ -30,5 +30,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "vscode-extension/src"]
 }
