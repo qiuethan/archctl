@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "description": "A CLI tool to define, enforce, and propagate architecture rules for your codebase",
   "type": "commonjs",
-  "main": "dist/cli.js",
+  "main": "dist/src/cli.js",
   "bin": {
-    "archctl": "dist/cli.js"
+    "archctl": "dist/src/cli.js"
   },
   "scripts": {
     "build": "npm run lint && npm run format:check && npm run test && npm run typecheck && tsc",

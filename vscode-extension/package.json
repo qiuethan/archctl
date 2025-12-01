@@ -10,9 +10,12 @@
   "categories": [
     "Linters"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qiuethan/archctl"
+  },
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:archctl.runCheck",
     "workspaceContains:.archctl/archctl.config.json"
   ],
   "main": "./out/extension.js",
