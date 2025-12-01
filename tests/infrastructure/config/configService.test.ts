@@ -39,7 +39,7 @@ describe('loadConfig', () => {
 
     expect(() => {
       loadConfig(nonExistentPath);
-    }).toThrow('Config file not found');
+    }).toThrow('Configuration file not found');
   });
 
   it('should throw error if config is missing required fields', () => {
@@ -52,7 +52,7 @@ describe('loadConfig', () => {
 
     expect(() => {
       loadConfig(testConfigPath);
-    }).toThrow('Config must have a valid "name" field');
+    }).toThrow('Configuration must have a valid "name" field');
   });
 });
 

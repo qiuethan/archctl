@@ -3,40 +3,41 @@ import type { TemplateDefinition } from '../../types/templates';
 /**
  * Clean Architecture Template
  *
- * Implements Uncle Bob's Clean Architecture pattern with clear layer separation
- * and dependency rules flowing inward toward the domain.
+ * Implements Clean Architecture pattern with clear layer separation
+ * and dependency rules flowing inward toward the domain core.
+ * Based on hexagonal architecture principles with ports and adapters.
  */
 export const cleanArchitectureTemplate: TemplateDefinition = {
   id: 'clean-architecture',
   label: 'Clean Architecture',
-  description: 'Clean Architecture with domain-centric layers and strict dependency rules.',
+  description: 'Clean Architecture with domain-centric layers, dependency inversion, and strict boundary enforcement.',
 
   layers: [
     {
       name: 'domain',
-      description: 'Domain models, aggregates, and business rules',
+      description: 'Core business logic: entities, value objects, domain services, and business rules',
     },
     {
       name: 'application',
-      description: 'Application services and use cases',
+      description: 'Use cases and application services that orchestrate domain logic',
     },
     {
       name: 'infrastructure',
-      description: 'Persistence, messaging, external integrations',
+      description: 'External concerns: database, file system, external APIs, and third-party services',
     },
     {
       name: 'presentation',
-      description: 'UI, controllers, API endpoints',
+      description: 'User interface adapters: controllers, views, API endpoints, and DTOs',
     },
   ],
 
   rules: [
-    // Domain layer isolation - can only import from domain
+    // Domain layer isolation - pure business logic
     {
       kind: 'allowed-layer-import' as const,
       id: 'domain-isolation',
       title: 'Domain Layer Isolation',
-      description: 'Domain layer can only import from domain layer (pure domain)',
+      description: 'Domain layer must remain pure and only reference other domain components',
       fromLayer: 'domain',
       allowedLayers: ['domain'],
     },
@@ -45,69 +46,69 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
       kind: 'allowed-layer-import' as const,
       id: 'application-dependencies',
       title: 'Application Layer Dependencies',
-      description: 'Application layer can import from domain, infrastructure, and shared',
+      description: 'Application layer orchestrates domain logic and may depend on infrastructure interfaces',
       fromLayer: 'application',
-      allowedLayers: ['domain', 'infrastructure', 'shared', 'application'],
+      allowedLayers: ['domain', 'application'],
     },
     // Infrastructure layer dependencies
     {
       kind: 'allowed-layer-import' as const,
       id: 'infrastructure-dependencies',
       title: 'Infrastructure Layer Dependencies',
-      description: 'Infrastructure layer can import from domain, shared, and infrastructure',
+      description: 'Infrastructure implements domain interfaces and may reference application layer',
       fromLayer: 'infrastructure',
-      allowedLayers: ['domain', 'shared', 'infrastructure'],
+      allowedLayers: ['domain', 'application', 'infrastructure'],
     },
     // Presentation layer dependencies
     {
       kind: 'allowed-layer-import' as const,
       id: 'presentation-dependencies',
       title: 'Presentation Layer Dependencies',
-      description: 'Presentation layer can import from application, domain, and shared',
+      description: 'Presentation layer adapts external requests to application use cases',
       fromLayer: 'presentation',
-      allowedLayers: ['application', 'domain', 'shared', 'presentation'],
+      allowedLayers: ['application', 'presentation'],
     },
-    // Shared layer isolation
-    {
-      kind: 'allowed-layer-import' as const,
-      id: 'shared-isolation',
-      title: 'Shared Layer Isolation',
-      description: 'Shared layer can only import from domain and shared',
-      fromLayer: 'shared',
-      allowedLayers: ['domain', 'shared'],
-    },
-    // Keep domain files modular
+    // Keep domain files focused
     {
       kind: 'max-dependencies' as const,
       id: 'max-deps-domain',
-      title: 'Max Dependencies in Domain',
-      description: 'Domain files should have at most 10 dependencies to maintain modularity',
-      maxDependencies: 10,
+      title: 'Domain Layer Modularity',
+      description: 'Domain files should have minimal dependencies to maintain single responsibility',
+      maxDependencies: 8,
       layer: 'domain',
     },
     // Global dependency limit
     {
       kind: 'max-dependencies' as const,
       id: 'max-deps-global',
-      title: 'Max Dependencies Global',
-      description: 'No file should have more than 20 dependencies',
-      maxDependencies: 20,
+      title: 'Global Dependency Limit',
+      description: 'Files should not exceed reasonable dependency counts to maintain testability',
+      maxDependencies: 15,
     },
-    // Detect circular dependencies
+    // Prevent circular dependencies
     {
       kind: 'cyclic-dependency' as const,
       id: 'no-cyclic-dependencies',
-      title: 'No Cyclic Dependencies',
-      description: 'Prevent circular dependencies between files',
+      title: 'No Circular Dependencies',
+      description: 'Circular dependencies violate clean architecture principles and must be eliminated',
     },
-    // Domain should not import presentation
+    // Domain must not depend on presentation
     {
       kind: 'forbidden-layer-import' as const,
       id: 'domain-no-ui-awareness',
-      title: 'Domain No UI Awareness',
-      description: 'Domain layer should not know about presentation/UI',
+      title: 'Domain Independence from UI',
+      description: 'Domain layer must not have any knowledge of presentation or UI concerns',
       fromLayer: 'domain',
       toLayer: 'presentation',
+    },
+    // Domain must not depend on infrastructure
+    {
+      kind: 'forbidden-layer-import' as const,
+      id: 'domain-no-infrastructure',
+      title: 'Domain Independence from Infrastructure',
+      description: 'Domain layer must not directly depend on infrastructure implementations',
+      fromLayer: 'domain',
+      toLayer: 'infrastructure',
     },
   ],
 };

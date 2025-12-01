@@ -4,9 +4,9 @@
 
 export const messages = {
   // CLI Help and Info
-  cliName: 'archctl – architecture control CLI',
+  cliName: 'archctl - Architecture Control CLI',
   cliUsage: 'archctl <command> [options]',
-  cliMoreInfo: 'For more information, visit: https://github.com/yourusername/archctl',
+  cliMoreInfo: 'For more information, visit: https://github.com/qiuethan/archctl',
 
   // Commands
   commands: {
@@ -67,13 +67,13 @@ export const messages = {
 
   // Init Command Messages
   init: {
-    welcome: "🏗️  Welcome to archctl! Let's set up your architecture configuration.\n",
-    success: '✓ Initialized architecture config at:',
-    nextStepsHeader: '\n✨ Next steps:',
+    welcome: 'Initializing archctl architecture configuration.\n',
+    success: 'Successfully initialized architecture configuration at:',
+    nextStepsHeader: '\nNext steps:',
     nextSteps: [
-      '  1. Review and customize your layers in the config file',
-      '  2. Add layer mappings to map file paths to layers',
-      '  3. Run `archctl lint` to check your codebase',
+      '  1. Review and customize layers in the configuration file',
+      '  2. Add layer mappings to associate file paths with layers',
+      '  3. Run `archctl lint` to validate your architecture',
     ],
     alreadyExists:
       'already exists. Use --force to overwrite or choose a different --out directory.',
@@ -96,7 +96,7 @@ export const messages = {
 
   // Sync Command Messages
   sync: {
-    notImplemented: '⚠️  Sync command is not yet implemented.',
+    notImplemented: 'Sync command is not yet implemented.',
     plannedFeaturesHeader: '\nPlanned features:',
     plannedFeatures: [
       '  - Generate architecture documentation',
@@ -109,7 +109,7 @@ export const messages = {
 
   // Lint Command Messages
   lint: {
-    notImplemented: '⚠️  Lint command is not yet implemented.',
+    notImplemented: 'Lint command is not yet implemented.',
     plannedFeaturesHeader: '\nPlanned features:',
     plannedFeatures: [
       '  - Check layer dependency violations',
@@ -125,7 +125,7 @@ export const messages = {
 
   // Prompt Command Messages
   prompt: {
-    notImplemented: '⚠️  Prompt command is not yet implemented.',
+    notImplemented: 'Prompt command is not yet implemented.',
     plannedFeaturesHeader: '\nPlanned features:',
     plannedFeatures: [
       '  - Generate context-aware prompts for AI assistants',
@@ -146,8 +146,8 @@ export const messages = {
       suggestAddHeader: '\nExamples:',
       suggestAddPreset: '  archctl layers add --preset <preset-id>',
       suggestAddCustom: '  archctl layers add --name <layer-name> --description <description>',
-      layersHeader: '\n📦 Defined Layers:',
-      mappingsHeader: '\n🗺️  Layer Mappings:',
+      layersHeader: '\nDefined Layers:',
+      mappingsHeader: '\nLayer Mappings:',
       noMappings: 'No layer mappings defined yet.',
       suggestMap:
         'Use `archctl layers map --layer <name> --include <path>` to map files to layers.',
@@ -155,7 +155,7 @@ export const messages = {
 
     // Add subcommand
     add: {
-      success: '✓ Added layer',
+      success: 'Successfully added layer',
       duplicate: 'Error: Layer already exists:',
       suggestList: 'Use `archctl layers list` to see all layers.',
       missingArgs: 'Error: Must provide either --preset or both --name and --description',
@@ -168,7 +168,7 @@ export const messages = {
 
     // Map subcommand
     map: {
-      success: '✓ Mapped layer',
+      success: 'Successfully mapped layer',
       layerNotFound: 'Error: Layer not found:',
       suggestList: '\nUse `archctl layers list` to see available layers.',
       suggestAdd: 'Or use `archctl layers add` to create a new layer.',
@@ -204,14 +204,14 @@ export const messages = {
 
     // Common
     common: {
-      configNotFound: 'Error: No config file found. Run `archctl init` first.',
-      configSaved: '✓ Config saved to:',
+      configNotFound: 'Error: Configuration file not found. Run `archctl init` first.',
+      configSaved: 'Configuration saved to:',
     },
   },
 
   // Common Messages
   common: {
-    noConfigFound: 'No archctl.config.json found. Run `archctl init` first.',
+    noConfigFound: 'Configuration file not found. Run `archctl init` first.',
     unknownCommand: 'Unknown command:',
     version: 'archctl v0.1.0',
     error: 'Error:',
@@ -220,7 +220,7 @@ export const messages = {
 
   // Config Loader Messages
   config: {
-    notFound: 'Config file not found:',
-    invalidName: 'Config must have a valid "name" field',
+    notFound: 'Configuration file not found:',
+    invalidName: 'Configuration must have a valid "name" field',
   },
 };

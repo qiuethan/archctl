@@ -32,15 +32,15 @@ export const colors = {
 
   // Symbols with colors
   symbols: {
-    success: chalk.green('✓'),
-    error: chalk.red('✗'),
-    warning: chalk.yellow('⚠'),
-    info: chalk.blue('ℹ'),
+    success: chalk.green('[✓]'),
+    error: chalk.red('[✗]'),
+    warning: chalk.yellow('[!]'),
+    info: chalk.blue('[i]'),
     bullet: chalk.gray('•'),
     arrow: chalk.gray('→'),
-    check: chalk.green('✅'),
-    cross: chalk.red('❌'),
-    lightbulb: chalk.yellow('💡'),
+    check: chalk.green('[✓]'),
+    cross: chalk.red('[✗]'),
+    lightbulb: chalk.yellow('[→]'),
   },
 };
 

@@ -96,7 +96,7 @@ describe('cmdInit', () => {
     await cmdInit({ out: testOutDir });
 
     expect(mockLog).toHaveBeenCalledWith(
-      expect.stringContaining('Initialized architecture config at:')
+      expect.stringContaining('Successfully initialized architecture configuration at:')
     );
   });
 
