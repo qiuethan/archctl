@@ -1,0 +1,210 @@
+{
+  "name": "archctl-vscode-extension",
+  "exclude": [
+    "node_modules",
+    ".git",
+    "out",
+    "dist",
+    ".archctl",
+    "*.vsix"
+  ],
+  "layers": [
+    {
+      "name": "domain",
+      "description": "Core domain types and interfaces - VSCode-agnostic business logic"
+    },
+    {
+      "name": "application",
+      "description": "Use cases and orchestration - running checks, processing results"
+    },
+    {
+      "name": "infrastructure",
+      "description": "External integrations - CLI execution, file system, process management"
+    },
+    {
+      "name": "presentation",
+      "description": "VSCode-specific UI - extension lifecycle, commands, diagnostics"
+    },
+    {
+      "name": "shared",
+      "description": "Shared utilities and helpers"
+    }
+  ],
+  "layerMappings": [
+    {
+      "layer": "domain",
+      "include": [
+        "src/domain/**"
+      ],
+      "exclude": []
+    },
+    {
+      "layer": "application",
+      "include": [
+        "src/application/**"
+      ],
+      "exclude": []
+    },
+    {
+      "layer": "infrastructure",
+      "include": [
+        "src/infrastructure/**"
+      ],
+      "exclude": []
+    },
+    {
+      "layer": "presentation",
+      "include": [
+        "src/presentation/**",
+        "src/extension.ts"
+      ],
+      "exclude": []
+    },
+    {
+      "layer": "shared",
+      "include": [
+        "src/shared/**"
+      ],
+      "exclude": []
+    }
+  ],
+  "rules": [
+    {
+      "kind": "allowed-layer-import",
+      "id": "domain-isolation",
+      "title": "Domain Layer Purity",
+      "description": "Domain layer must remain pure with no external dependencies",
+      "fromLayer": "domain",
+      "allowedLayers": [
+        "domain"
+      ]
+    },
+    {
+      "kind": "allowed-layer-import",
+      "id": "application-dependencies",
+      "title": "Application Layer Dependencies",
+      "description": "Application orchestrates infrastructure and domain",
+      "fromLayer": "application",
+      "allowedLayers": [
+        "domain",
+        "infrastructure",
+        "shared",
+        "application"
+      ]
+    },
+    {
+      "kind": "allowed-layer-import",
+      "id": "infrastructure-dependencies",
+      "title": "Infrastructure Dependencies",
+      "description": "Infrastructure implements domain contracts",
+      "fromLayer": "infrastructure",
+      "allowedLayers": [
+        "domain",
+        "shared",
+        "infrastructure"
+      ]
+    },
+    {
+      "kind": "allowed-layer-import",
+      "id": "presentation-dependencies",
+      "title": "Presentation Layer Dependencies",
+      "description": "Presentation coordinates application services",
+      "fromLayer": "presentation",
+      "allowedLayers": [
+        "application",
+        "domain",
+        "shared",
+        "presentation"
+      ]
+    },
+    {
+      "kind": "allowed-layer-import",
+      "id": "shared-isolation",
+      "title": "Shared Utilities Isolation",
+      "description": "Shared utilities should not depend on application-specific layers",
+      "fromLayer": "shared",
+      "allowedLayers": [
+        "domain",
+        "shared"
+      ]
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "domain-no-infrastructure",
+      "title": "Domain Independence from Infrastructure",
+      "description": "Domain must not depend on infrastructure",
+      "fromLayer": "domain",
+      "toLayer": "infrastructure"
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "domain-no-application",
+      "title": "Domain Independence from Application",
+      "description": "Domain must not depend on application",
+      "fromLayer": "domain",
+      "toLayer": "application"
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "domain-no-presentation",
+      "title": "Domain Independence from Presentation",
+      "description": "Domain must not depend on presentation",
+      "fromLayer": "domain",
+      "toLayer": "presentation"
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "infrastructure-no-presentation",
+      "title": "Infrastructure Presentation Independence",
+      "description": "Infrastructure should not depend on presentation",
+      "fromLayer": "infrastructure",
+      "toLayer": "presentation"
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "shared-no-application",
+      "title": "Shared Independence from Application",
+      "description": "Shared utilities must not depend on application",
+      "fromLayer": "shared",
+      "toLayer": "application"
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "shared-no-infrastructure",
+      "title": "Shared Independence from Infrastructure",
+      "description": "Shared utilities must not depend on infrastructure",
+      "fromLayer": "shared",
+      "toLayer": "infrastructure"
+    },
+    {
+      "kind": "forbidden-layer-import",
+      "id": "shared-no-presentation",
+      "title": "Shared Independence from Presentation",
+      "description": "Shared utilities must not depend on presentation",
+      "fromLayer": "shared",
+      "toLayer": "presentation"
+    },
+    {
+      "kind": "cyclic-dependency",
+      "id": "no-cyclic-dependencies",
+      "title": "No Circular Dependencies",
+      "description": "Circular dependencies must be eliminated"
+    },
+    {
+      "kind": "max-dependencies",
+      "id": "max-deps-domain",
+      "title": "Domain Simplicity",
+      "description": "Domain files should be simple",
+      "maxDependencies": 3,
+      "layer": "domain"
+    },
+    {
+      "kind": "max-dependencies",
+      "id": "max-deps-global",
+      "title": "Global Complexity Limit",
+      "description": "No file should exceed reasonable dependency counts",
+      "maxDependencies": 10
+    }
+  ],
+  "entryPoint": "src/extension.ts"
+}

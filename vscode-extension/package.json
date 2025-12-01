@@ -36,7 +36,7 @@
   "license": "MIT",
   "activationEvents": [
     "onStartupFinished",
-    "workspaceContains:.archctl/archctl.config.json"
+    "workspaceContains:**/.archctl/archctl.config.json"
   ],
   "main": "./out/extension.js",
   "contributes": {
