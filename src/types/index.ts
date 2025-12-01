@@ -3,7 +3,7 @@
  */
 
 // Re-export rule types from rules module
-export type { RuleKind, RuleSeverity, RuleDefinition, ProjectRule } from './rules';
+export type { RuleSeverity } from './rules';
 
 // Re-export template types from templates module
 export type { TemplateDefinition, TemplateLayer } from './templates';
