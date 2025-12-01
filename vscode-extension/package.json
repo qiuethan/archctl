@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "publisher": "qiuethan",
   "icon": "icon.png",
+  "preview": true,
   "engines": {
     "vscode": "^1.75.0"
   },
