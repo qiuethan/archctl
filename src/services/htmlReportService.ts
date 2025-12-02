@@ -1100,7 +1100,6 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
     // Graph data
     const graphData = ${JSON.stringify(graphData)};
 
-    let simulation;
     let svg;
     let g;
     let link;
@@ -1123,11 +1122,6 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
 
       console.log('Initializing graph with container width:', container.clientWidth);
 
-      // Stop existing simulation
-      if (simulation) {
-        simulation.stop();
-      }
-
       // Clear container
       container.innerHTML = '';
       svg = null;
@@ -1142,6 +1136,19 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
         .attr('height', height)
         .style('background', '#f9f9f9')
         .style('border', '1px solid #ddd');
+
+      // Add arrow marker for directed edges
+      svg.append('defs').append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 15)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', '#999');
 
       // Add zoom behavior
       const zoom = d3.zoom()
@@ -1177,59 +1184,122 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
 
       console.log('Filtered nodes:', filteredNodes.length, 'Filtered edges:', filteredEdges.length);
 
-      // Create force simulation
-      simulation = d3.forceSimulation(filteredNodes)
-        .force('link', d3.forceLink(filteredEdges)
-          .id(d => d.id)
-          .distance(100)
-          .strength(0.5))
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30))
-        .force('x', d3.forceX(width / 2).strength(0.1))
-        .force('y', d3.forceY(height / 2).strength(0.1));
+      // Build forest (multiple trees) from graph data
+      // Find root nodes (nodes with no incoming edges)
+      const nodesWithIncoming = new Set(filteredEdges.map(e => e.target));
+      const rootNodes = filteredNodes.filter(n => !nodesWithIncoming.has(n.id));
+      
+      console.log('Root nodes found:', rootNodes.length);
+      
+      if (rootNodes.length === 0) {
+        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">No root nodes found</div>';
+        return;
+      }
 
-      // Create links
+      // Build children map
+      const childrenMap = new Map();
+      filteredEdges.forEach(edge => {
+        if (!childrenMap.has(edge.source)) {
+          childrenMap.set(edge.source, []);
+        }
+        childrenMap.get(edge.source).push(edge.target);
+      });
+
+      // Convert to tree structure
+      const visited = new Set();
+      function buildTree(nodeId) {
+        if (visited.has(nodeId)) return null;
+        visited.add(nodeId);
+        
+        const node = filteredNodes.find(n => n.id === nodeId);
+        if (!node) return null;
+        
+        const children = childrenMap.get(nodeId) || [];
+        const childNodes = children.map(buildTree).filter(c => c !== null);
+        
+        return {
+          ...node,
+          children: childNodes.length > 0 ? childNodes : undefined
+        };
+      }
+
+      // Build all trees
+      const trees = rootNodes.map(root => buildTree(root.id)).filter(t => t !== null);
+      
+      console.log('Built', trees.length, 'trees');
+
+      // Create a virtual root to hold all trees
+      const forestData = {
+        id: '__forest_root__',
+        label: 'Root',
+        layer: 'root',
+        language: 'none',
+        children: trees
+      };
+
+      // Create tree layout
+      const treeLayout = d3.tree()
+        .size([height - 100, width - 200])
+        .separation((a, b) => (a.parent === b.parent ? 1 : 2));
+
+      const root = d3.hierarchy(forestData);
+      treeLayout(root);
+
+      console.log('Forest has', root.descendants().length, 'total nodes');
+
+      // Adjust for horizontal layout (rotate 90 degrees)
+      root.descendants().forEach(d => {
+        const x = d.x;
+        d.x = d.y;
+        d.y = x;
+      });
+
+      // Create links (tree edges)
       link = g.append('g')
         .attr('class', 'links')
-        .selectAll('line')
-        .data(filteredEdges)
-        .join('line')
+        .selectAll('path')
+        .data(root.links())
+        .join('path')
+        .attr('d', d3.linkHorizontal()
+          .x(d => d.x + 100)
+          .y(d => d.y + 50))
+        .attr('fill', 'none')
         .attr('stroke', '#999')
         .attr('stroke-width', 1.5)
-        .attr('stroke-opacity', 0.8);
+        .attr('stroke-opacity', 0.8)
+        .attr('marker-end', 'url(#arrowhead)'); // Add arrow to end of line
+
+      // Filter out the virtual root node from display
+      const displayNodes = root.descendants().filter(d => d.data.id !== '__forest_root__');
 
       // Create nodes
       node = g.append('g')
         .selectAll('circle')
-        .data(filteredNodes)
+        .data(displayNodes)
         .join('circle')
+        .attr('cx', d => d.x + 100)
+        .attr('cy', d => d.y + 50)
         .attr('r', 6)
         .attr('fill', '#000')
         .attr('stroke', '#fff')
         .attr('stroke-width', 2)
         .style('cursor', 'pointer')
-        .call(d3.drag()
-          .on('start', dragstarted)
-          .on('drag', dragged)
-          .on('end', dragended))
         .on('mouseover', function(event, d) {
           d3.select(this)
             .attr('r', 8)
             .attr('fill', '#666');
           
           // Show tooltip
-          const tooltip = d3.select('body').append('div')
+          d3.select('body').append('div')
             .attr('class', 'graph-tooltip')
             .style('position', 'absolute')
             .style('background', 'white')
             .style('border', '1px solid #ddd')
             .style('padding', '8px')
-            .style('border-radius', '4px')
             .style('pointer-events', 'none')
             .style('font-size', '12px')
             .style('z-index', '1000')
-            .html('<strong>' + d.id + '</strong><br/>Layer: ' + d.layer)
+            .html('<strong>' + d.data.id + '</strong><br/>Layer: ' + d.data.layer)
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 10) + 'px');
         })
@@ -1240,53 +1310,24 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
           d3.selectAll('.graph-tooltip').remove();
         });
 
-      // Create labels
+      // Create labels (positioned above nodes to avoid line overlap)
       label = g.append('g')
         .selectAll('text')
-        .data(filteredNodes)
+        .data(displayNodes)
         .join('text')
-        .text(d => d.label)
+        .attr('x', d => d.x + 100)
+        .attr('y', d => d.y + 50)
+        .text(d => d.data.label)
         .attr('font-size', 10)
-        .attr('dx', 10)
-        .attr('dy', 4)
+        .attr('dx', 0)
+        .attr('dy', -10)
+        .attr('text-anchor', 'middle')
         .attr('fill', '#000')
+        .attr('font-weight', '500')
         .style('pointer-events', 'none')
         .style('display', showLabels ? 'block' : 'none');
-
-      // Update positions on tick
-      simulation.on('tick', () => {
-        link
-          .attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
-
-        node
-          .attr('cx', d => d.x)
-          .attr('cy', d => d.y);
-
-        label
-          .attr('x', d => d.x)
-          .attr('y', d => d.y);
-      });
     }
 
-    function dragstarted(event, d) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
-    }
-
-    function dragged(event, d) {
-      d.fx = event.x;
-      d.fy = event.y;
-    }
-
-    function dragended(event, d) {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
-    }
 
     // Initialize graph when graph tab is shown
     document.querySelectorAll('.tab-btn').forEach(btn => {
