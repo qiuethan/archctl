@@ -102,7 +102,7 @@ export class ArchctlExecutor {
       let jsonEndIndex = -1;
 
       for (let i = 0; i < lines.length; i++) {
-        const trimmed = lines[i].trim();
+        const trimmed = lines[i]!.trim();
         if (trimmed.startsWith('[') && jsonStartIndex === -1) {
           jsonStartIndex = i;
         }

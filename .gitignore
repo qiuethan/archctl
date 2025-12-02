@@ -50,3 +50,6 @@ test-architecture/
 test-config-loader/
 test-find-config/
 test-output/
+
+# Generated reports
+archctl-report.html

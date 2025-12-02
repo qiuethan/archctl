@@ -3,6 +3,7 @@ import type { ParsedArgs } from '../types';
 import * as configService from '../services/configService';
 import * as graphService from '../services/graphService';
 import * as ruleService from '../services/ruleService';
+import * as htmlReportService from '../services/htmlReportService';
 import { messages } from '../utils/messages';
 import { colors, formatFilePath, formatCount } from '../utils/colors';
 
@@ -15,6 +16,8 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   let config;
   const format = (_args.format as string) || 'text';
   const isJsonOutput = format === 'json';
+  const isHtmlOutput = format === 'html';
+  const outputFile = _args.output as string | undefined;
 
   // Debug: log the format flag
   if (process.env.DEBUG_ARCHCTL) {
@@ -36,7 +39,9 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
   const projectRoot = path.dirname(path.dirname(configPath));
 
-  if (!isJsonOutput) {
+  const isSilent = isJsonOutput || isHtmlOutput;
+
+  if (!isSilent) {
     console.log(`${colors.dim('Configuration:')} ${colors.path(configPath)}`);
     console.log(`${colors.dim('Project:')} ${colors.bold(config.name)}`);
     console.log(
@@ -57,7 +62,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   const fileCount = result.stats.fileCount;
   const edgeCount = result.stats.edgeCount;
 
-  if (!isJsonOutput) {
+  if (!isSilent) {
     console.log(
       `${colors.success('Analyzed')} ${colors.bold(fileCount.toString())} ${colors.dim('file(s) with')} ${colors.bold(edgeCount.toString())} ${colors.dim('dependencies')}\n`
     );
@@ -71,6 +76,26 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
   // Check all rules
   const violations = ruleService.checkRules(rules, ruleContext);
+
+  // HTML output format
+  if (isHtmlOutput) {
+    const htmlOutput = htmlReportService.generateHtmlReport({
+      graphReport: graphAnalysis,
+      violations,
+      options: {
+        title: `Architecture Report - ${config.name}`,
+        includeGraph: true,
+        includeViolations: true,
+      },
+    });
+
+    const defaultOutputPath = path.join(projectRoot, 'archctl-report.html');
+    const htmlOutputPath = outputFile || defaultOutputPath;
+
+    htmlReportService.saveHtmlReport(htmlOutput, htmlOutputPath);
+    console.log(`\n${colors.success('HTML report generated:')} ${colors.path(htmlOutputPath)}`);
+    process.exit(violations.some((v) => v.severity === 'error') ? 1 : 0);
+  }
 
   // JSON output format
   if (isJsonOutput) {
