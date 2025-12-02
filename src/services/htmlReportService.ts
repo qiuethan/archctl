@@ -446,12 +446,10 @@ function generateGraphTab(_graphData: ReturnType<typeof prepareGraphData>): stri
           <label>
             <input type="checkbox" id="showLabels" checked> Show labels
           </label>
-          <label>
-            Filter by layer:
-            <select id="layerFilter">
-              <option value="">All layers</option>
-            </select>
-          </label>
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <span style="font-weight: 500;">Layers:</span>
+            <div id="layerCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
+          </div>
           <button id="resetZoom">Reset Zoom</button>
         </div>
         <div id="graph-container" class="graph-container"></div>
@@ -1109,7 +1107,7 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
     let node;
     let label;
     let showLabels = true;
-    let currentLayer = '';
+    let selectedLayers = new Set();
 
     function initGraph() {
       const container = document.getElementById('graph-container');
@@ -1125,8 +1123,14 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
 
       console.log('Initializing graph with container width:', container.clientWidth);
 
+      // Stop existing simulation
+      if (simulation) {
+        simulation.stop();
+      }
+
       // Clear container
       container.innerHTML = '';
+      svg = null;
 
       const width = container.clientWidth;
       const height = 600;
@@ -1151,15 +1155,27 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
       // Create container group
       g = svg.append('g');
 
-      // Filter data based on layer
-      const filteredNodes = currentLayer 
-        ? graphData.nodes.filter(n => n.layer === currentLayer)
-        : graphData.nodes;
+      // Filter data based on selected layers
+      const filteredNodes = selectedLayers.size === 0
+        ? graphData.nodes
+        : graphData.nodes.filter(n => selectedLayers.has(n.layer));
       
       const nodeIds = new Set(filteredNodes.map(n => n.id));
-      const filteredEdges = graphData.edges.filter(e => 
-        nodeIds.has(e.source) && nodeIds.has(e.target)
-      );
+      
+      // Create fresh copies of edges to avoid D3 mutation issues
+      const filteredEdges = graphData.edges
+        .filter(e => {
+          const sourceId = typeof e.source === 'object' ? e.source.id : e.source;
+          const targetId = typeof e.target === 'object' ? e.target.id : e.target;
+          return nodeIds.has(sourceId) && nodeIds.has(targetId);
+        })
+        .map(e => ({
+          source: typeof e.source === 'object' ? e.source.id : e.source,
+          target: typeof e.target === 'object' ? e.target.id : e.target,
+          kind: e.kind
+        }));
+
+      console.log('Filtered nodes:', filteredNodes.length, 'Filtered edges:', filteredEdges.length);
 
       // Create force simulation
       simulation = d3.forceSimulation(filteredNodes)
@@ -1175,12 +1191,13 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
 
       // Create links
       link = g.append('g')
+        .attr('class', 'links')
         .selectAll('line')
         .data(filteredEdges)
         .join('line')
-        .attr('stroke', '#ddd')
-        .attr('stroke-width', 1)
-        .attr('stroke-opacity', 0.6);
+        .attr('stroke', '#999')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-opacity', 0.8);
 
       // Create nodes
       node = g.append('g')
@@ -1296,20 +1313,38 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
       });
     }
 
-    // Layer filter
-    const layerFilter = document.getElementById('layerFilter');
-    if (layerFilter) {
-      const layers = [...new Set(graphData.nodes.map(n => n.layer))];
+    // Layer checkboxes
+    const layerCheckboxContainer = document.getElementById('layerCheckboxes');
+    if (layerCheckboxContainer) {
+      const layers = [...new Set(graphData.nodes.map(n => n.layer))].sort();
+      
       layers.forEach(layer => {
-        const option = document.createElement('option');
-        option.value = layer;
-        option.textContent = layer;
-        layerFilter.appendChild(option);
-      });
-
-      layerFilter.addEventListener('change', (e) => {
-        currentLayer = e.target.value;
-        initGraph();
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '0.25rem';
+        label.style.cursor = 'pointer';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = layer;
+        checkbox.checked = true;
+        selectedLayers.add(layer);
+        
+        checkbox.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            selectedLayers.add(layer);
+          } else {
+            selectedLayers.delete(layer);
+          }
+          initGraph();
+        });
+        
+        const text = document.createTextNode(layer);
+        
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        layerCheckboxContainer.appendChild(label);
       });
     }
 
