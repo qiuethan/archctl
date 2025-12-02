@@ -22,7 +22,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "pack:test": "npm pack && tar -tzf archctl-0.1.0.tgz",
+    "pack:test": "npm pack && tar -tzf archctl-0.2.0.tgz",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

@@ -8,21 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial project structure
-- Core CLI commands: `init`, `lint`, `graph`, `layers`, `rules`
-- Architecture templates: Clean Architecture, Hexagonal Architecture
-- Rule implementations:
-  - `allowed-layer-import` - Whitelist layer dependencies
-  - `forbidden-layer-import` - Blacklist layer dependencies
-  - `max-dependencies` - Limit file dependencies
-  - `cyclic-dependency` - Detect circular dependencies
-  - `external-dependency` - Control external package usage
-  - `file-pattern-layer` - Enforce file location by pattern
-- Multi-language support: TypeScript, JavaScript, Python, Java
-- Dependency graph visualization
-- JSON output format for CI/CD integration
-- VS Code extension with real-time diagnostics
-- Comprehensive documentation
+- N/A
 
 ### Changed
 - N/A
@@ -39,13 +25,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - N/A
 
-## [0.1.0] - 2024-XX-XX
+## [0.2.0] - 2024-12-01
+
+### Added
+- Interactive HTML report generation with `--format html` option
+- Architecture health score visualization
+- Interactive dependency graphs in HTML reports
+- Layer interaction matrices
+- Top dependencies and most imported files analytics
+- DDD Microservices architecture template
+- Modular Monolith architecture template
+- Enhanced violation details with actionable suggestions
+- Improved error messages and user feedback
+
+### Changed
+- Enhanced CLI output formatting with better colors and structure
+- Improved graph visualization capabilities
+- Better handling of complex dependency chains
+
+### Fixed
+- Various bug fixes and performance improvements
+
+## [0.1.0] - 2024-11-30
 
 ### Added
 - Initial release
-- Basic architecture linting functionality
-- Template-based project initialization
-- VS Code extension
+- Core CLI commands: `init`, `lint`, `graph`, `layers`, `rules`
+- Architecture templates: Clean Architecture, Hexagonal Architecture
+- Rule implementations:
+  - `allowed-layer-import` - Whitelist layer dependencies
+  - `forbidden-layer-import` - Blacklist layer dependencies
+  - `max-dependencies` - Limit file dependencies
+  - `cyclic-dependency` - Detect circular dependencies
+  - `external-dependency` - Control external package usage
+  - `file-pattern-layer` - Enforce file location by pattern
+- Multi-language support: TypeScript, JavaScript, Python, Java
+- Dependency graph visualization
+- JSON output format for CI/CD integration
+- VS Code extension with real-time diagnostics
+- Comprehensive documentation
 
 ---
 

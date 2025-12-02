@@ -46,7 +46,13 @@ cd your-project
 archctl init
 ```
 
-Select a template (Clean Architecture, Hexagonal, or custom) and Archctl will create a `.archctl/archctl.config.json` file.
+Select from available templates:
+- **Clean Architecture** - Traditional layered architecture with domain at the core
+- **DDD Microservices** - Domain-Driven Design with bounded contexts and aggregates
+- **Modular Monolith** - Vertical slice architecture with independent feature modules
+- **Custom** - Define your own architecture from scratch
+
+Archctl will create a `.archctl/archctl.config.json` file with your chosen architecture.
 
 ### Run Architecture Checks
 
@@ -147,6 +153,8 @@ Archctl comes with built-in templates for common architectural patterns:
 
 ### Clean Architecture
 
+Traditional layered architecture with the domain at the core.
+
 ```
 ┌─────────────────────────────────────┐
 │         Presentation Layer          │
@@ -175,9 +183,36 @@ Archctl comes with built-in templates for common architectural patterns:
 - Infrastructure implements Domain interfaces
 - Presentation depends on Application
 
-### Hexagonal Architecture
+### DDD Microservices
 
-Ports and Adapters pattern with clear separation between core logic and external concerns.
+Domain-Driven Design applied to microservices with strict bounded contexts, aggregates, and event-driven patterns.
+
+**Layers:**
+- **Domain** - Aggregates, entities, value objects, domain events, and domain services
+- **Application** - Command/query handlers, use case orchestration
+- **Infrastructure** - Repositories, event publishers, message brokers, external adapters
+- **API** - REST endpoints, GraphQL resolvers, anti-corruption layers
+
+**Key Rules:**
+- Domain model purity (no infrastructure dependencies)
+- Aggregate complexity limits
+- Bounded context integrity
+- No circular dependencies between aggregates
+
+### Modular Monolith
+
+Vertical slice architecture with independent feature modules and explicit contracts. Provides microservice-like modularity within a single deployable unit.
+
+**Layers:**
+- **Features** - Self-contained modules with their own domain, logic, and data access
+- **Shared** - Common utilities, cross-cutting concerns, reusable components
+- **API** - Public contracts and routing that coordinates feature modules
+
+**Key Rules:**
+- Feature module isolation (communicate via events or contracts)
+- Shared kernel purity (no feature dependencies)
+- No direct feature-to-feature coupling
+- Feature cohesion limits
 
 ---
 
