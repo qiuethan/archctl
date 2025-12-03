@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Vertical Context Enforcement** - New `context-visibility` rule for enforcing modular boundaries between feature contexts
+  - Define bounded contexts with `contextMappings` in configuration
+  - Specify public API surfaces using glob patterns
+  - Declare explicit context dependencies with `canDependOn`
+  - Prevents cross-context imports of internal implementation details
+  - Enforces that only public APIs can be accessed across contexts
+  - Provides clear violation messages with suggestions for fixes
+- New utility module `src/utils/contexts.ts` for context resolution
+- `ContextVisibilityRule` class in `src/infrastructure/rules/`
+- Extended `RuleContext` to include `contextMappings`
+- Added `ContextMapping` interface to config types
 - **Capability-based rules** - New rule types `allowed-capability` and `forbidden-capability` to control what actions code can perform
 - **Capability detection** - Automatic detection of network calls, file I/O, database access, process spawning, and more
 - **User-defined capabilities** - Define custom capability patterns in config to detect specific imports and function calls

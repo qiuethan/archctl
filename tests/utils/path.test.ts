@@ -71,7 +71,8 @@ describe('normalizePath', () => {
   });
 
   it('should resolve a relative path against basePath', () => {
-    const basePath = path.join('C:', 'Users', 'test');
+    // Use an absolute path that works cross-platform
+    const basePath = path.resolve('/tmp/test');
     const result = normalizePath('src/index.ts', { basePath });
     expect(result).toBe(path.join(basePath, 'src', 'index.ts'));
   });
