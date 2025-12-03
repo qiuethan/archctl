@@ -40,5 +40,11 @@ export interface ProjectScanner {
   /**
    * Scan a file and extract dependencies
    */
-  scan(file: FileInfo, context: { projectRoot: string }): Promise<ScanResult>;
+  scan(
+    file: FileInfo,
+    context: {
+      projectRoot: string;
+      capabilityPatterns?: import('./capabilities').CapabilityPattern[];
+    }
+  ): Promise<ScanResult>;
 }

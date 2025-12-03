@@ -73,6 +73,32 @@
       "exclude": []
     }
   ],
+  "capabilities": [
+    {
+      "type": "filesystem",
+      "imports": ["fs", "fs/promises", "fs-extra"],
+      "calls": ["readFile", "writeFile", "readFileSync", "writeFileSync", "existsSync", "statSync", "readdirSync", "mkdirSync"],
+      "description": "File system read/write operations"
+    },
+    {
+      "type": "process",
+      "imports": ["child_process"],
+      "calls": ["exec", "execSync", "spawn", "spawnSync", "fork"],
+      "description": "Process spawning and system calls"
+    },
+    {
+      "type": "console-output",
+      "imports": [],
+      "calls": ["console.log", "console.error", "console.warn", "console.info"],
+      "description": "Console output for logging"
+    },
+    {
+      "type": "environment",
+      "imports": ["dotenv"],
+      "calls": ["process.env"],
+      "description": "Environment variable access"
+    }
+  ],
   "rules": [
     {
       "kind": "allowed-layer-import",
@@ -217,6 +243,38 @@
       "description": "Infrastructure should not directly depend on presentation layer",
       "fromLayer": "infrastructure",
       "toLayer": "presentation"
+    },
+    {
+      "kind": "forbidden-capability",
+      "id": "no-fs-in-domain",
+      "title": "No File System Access in Domain",
+      "description": "Domain types should be pure and not perform I/O operations",
+      "forbiddenCapabilities": ["filesystem"],
+      "layer": "domain"
+    },
+    {
+      "kind": "forbidden-capability",
+      "id": "no-process-in-domain",
+      "title": "No Process Spawning in Domain",
+      "description": "Domain types should not spawn processes",
+      "forbiddenCapabilities": ["process"],
+      "layer": "domain"
+    },
+    {
+      "kind": "forbidden-capability",
+      "id": "no-console-in-domain",
+      "title": "No Console Output in Domain",
+      "description": "Domain types should not have side effects like console output",
+      "forbiddenCapabilities": ["console-output"],
+      "layer": "domain"
+    },
+    {
+      "kind": "allowed-capability",
+      "id": "infrastructure-capabilities",
+      "title": "Infrastructure Layer Allowed Capabilities",
+      "description": "Infrastructure can perform I/O, spawn processes, and log",
+      "allowedCapabilities": ["filesystem", "process", "console-output", "environment"],
+      "layer": "infrastructure"
     }
   ],
   "entryPoint": "src/cli.ts"

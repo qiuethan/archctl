@@ -1,9 +1,10 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import type { ProjectScanner, FileInfo, ScanResult } from '../../../types/scanner';
-import type { DependencyEdge, ProjectFileNode } from '../../../types/graph';
-import { toForwardSlashes } from '../../../utils/path';
+import type { ProjectScanner, FileInfo, ScanResult } from '../../types/scanner';
+import type { DependencyEdge, ProjectFileNode } from '../../types/graph';
+import type { Capability, CapabilityPattern } from '../../types/capabilities';
+import { toForwardSlashes } from '../../utils/path';
 
 /**
  * TypeScript/JavaScript scanner using the TypeScript compiler API
@@ -16,9 +17,14 @@ export const tsJsScanner: ProjectScanner = {
     return file.language === 'typescript' || file.language === 'javascript';
   },
 
-  async scan(file: FileInfo, context: { projectRoot: string }): Promise<ScanResult> {
+  async scan(
+    file: FileInfo,
+    context: { projectRoot: string; capabilityPatterns?: CapabilityPattern[] }
+  ): Promise<ScanResult> {
     const edges: DependencyEdge[] = [];
     const externalImports: string[] = [];
+    const capabilities: Capability[] = [];
+    const detectedCapabilities = new Map<string, Capability>();
 
     try {
       // Parse the file using TypeScript compiler API
@@ -132,18 +138,125 @@ export const tsJsScanner: ProjectScanner = {
       };
 
       visit(sourceFile);
+
+      // Detect capabilities if patterns are provided
+      if (context.capabilityPatterns && context.capabilityPatterns.length > 0) {
+        // Track imported modules for capability detection
+        const importedModules = new Set<string>();
+
+        // Collect all imports
+        const collectImports = (node: ts.Node) => {
+          if (ts.isImportDeclaration(node)) {
+            const moduleSpecifier = node.moduleSpecifier;
+            if (ts.isStringLiteral(moduleSpecifier)) {
+              importedModules.add(moduleSpecifier.text);
+            }
+          }
+          if (ts.isCallExpression(node)) {
+            if (ts.isIdentifier(node.expression) && node.expression.text === 'require') {
+              const arg = node.arguments[0];
+              if (arg && ts.isStringLiteral(arg)) {
+                importedModules.add(arg.text);
+              }
+            }
+          }
+          ts.forEachChild(node, collectImports);
+        };
+        collectImports(sourceFile);
+
+        // Check imports against capability patterns
+        for (const importedModule of importedModules) {
+          for (const pattern of context.capabilityPatterns) {
+            if (pattern.imports) {
+              for (const patternImport of pattern.imports) {
+                if (
+                  importedModule === patternImport ||
+                  importedModule.startsWith(patternImport + '/')
+                ) {
+                  const key = `${pattern.type}-import-${patternImport}`;
+                  if (!detectedCapabilities.has(key)) {
+                    detectedCapabilities.set(key, {
+                      type: pattern.type,
+                      action: `import:${patternImport}`,
+                      confidence: 0.95,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Check for capability-indicating function calls
+        const checkCalls = (node: ts.Node) => {
+          if (ts.isCallExpression(node)) {
+            const callText = getCallExpressionText(node);
+            if (callText) {
+              for (const pattern of context.capabilityPatterns!) {
+                if (pattern.calls) {
+                  for (const call of pattern.calls) {
+                    if (callText.includes(call)) {
+                      const key = `${pattern.type}-${call}`;
+                      if (!detectedCapabilities.has(key)) {
+                        detectedCapabilities.set(key, {
+                          type: pattern.type,
+                          action: call,
+                          confidence: 0.9,
+                          line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
+                        });
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Check property access (e.g., process.env)
+          if (ts.isPropertyAccessExpression(node)) {
+            const propText = node.getText(sourceFile);
+            for (const pattern of context.capabilityPatterns!) {
+              if (pattern.calls) {
+                for (const call of pattern.calls) {
+                  if (propText === call || propText.startsWith(call + '.')) {
+                    const key = `${pattern.type}-${call}`;
+                    if (!detectedCapabilities.has(key)) {
+                      detectedCapabilities.set(key, {
+                        type: pattern.type,
+                        action: call,
+                        confidence: 0.85,
+                        line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
+                      });
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          ts.forEachChild(node, checkCalls);
+        };
+        checkCalls(sourceFile);
+
+        capabilities.push(...detectedCapabilities.values());
+      }
     } catch (error) {
       // If parsing fails, return empty result rather than crashing
       console.warn(`Failed to parse ${file.path}:`, error);
     }
 
-    // Satisfy async requirement
-    if (externalImports.length > 0) {
+    // Build result node if we have imports or capabilities
+    if (externalImports.length > 0 || capabilities.length > 0) {
       const node: ProjectFileNode = {
         id: file.path,
         path: file.path,
-        imports: externalImports,
       };
+      if (externalImports.length > 0) {
+        node.imports = externalImports;
+      }
+      if (capabilities.length > 0) {
+        node.capabilities = capabilities;
+      }
       if (file.language) {
         node.language = file.language;
       }
@@ -156,6 +269,36 @@ export const tsJsScanner: ProjectScanner = {
     return await Promise.resolve({ edges });
   },
 };
+
+/**
+ * Get text representation of a call expression
+ */
+function getCallExpressionText(node: ts.CallExpression): string | null {
+  if (ts.isIdentifier(node.expression)) {
+    return node.expression.text;
+  }
+  if (ts.isPropertyAccessExpression(node.expression)) {
+    const obj = getExpressionText(node.expression.expression);
+    const prop = node.expression.name.text;
+    return obj ? `${obj}.${prop}` : prop;
+  }
+  return null;
+}
+
+/**
+ * Get text representation of an expression
+ */
+function getExpressionText(node: ts.Expression): string | null {
+  if (ts.isIdentifier(node)) {
+    return node.text;
+  }
+  if (ts.isPropertyAccessExpression(node)) {
+    const obj = getExpressionText(node.expression);
+    const prop = node.name.text;
+    return obj ? `${obj}.${prop}` : prop;
+  }
+  return null;
+}
 
 /**
  * Resolve an import specifier to a project-relative file path

@@ -16,6 +16,7 @@ export interface FileInfo {
   language: string;
   imports: string[];
   dependencyCount: number;
+  capabilities?: Capability[];
 }
 
 /**

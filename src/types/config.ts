@@ -68,6 +68,24 @@ export interface ExternalDependencyRuleConfig {
   layer?: string;
 }
 
+export interface AllowedCapabilityRuleConfig {
+  kind: 'allowed-capability';
+  id: string;
+  title: string;
+  description: string;
+  allowedCapabilities: string[];
+  layer?: string;
+}
+
+export interface ForbiddenCapabilityRuleConfig {
+  kind: 'forbidden-capability';
+  id: string;
+  title: string;
+  description: string;
+  forbiddenCapabilities: string[];
+  layer?: string;
+}
+
 /**
  * Discriminated union of all rule config types
  */
@@ -78,6 +96,8 @@ export type RuleConfig =
   | MaxDependenciesRuleConfig
   | CyclicDependencyRuleConfig
   | ExternalDependencyRuleConfig
+  | AllowedCapabilityRuleConfig
+  | ForbiddenCapabilityRuleConfig
   | NaturalLanguageRuleConfig;
 
 /**
@@ -131,6 +151,12 @@ export interface ArchctlConfig {
 
   layers: LayerConfig[];
   layerMappings?: LayerMapping[];
+
+  /**
+   * Capability patterns for detecting code actions
+   * Defines what imports/calls indicate specific capabilities
+   */
+  capabilities?: CapabilityPattern[];
 
   /**
    * Concrete rule configurations using discriminated union
