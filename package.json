@@ -1,6 +1,6 @@
 {
   "name": "archctl",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Enforce clean architecture patterns and dependency rules in your codebase with powerful linting and real-time feedback",
   "type": "commonjs",
   "main": "dist/src/cli.js",
