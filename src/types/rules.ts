@@ -2,6 +2,8 @@
  * Rule system types for rule enforcement
  */
 
+import type { Capability } from './capabilities';
+
 /**
  * Rule severity levels
  */

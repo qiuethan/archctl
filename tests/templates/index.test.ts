@@ -116,6 +116,8 @@ describe('Template Library', () => {
         'file-pattern-layer',
         'max-dependencies',
         'cyclic-dependency',
+        'allowed-capability',
+        'forbidden-capability',
       ];
 
       template?.rules.forEach((ruleConfig) => {

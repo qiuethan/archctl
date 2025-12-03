@@ -29,6 +29,27 @@ export const modularMonolithTemplate: TemplateDefinition = {
     },
   ],
 
+  capabilities: [
+    {
+      type: 'network',
+      imports: ['axios', 'node-fetch', 'http'],
+      calls: ['fetch', 'axios.get', 'axios.post'],
+      description: 'HTTP requests',
+    },
+    {
+      type: 'database',
+      imports: ['pg', 'mongodb', 'typeorm'],
+      calls: ['query', 'find', 'save'],
+      description: 'Database operations',
+    },
+    {
+      type: 'filesystem',
+      imports: ['fs', 'fs/promises'],
+      calls: ['readFile', 'writeFile'],
+      description: 'File operations',
+    },
+  ],
+
   rules: [
     // Feature module isolation
     {

@@ -2,6 +2,8 @@
  * Configuration types for archctl project config
  */
 
+import type { CapabilityPattern } from './capabilities';
+
 /**
  * Discriminated union for rule configurations
  * Each rule type has a 'kind' field that determines which concrete class to instantiate
