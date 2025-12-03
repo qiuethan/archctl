@@ -8,10 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- N/A
+- **Capability-based rules** - New rule types `allowed-capability` and `forbidden-capability` to control what actions code can perform
+- **Capability detection** - Automatic detection of network calls, file I/O, database access, process spawning, and more
+- **User-defined capabilities** - Define custom capability patterns in config to detect specific imports and function calls
+- **Line-level violation reporting** - Capability violations now show the exact line number where the violation occurs
+- **Multi-language capability support** - Capability detection works across TypeScript, JavaScript, Python, and Java
+- **Template capabilities** - All architecture templates now include pre-configured capability patterns and rules
 
 ### Changed
-- N/A
+- Capability violations now report at the specific line of the violation instead of the top of the file
+- Enhanced violation messages to include the specific action being performed
 
 ### Deprecated
 - N/A

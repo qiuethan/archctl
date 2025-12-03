@@ -2,6 +2,8 @@
  * Type definitions for project dependency graph
  */
 
+import type { Capability } from './capabilities';
+
 /**
  * Type of dependency relationship between files
  */
@@ -25,6 +27,9 @@ export interface ProjectFileNode {
 
   /** External library imports (e.g., npm packages, pip modules) */
   imports?: string[];
+
+  /** Detected capabilities (actions the code performs) */
+  capabilities?: Capability[];
 }
 
 /**

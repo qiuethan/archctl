@@ -8,9 +8,9 @@ import { resolveLayerForFile } from '../../utils/layers';
 import { toForwardSlashes } from '../../utils/path';
 
 // Import scanners
-import { tsJsScanner } from './scanners/tsJsScanner';
-import { pythonScanner } from './scanners/pythonScanner';
-import { javaScanner } from './scanners/javaScanner';
+import { tsJsScanner } from '../scanners/tsJsScanner';
+import { pythonScanner } from '../scanners/pythonScanner';
+import { javaScanner } from '../scanners/javaScanner';
 
 /**
  * Available scanners for dependency detection
@@ -102,7 +102,16 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
         }
 
         try {
-          const result = await scanner.scan(fileInfo, { projectRoot });
+          const scanContext: {
+            projectRoot: string;
+            capabilityPatterns?: import('../../types/capabilities').CapabilityPattern[];
+          } = {
+            projectRoot,
+          };
+          if (config.capabilities) {
+            scanContext.capabilityPatterns = config.capabilities;
+          }
+          const result = await scanner.scan(fileInfo, scanContext);
 
           // Add edges from scan result
           if (result.edges) {

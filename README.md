@@ -21,6 +21,7 @@ Archctl is a CLI tool and VS Code extension that helps teams maintain clean arch
 ### Key Features
 
 - **Enforce Layer Boundaries** - Prevent unwanted dependencies between architectural layers
+- **Capability-Based Rules** - Control what actions code can perform (network, I/O, database, etc.)
 - **Dependency Rules** - Control which modules can import from which layers
 - **Cyclic Dependency Detection** - Find and eliminate circular dependencies
 - **Interactive HTML Reports** - Beautiful visualizations with health scores and dependency graphs
@@ -248,6 +249,20 @@ The `.archctl/archctl.config.json` file defines your architecture:
       "priority": 10
     }
   ],
+  "capabilities": [
+    {
+      "type": "network",
+      "imports": ["axios", "node-fetch", "http"],
+      "calls": ["fetch", "axios.get"],
+      "description": "HTTP requests and network operations"
+    },
+    {
+      "type": "database",
+      "imports": ["pg", "mongodb", "typeorm"],
+      "calls": ["query", "find", "save"],
+      "description": "Database operations"
+    }
+  ],
   "rules": [
     {
       "kind": "allowed-layer-import",
@@ -256,6 +271,14 @@ The `.archctl/archctl.config.json` file defines your architecture:
       "description": "Domain can only reference other domain code",
       "fromLayer": "domain",
       "allowedLayers": ["domain"]
+    },
+    {
+      "kind": "forbidden-capability",
+      "id": "no-io-in-domain",
+      "title": "No I/O in Domain Layer",
+      "description": "Domain should be pure business logic",
+      "forbiddenCapabilities": ["network", "database"],
+      "layer": "domain"
     },
     {
       "kind": "max-dependencies",
@@ -285,6 +308,13 @@ The `.archctl/archctl.config.json` file defines your architecture:
 - **`max-dependencies`** - Limit the number of dependencies per file
 - **`cyclic-dependency`** - Detect circular dependencies
 - **`external-dependency`** - Control which external packages can be used
+
+### Capability Rules
+
+- **`allowed-capability`** - Whitelist which capabilities (actions) code can perform
+- **`forbidden-capability`** - Blacklist specific capabilities (network, I/O, database, etc.)
+
+Capabilities let you control what actions code can perform, not just what it imports. Define patterns for detecting capabilities like network calls, file I/O, database access, and more. Perfect for enforcing domain purity and preventing side effects in business logic.
 
 ### Location Rules
 

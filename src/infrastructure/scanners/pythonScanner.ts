@@ -1,8 +1,9 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import type { ProjectScanner, FileInfo, ScanResult } from '../../../types/scanner';
-import type { DependencyEdge } from '../../../types/graph';
-import { toForwardSlashes } from '../../../utils/path';
+import type { ProjectScanner, FileInfo, ScanResult } from '../../types/scanner';
+import type { DependencyEdge, ProjectFileNode } from '../../types/graph';
+import type { Capability, CapabilityPattern } from '../../types/capabilities';
+import { toForwardSlashes } from '../../utils/path';
 
 /**
  * Python scanner using regex-based parsing
@@ -15,8 +16,14 @@ export const pythonScanner: ProjectScanner = {
     return file.language === 'python';
   },
 
-  async scan(file: FileInfo, context: { projectRoot: string }): Promise<ScanResult> {
+  async scan(
+    file: FileInfo,
+    context: { projectRoot: string; capabilityPatterns?: CapabilityPattern[] }
+  ): Promise<ScanResult> {
     const edges: DependencyEdge[] = [];
+    const externalImports: string[] = [];
+    const capabilities: Capability[] = [];
+    const detectedCapabilities = new Map<string, Capability>();
 
     try {
       const imports = extractPythonImports(file.contents);
@@ -31,13 +38,90 @@ export const pythonScanner: ProjectScanner = {
             confidence: 0.9,
             source: 'python-import',
           });
+        } else {
+          // Track external imports
+          externalImports.push(imp);
         }
+      }
+
+      // Detect capabilities if patterns are provided
+      if (context.capabilityPatterns && context.capabilityPatterns.length > 0) {
+        const lines = file.contents.split('\n');
+
+        // Check imports against capability patterns
+        for (const importedModule of externalImports) {
+          for (const pattern of context.capabilityPatterns) {
+            if (pattern.imports) {
+              for (const patternImport of pattern.imports) {
+                if (
+                  importedModule === patternImport ||
+                  importedModule.startsWith(patternImport + '.')
+                ) {
+                  const key = `${pattern.type}-import-${patternImport}`;
+                  if (!detectedCapabilities.has(key)) {
+                    detectedCapabilities.set(key, {
+                      type: pattern.type,
+                      action: `import:${patternImport}`,
+                      confidence: 0.95,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Check for capability-indicating function calls
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line) continue;
+          const trimmedLine = line.trim();
+          for (const pattern of context.capabilityPatterns) {
+            if (pattern.calls) {
+              for (const call of pattern.calls) {
+                if (trimmedLine.includes(call)) {
+                  const key = `${pattern.type}-${call}`;
+                  if (!detectedCapabilities.has(key)) {
+                    detectedCapabilities.set(key, {
+                      type: pattern.type,
+                      action: call,
+                      confidence: 0.85,
+                      line: i + 1,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        capabilities.push(...detectedCapabilities.values());
       }
     } catch (error) {
       console.warn(`Failed to parse Python imports in ${file.path}:`, error);
     }
 
-    // Satisfy async requirement
+    // Build result node if we have external imports or capabilities
+    if (externalImports.length > 0 || capabilities.length > 0) {
+      const node: ProjectFileNode = {
+        id: file.path,
+        path: file.path,
+      };
+      if (externalImports.length > 0) {
+        node.imports = externalImports;
+      }
+      if (capabilities.length > 0) {
+        node.capabilities = capabilities;
+      }
+      if (file.language) {
+        node.language = file.language;
+      }
+      return await Promise.resolve({
+        edges,
+        nodes: [node],
+      });
+    }
+
     return await Promise.resolve({ edges });
   },
 };

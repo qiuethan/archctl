@@ -11,6 +11,7 @@ Quick reference for `archctl.config.json` syntax.
   "exclude": string[]?,
   "layers": LayerConfig[],
   "layerMappings": LayerMapping[]?,
+  "capabilities": CapabilityPattern[]?,
   "rules": RuleConfig[]
 }
 ```
@@ -32,6 +33,28 @@ Quick reference for `archctl.config.json` syntax.
   "include": string[],
   "exclude": string[]?,
   "priority": number?
+}
+```
+
+### CapabilityPattern
+```json
+{
+  "type": string,
+  "imports": string[]?,
+  "calls": string[]?,
+  "description": string
+}
+```
+
+Capabilities define what actions code can perform (e.g., network calls, file I/O, database access). You define patterns that detect when code uses these capabilities, then create rules to enforce architectural constraints.
+
+**Example:**
+```json
+{
+  "type": "filesystem",
+  "imports": ["fs", "fs/promises"],
+  "calls": ["readFile", "writeFile", "existsSync"],
+  "description": "File system operations"
 }
 ```
 
@@ -129,6 +152,34 @@ All rules share these base properties:
 }
 ```
 
+#### `allowed-capability`
+```json
+{
+  "kind": "allowed-capability",
+  "id": string,
+  "title": string,
+  "description": string,
+  "allowedCapabilities": string[],
+  "layer": string?
+}
+```
+
+Whitelist approach - only specified capabilities are allowed in the layer.
+
+#### `forbidden-capability`
+```json
+{
+  "kind": "forbidden-capability",
+  "id": string,
+  "title": string,
+  "description": string,
+  "forbiddenCapabilities": string[],
+  "layer": string?
+}
+```
+
+Blacklist approach - specified capabilities are forbidden in the layer.
+
 ## Complete Example
 
 ```json
@@ -176,6 +227,26 @@ All rules share these base properties:
       "priority": 5
     }
   ],
+  "capabilities": [
+    {
+      "type": "network",
+      "imports": ["axios", "node-fetch", "http", "https"],
+      "calls": ["fetch", "axios.get", "axios.post"],
+      "description": "HTTP requests and network operations"
+    },
+    {
+      "type": "filesystem",
+      "imports": ["fs", "fs/promises"],
+      "calls": ["readFile", "writeFile", "existsSync"],
+      "description": "File system operations"
+    },
+    {
+      "type": "database",
+      "imports": ["pg", "mongodb", "typeorm"],
+      "calls": ["query", "find", "save"],
+      "description": "Database access"
+    }
+  ],
   "rules": [
     {
       "kind": "allowed-layer-import",
@@ -205,6 +276,22 @@ All rules share these base properties:
       "id": "no-cycles",
       "title": "No Circular Dependencies",
       "description": "Prevent circular dependencies"
+    },
+    {
+      "kind": "forbidden-capability",
+      "id": "no-network-in-domain",
+      "title": "No Network Calls in Domain",
+      "description": "Domain should be pure business logic",
+      "forbiddenCapabilities": ["network", "filesystem"],
+      "layer": "domain"
+    },
+    {
+      "kind": "allowed-capability",
+      "id": "infrastructure-capabilities",
+      "title": "Infrastructure Allowed Capabilities",
+      "description": "Infrastructure can perform I/O and external calls",
+      "allowedCapabilities": ["network", "filesystem", "database"],
+      "layer": "infrastructure"
     }
   ]
 }

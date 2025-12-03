@@ -34,6 +34,33 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
     },
   ],
 
+  capabilities: [
+    {
+      type: 'network',
+      imports: ['axios', 'node-fetch', 'http', 'https'],
+      calls: ['fetch', 'axios.get', 'axios.post', 'axios.put', 'axios.delete'],
+      description: 'HTTP requests and network operations',
+    },
+    {
+      type: 'filesystem',
+      imports: ['fs', 'fs/promises', 'fs-extra'],
+      calls: ['readFile', 'writeFile', 'readFileSync', 'writeFileSync', 'existsSync'],
+      description: 'File system read/write operations',
+    },
+    {
+      type: 'database',
+      imports: ['pg', 'mysql', 'mongodb', 'typeorm', 'prisma'],
+      calls: ['query', 'execute', 'find', 'save', 'create', 'update', 'delete'],
+      description: 'Database queries and operations',
+    },
+    {
+      type: 'process',
+      imports: ['child_process'],
+      calls: ['exec', 'execSync', 'spawn', 'fork'],
+      description: 'Process spawning and system calls',
+    },
+  ],
+
   rules: [
     // Domain layer isolation - pure business logic
     {
@@ -116,6 +143,24 @@ export const cleanArchitectureTemplate: TemplateDefinition = {
       description: 'Domain layer must not directly depend on infrastructure implementations',
       fromLayer: 'domain',
       toLayer: 'infrastructure',
+    },
+    // Domain layer purity - no I/O capabilities
+    {
+      kind: 'forbidden-capability' as const,
+      id: 'domain-no-io',
+      title: 'Domain Layer Purity',
+      description: 'Domain layer must be pure - no I/O, network, or database operations',
+      forbiddenCapabilities: ['network', 'filesystem', 'database', 'process'],
+      layer: 'domain',
+    },
+    // Infrastructure layer capabilities
+    {
+      kind: 'allowed-capability' as const,
+      id: 'infrastructure-capabilities',
+      title: 'Infrastructure Layer Capabilities',
+      description: 'Infrastructure can perform I/O, network, and database operations',
+      allowedCapabilities: ['network', 'filesystem', 'database', 'process'],
+      layer: 'infrastructure',
     },
   ],
 };

@@ -7,6 +7,8 @@ import { FilePatternLayerRule } from '../infrastructure/rules/FilePatternLayerRu
 import { MaxDependenciesRule } from '../infrastructure/rules/MaxDependenciesRule';
 import { CyclicDependencyRule } from '../infrastructure/rules/CyclicDependencyRule';
 import { ExternalDependencyRule } from '../infrastructure/rules/ExternalDependencyRule';
+import { AllowedCapabilityRule } from '../infrastructure/rules/AllowedCapabilityRule';
+import { ForbiddenCapabilityRule } from '../infrastructure/rules/ForbiddenCapabilityRule';
 
 /**
  * Rule management operations
@@ -83,6 +85,16 @@ export function getAvailableRuleKinds(): Array<{
       name: 'External Dependency',
       description: 'Enforce allowed external library imports',
     },
+    {
+      value: 'allowed-capability',
+      name: 'Allowed Capability',
+      description: 'Whitelist allowed capabilities (actions code can perform)',
+    },
+    {
+      value: 'forbidden-capability',
+      name: 'Forbidden Capability',
+      description: 'Block specific capabilities (actions code can perform)',
+    },
   ];
 }
 
@@ -136,6 +148,20 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
         });
         break;
 
+      case 'allowed-capability':
+        rule = new AllowedCapabilityRule(config.id, config.title, config.description, {
+          allowedCapabilities: config.allowedCapabilities,
+          layer: config.layer,
+        });
+        break;
+
+      case 'forbidden-capability':
+        rule = new ForbiddenCapabilityRule(config.id, config.title, config.description, {
+          forbiddenCapabilities: config.forbiddenCapabilities,
+          layer: config.layer,
+        });
+        break;
+
       case 'natural-language':
         // TODO: Implement NaturalLanguageRule when AI integration is ready
         console.warn(`Natural language rule "${config.id}" not yet implemented`);
@@ -167,7 +193,7 @@ export function buildRuleContext(
   // Build file info map from graph
   const graphFiles = graphAnalysis.graph.files as Record<
     string,
-    { layer?: string; language?: string; imports?: string[] }
+    { layer?: string; language?: string; imports?: string[]; capabilities?: unknown[] }
   >;
   for (const [filePath, fileData] of Object.entries(graphFiles)) {
     const data = fileData;
@@ -177,13 +203,19 @@ export function buildRuleContext(
       graphAnalysis.graph.edges as Array<{ from: string; to: string }>
     ).filter((edge) => edge.from === filePath).length;
 
-    files.set(filePath, {
+    const fileInfo: FileInfo = {
       path: filePath,
       layer: data.layer || null,
       language: data.language || 'unknown',
       imports: data.imports || [],
       dependencyCount,
-    });
+    };
+
+    if (data.capabilities) {
+      fileInfo.capabilities = data.capabilities as import('../types/capabilities').Capability[];
+    }
+
+    files.set(filePath, fileInfo);
   }
 
   return {

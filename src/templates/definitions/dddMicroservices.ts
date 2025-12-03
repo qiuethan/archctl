@@ -33,6 +33,27 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
     },
   ],
 
+  capabilities: [
+    {
+      type: 'network',
+      imports: ['axios', 'node-fetch', 'http', 'https'],
+      calls: ['fetch', 'axios.get', 'axios.post'],
+      description: 'HTTP requests and API calls',
+    },
+    {
+      type: 'database',
+      imports: ['pg', 'mongodb', 'typeorm', 'prisma'],
+      calls: ['query', 'find', 'save', 'create', 'update'],
+      description: 'Database operations',
+    },
+    {
+      type: 'messaging',
+      imports: ['amqplib', 'kafkajs', 'redis'],
+      calls: ['publish', 'subscribe', 'sendToQueue'],
+      description: 'Message broker and event bus operations',
+    },
+  ],
+
   rules: [
     // Domain layer isolation - pure domain model
     {
@@ -116,6 +137,24 @@ export const dddMicroservicesTemplate: TemplateDefinition = {
         'Domain model must not depend on API layer to maintain bounded context integrity',
       fromLayer: 'domain',
       toLayer: 'api',
+    },
+    // Domain layer purity
+    {
+      kind: 'forbidden-capability' as const,
+      id: 'domain-no-io',
+      title: 'Domain Model Purity',
+      description: 'Domain model must be pure - no I/O, network, database, or messaging operations',
+      forbiddenCapabilities: ['network', 'database', 'messaging'],
+      layer: 'domain',
+    },
+    // Infrastructure capabilities
+    {
+      kind: 'allowed-capability' as const,
+      id: 'infrastructure-capabilities',
+      title: 'Infrastructure Capabilities',
+      description: 'Infrastructure can perform database, messaging, and network operations',
+      allowedCapabilities: ['network', 'database', 'messaging'],
+      layer: 'infrastructure',
     },
   ],
 };

@@ -2,6 +2,8 @@
  * Rule system types for rule enforcement
  */
 
+import type { Capability } from './capabilities';
+
 /**
  * Rule severity levels
  */
@@ -16,6 +18,7 @@ export interface FileInfo {
   language: string;
   imports: string[];
   dependencyCount: number;
+  capabilities?: Capability[];
 }
 
 /**

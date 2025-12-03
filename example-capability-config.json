@@ -1,0 +1,77 @@
+{
+  "name": "archctl-capability-test",
+  "layers": [
+    {
+      "name": "infrastructure",
+      "description": "External integrations and I/O"
+    },
+    {
+      "name": "services",
+      "description": "Business logic services"
+    },
+    {
+      "name": "types",
+      "description": "Type definitions"
+    }
+  ],
+  "layerMappings": [
+    {
+      "layer": "infrastructure",
+      "include": ["src/infrastructure/**"]
+    },
+    {
+      "layer": "services",
+      "include": ["src/services/**"]
+    },
+    {
+      "layer": "types",
+      "include": ["src/types/**"]
+    }
+  ],
+  "capabilities": [
+    {
+      "type": "filesystem",
+      "imports": ["fs", "fs/promises", "fs-extra"],
+      "calls": ["readFile", "writeFile", "readFileSync", "writeFileSync", "existsSync", "statSync"],
+      "description": "File system operations"
+    },
+    {
+      "type": "process",
+      "imports": ["child_process"],
+      "calls": ["exec", "execSync", "spawn", "fork"],
+      "description": "Process spawning"
+    },
+    {
+      "type": "console-output",
+      "imports": [],
+      "calls": ["console.log", "console.error", "console.warn"],
+      "description": "Console output"
+    }
+  ],
+  "rules": [
+    {
+      "kind": "forbidden-capability",
+      "id": "no-fs-in-services",
+      "title": "No File System Access in Services",
+      "description": "Services should not directly access the file system",
+      "forbiddenCapabilities": ["filesystem"],
+      "layer": "services"
+    },
+    {
+      "kind": "forbidden-capability",
+      "id": "no-console-in-types",
+      "title": "No Console Output in Types",
+      "description": "Type definitions should not have side effects",
+      "forbiddenCapabilities": ["console-output"],
+      "layer": "types"
+    },
+    {
+      "kind": "allowed-capability",
+      "id": "infrastructure-allowed",
+      "title": "Infrastructure Layer Allowed Capabilities",
+      "description": "Infrastructure can use filesystem and process capabilities",
+      "allowedCapabilities": ["filesystem", "process", "console-output"],
+      "layer": "infrastructure"
+    }
+  ]
+}

@@ -3,6 +3,7 @@
  */
 
 import type { RuleConfig } from './config';
+import type { CapabilityPattern } from './capabilities';
 
 /**
  * Layer definition within a template (conceptual only, no file paths)
@@ -21,6 +22,9 @@ export interface TemplateDefinition {
   description: string;
 
   layers: TemplateLayer[];
+
+  /** Capability patterns for detecting code actions */
+  capabilities?: CapabilityPattern[];
 
   /** Concrete rule configurations */
   rules: RuleConfig[];
