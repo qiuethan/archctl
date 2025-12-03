@@ -88,6 +88,19 @@ export interface ForbiddenCapabilityRuleConfig {
   layer?: string;
 }
 
+export interface ContextVisibilityRuleContextConfig {
+  context: string;
+  canDependOn?: string[];
+}
+
+export interface ContextVisibilityRuleConfig {
+  kind: 'context-visibility';
+  id: string;
+  title: string;
+  description: string;
+  contexts?: ContextVisibilityRuleContextConfig[];
+}
+
 /**
  * Discriminated union of all rule config types
  */
@@ -100,6 +113,7 @@ export type RuleConfig =
   | ExternalDependencyRuleConfig
   | AllowedCapabilityRuleConfig
   | ForbiddenCapabilityRuleConfig
+  | ContextVisibilityRuleConfig
   | NaturalLanguageRuleConfig;
 
 /**
@@ -130,6 +144,14 @@ export interface LayerMapping {
   priority?: number;
 }
 
+export interface ContextMapping {
+  context: string;
+  include: string[];
+  exclude?: string[];
+  public?: string[];
+  priority?: number;
+}
+
 /**
  * Shape of the archctl project config file (archctl.config.json)
  */
@@ -153,6 +175,7 @@ export interface ArchctlConfig {
 
   layers: LayerConfig[];
   layerMappings?: LayerMapping[];
+  contextMappings?: ContextMapping[];
 
   /**
    * Capability patterns for detecting code actions

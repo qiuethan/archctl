@@ -3,6 +3,7 @@
  */
 
 import type { Capability } from './capabilities';
+import type { ContextMapping } from './config';
 
 /**
  * Rule severity levels
@@ -40,6 +41,9 @@ export interface RuleContext {
     include: string[];
     exclude?: string[];
   }>;
+
+  /** Context mappings (vertical architecture) */
+  contextMappings?: ContextMapping[];
 
   /** Project root directory */
   projectRoot: string;

@@ -9,6 +9,7 @@ import { CyclicDependencyRule } from '../infrastructure/rules/CyclicDependencyRu
 import { ExternalDependencyRule } from '../infrastructure/rules/ExternalDependencyRule';
 import { AllowedCapabilityRule } from '../infrastructure/rules/AllowedCapabilityRule';
 import { ForbiddenCapabilityRule } from '../infrastructure/rules/ForbiddenCapabilityRule';
+import { ContextVisibilityRule } from '../infrastructure/rules/ContextVisibilityRule';
 
 /**
  * Rule management operations
@@ -95,6 +96,11 @@ export function getAvailableRuleKinds(): Array<{
       name: 'Forbidden Capability',
       description: 'Block specific capabilities (actions code can perform)',
     },
+    {
+      value: 'context-visibility',
+      name: 'Context Visibility',
+      description: 'Enforce vertical context boundaries and public APIs',
+    },
   ];
 }
 
@@ -162,6 +168,12 @@ export function createRulesFromConfig(configs: RuleConfig[]): BaseRule[] {
         });
         break;
 
+      case 'context-visibility':
+        rule = new ContextVisibilityRule(config.id, config.title, config.description, {
+          contexts: config.contexts,
+        });
+        break;
+
       case 'natural-language':
         // TODO: Implement NaturalLanguageRule when AI integration is ready
         console.warn(`Natural language rule "${config.id}" not yet implemented`);
@@ -224,6 +236,7 @@ export function buildRuleContext(
     layers: config.layers || [],
     layerMappings: config.layerMappings || [],
     projectRoot,
+    contextMappings: config.contextMappings || [],
   };
 }
 

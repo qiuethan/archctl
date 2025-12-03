@@ -73,6 +73,33 @@
       "exclude": []
     }
   ],
+  "contextMappings": [
+    {
+      "context": "config",
+      "include": ["src/infrastructure/config/**", "src/services/configService.ts"],
+      "public": ["src/services/configService.ts"]
+    },
+    {
+      "context": "graph",
+      "include": ["src/infrastructure/graph/**", "src/services/graphService.ts"],
+      "public": ["src/services/graphService.ts"]
+    },
+    {
+      "context": "rules",
+      "include": ["src/infrastructure/rules/**", "src/services/ruleService.ts"],
+      "public": ["src/services/ruleService.ts", "src/infrastructure/rules/*Rule.ts"]
+    },
+    {
+      "context": "commands",
+      "include": ["src/commands/**"],
+      "public": ["src/commands/**"]
+    },
+    {
+      "context": "shared",
+      "include": ["src/utils/**", "src/types/**"],
+      "public": ["src/utils/**", "src/types/**"]
+    }
+  ],
   "capabilities": [
     {
       "type": "filesystem",
@@ -275,6 +302,30 @@
       "description": "Infrastructure can perform I/O, spawn processes, and log",
       "allowedCapabilities": ["filesystem", "process", "console-output", "environment"],
       "layer": "infrastructure"
+    },
+    {
+      "kind": "context-visibility",
+      "id": "vertical-context-boundaries",
+      "title": "Vertical Context Boundaries",
+      "description": "Enforce modular boundaries between feature contexts - only public APIs may be imported across contexts",
+      "contexts": [
+        {
+          "context": "config",
+          "canDependOn": ["config", "shared"]
+        },
+        {
+          "context": "graph",
+          "canDependOn": ["graph", "shared"]
+        },
+        {
+          "context": "rules",
+          "canDependOn": ["rules", "graph", "shared"]
+        },
+        {
+          "context": "commands",
+          "canDependOn": ["commands", "config", "graph", "rules", "shared"]
+        }
+      ]
     }
   ],
   "entryPoint": "src/cli.ts"
