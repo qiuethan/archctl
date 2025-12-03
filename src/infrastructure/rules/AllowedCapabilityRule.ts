@@ -34,31 +34,27 @@ export class AllowedCapabilityRule extends BaseRule {
         continue;
       }
 
-      // Check each capability against the allowlist
-      const disallowedCapabilities: string[] = [];
+      // Check each capability against the allowlist and create violations with line numbers
       for (const capability of fileInfo.capabilities) {
         if (!this.allowedCapabilities.has(capability.type)) {
-          disallowedCapabilities.push(capability.type);
+          const violation: RuleViolation = {
+            ruleId: this.id,
+            severity: 'error',
+            message: `File uses disallowed capability: ${capability.type}`,
+            file: filePath,
+            suggestion: `Only the following capabilities are allowed${this.layer ? ` in layer '${this.layer}'` : ''}: ${Array.from(this.allowedCapabilities).join(', ')}. Remove or refactor the disallowed capability usage.`,
+            metadata: {
+              capability: capability.type,
+              action: capability.action,
+              allowedCapabilities: Array.from(this.allowedCapabilities),
+              layer: fileInfo.layer,
+            },
+          };
+          if (capability.line) {
+            violation.line = capability.line;
+          }
+          violations.push(violation);
         }
-      }
-
-      // If there are disallowed capabilities, create a violation
-      if (disallowedCapabilities.length > 0) {
-        // Get unique capability types
-        const uniqueDisallowed = Array.from(new Set(disallowedCapabilities));
-
-        violations.push({
-          ruleId: this.id,
-          severity: 'error',
-          message: `File uses disallowed capabilities: ${uniqueDisallowed.join(', ')}`,
-          file: filePath,
-          suggestion: `Only the following capabilities are allowed${this.layer ? ` in layer '${this.layer}'` : ''}: ${Array.from(this.allowedCapabilities).join(', ')}. Remove or refactor the disallowed capability usage.`,
-          metadata: {
-            disallowedCapabilities: uniqueDisallowed,
-            allowedCapabilities: Array.from(this.allowedCapabilities),
-            layer: fileInfo.layer,
-          },
-        });
       }
     }
 

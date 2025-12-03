@@ -34,31 +34,27 @@ export class ForbiddenCapabilityRule extends BaseRule {
         continue;
       }
 
-      // Check each capability against the forbidden list
-      const foundForbidden: string[] = [];
+      // Check each capability against the forbidden list and create violations with line numbers
       for (const capability of fileInfo.capabilities) {
         if (this.forbiddenCapabilities.has(capability.type)) {
-          foundForbidden.push(capability.type);
+          const violation: RuleViolation = {
+            ruleId: this.id,
+            severity: 'error',
+            message: `File uses forbidden capability: ${capability.type}`,
+            file: filePath,
+            suggestion: `The following capabilities are forbidden${this.layer ? ` in layer '${this.layer}'` : ''}: ${Array.from(this.forbiddenCapabilities).join(', ')}. Remove or refactor the forbidden capability usage.`,
+            metadata: {
+              capability: capability.type,
+              action: capability.action,
+              allForbiddenCapabilities: Array.from(this.forbiddenCapabilities),
+              layer: fileInfo.layer,
+            },
+          };
+          if (capability.line) {
+            violation.line = capability.line;
+          }
+          violations.push(violation);
         }
-      }
-
-      // If there are forbidden capabilities, create a violation
-      if (foundForbidden.length > 0) {
-        // Get unique capability types
-        const uniqueForbidden = Array.from(new Set(foundForbidden));
-
-        violations.push({
-          ruleId: this.id,
-          severity: 'error',
-          message: `File uses forbidden capabilities: ${uniqueForbidden.join(', ')}`,
-          file: filePath,
-          suggestion: `The following capabilities are forbidden${this.layer ? ` in layer '${this.layer}'` : ''}: ${Array.from(this.forbiddenCapabilities).join(', ')}. Remove or refactor the forbidden capability usage.`,
-          metadata: {
-            forbiddenCapabilities: uniqueForbidden,
-            allForbiddenCapabilities: Array.from(this.forbiddenCapabilities),
-            layer: fileInfo.layer,
-          },
-        });
       }
     }
 
