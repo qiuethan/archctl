@@ -20,7 +20,8 @@ Archctl is a CLI tool and VS Code extension that helps teams maintain clean arch
 
 ### Key Features
 
-- **Enforce Layer Boundaries** - Prevent unwanted dependencies between architectural layers
+- **Enforce Layer Boundaries** - Prevent unwanted dependencies between architectural layers (horizontal architecture)
+- **Vertical Context Boundaries** - Enforce modular boundaries between feature contexts with public API contracts
 - **Capability-Based Rules** - Control what actions code can perform (network, I/O, database, etc.)
 - **Dependency Rules** - Control which modules can import from which layers
 - **Cyclic Dependency Detection** - Find and eliminate circular dependencies
@@ -249,6 +250,23 @@ The `.archctl/archctl.config.json` file defines your architecture:
       "priority": 10
     }
   ],
+  "contextMappings": [
+    {
+      "context": "billing",
+      "include": ["src/billing/**"],
+      "public": ["src/billing/api/**"]
+    },
+    {
+      "context": "orders",
+      "include": ["src/orders/**"],
+      "public": ["src/orders/api/**"]
+    },
+    {
+      "context": "shared",
+      "include": ["src/shared/**"],
+      "public": ["src/shared/**"]
+    }
+  ],
   "capabilities": [
     {
       "type": "network",
@@ -292,6 +310,22 @@ The `.archctl/archctl.config.json` file defines your architecture:
       "id": "no-cycles",
       "title": "No Circular Dependencies",
       "description": "Prevent circular dependencies"
+    },
+    {
+      "kind": "context-visibility",
+      "id": "vertical-boundaries",
+      "title": "Vertical Context Boundaries",
+      "description": "Enforce modular boundaries between feature contexts",
+      "contexts": [
+        {
+          "context": "billing",
+          "canDependOn": ["billing", "shared"]
+        },
+        {
+          "context": "orders",
+          "canDependOn": ["orders", "shared"]
+        }
+      ]
     }
   ]
 }
@@ -301,13 +335,67 @@ The `.archctl/archctl.config.json` file defines your architecture:
 
 ## Available Rules
 
-### Dependency Rules
+### Horizontal Architecture Rules (Layers)
 
 - **`allowed-layer-import`** - Whitelist which layers a layer can import from
 - **`forbidden-layer-import`** - Blacklist specific layer-to-layer imports
 - **`max-dependencies`** - Limit the number of dependencies per file
 - **`cyclic-dependency`** - Detect circular dependencies
 - **`external-dependency`** - Control which external packages can be used
+- **`file-pattern-layer`** - Enforce that files matching a pattern belong to a specific layer
+
+### Vertical Architecture Rules (Contexts)
+
+- **`context-visibility`** - Enforce modular boundaries between feature contexts
+
+**Context visibility** enables vertical slice architecture by defining bounded contexts with explicit public APIs. This prevents feature modules from accessing each other's internal implementation details.
+
+**Key concepts:**
+- **Contexts** - Vertical slices of functionality (e.g., billing, orders, inventory)
+- **Public APIs** - Files that can be imported by other contexts (defined via glob patterns)
+- **Context Dependencies** - Explicit declarations of which contexts can depend on which
+
+**Example:**
+```json
+{
+  "contextMappings": [
+    {
+      "context": "billing",
+      "include": ["src/billing/**"],
+      "public": ["src/billing/api/**"]
+    },
+    {
+      "context": "orders",
+      "include": ["src/orders/**"],
+      "public": ["src/orders/api/**"]
+    }
+  ],
+  "rules": [
+    {
+      "kind": "context-visibility",
+      "id": "vertical-boundaries",
+      "title": "Vertical Context Boundaries",
+      "description": "Enforce modular boundaries",
+      "contexts": [
+        {
+          "context": "billing",
+          "canDependOn": ["billing", "shared"]
+        },
+        {
+          "context": "orders",
+          "canDependOn": ["orders", "shared"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+This configuration:
+- ✅ Allows `orders` → `orders/api/OrderService.ts` (same context)
+- ✅ Allows `billing` → `orders/api/OrderService.ts` (public API, but would fail `canDependOn` check)
+- ❌ Blocks `billing` → `orders/internal/OrderRepository.ts` (not in public API)
+- ❌ Blocks `orders` → `billing/api/BillingService.ts` (not in `canDependOn` list)
 
 ### Capability Rules
 
@@ -315,10 +403,6 @@ The `.archctl/archctl.config.json` file defines your architecture:
 - **`forbidden-capability`** - Blacklist specific capabilities (network, I/O, database, etc.)
 
 Capabilities let you control what actions code can perform, not just what it imports. Define patterns for detecting capabilities like network calls, file I/O, database access, and more. Perfect for enforcing domain purity and preventing side effects in business logic.
-
-### Location Rules
-
-- **`file-pattern-layer`** - Enforce that files matching a pattern belong to a specific layer
 
 ---
 
