@@ -19,6 +19,7 @@ Usage:
 Commands:
   ${commands.init.name.padEnd(10)}${commands.init.description}
   ${commands.layers.name.padEnd(10)}${commands.layers.description}
+  ${commands.contexts.name.padEnd(10)}${commands.contexts.description}
   ${commands.rules.name.padEnd(10)}${commands.rules.description}
   ${commands.sync.name.padEnd(10)}${commands.sync.description}
   ${commands.lint.name.padEnd(10)}${commands.lint.description}
@@ -34,6 +35,9 @@ Examples:
   ${examples.layersList}
   ${examples.layersAdd}
   ${examples.layersMap}
+  ${examples.contextsList}
+  ${examples.contextsAdd}
+  ${examples.contextsVisibility}
   ${examples.sync}
   ${examples.lint}
   ${examples.prompt}

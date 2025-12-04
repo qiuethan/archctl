@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Line-level violation reporting** - Capability violations now show the exact line number where the violation occurs
 - **Multi-language capability support** - Capability detection works across TypeScript, JavaScript, Python, and Java
 - **Template capabilities** - All architecture templates now include pre-configured capability patterns and rules
+- **Contexts CLI** - New `archctl contexts` command to add/list context mappings and set `context-visibility` rules from the CLI
 
 ### Changed
 - Capability violations now report at the specific line of the violation instead of the top of the file

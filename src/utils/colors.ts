@@ -85,6 +85,13 @@ export function formatLayer(layer: string): string {
 }
 
 /**
+ * Format a context name
+ */
+export function formatContext(context: string): string {
+  return chalk.blue(context);
+}
+
+/**
  * Format a package name
  */
 export function formatPackage(pkg: string): string {

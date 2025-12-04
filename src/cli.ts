@@ -7,6 +7,7 @@ import { cmdLint } from './commands/lint';
 import { cmdPrompt } from './commands/prompt';
 import { cmdLayers } from './commands/layers';
 import { cmdRules } from './commands/rules';
+import { cmdContexts } from './commands/contexts';
 import * as presenter from './presentation/cliPresenter';
 
 async function main() {
@@ -31,6 +32,10 @@ async function main() {
 
     case 'layers':
       cmdLayers(args);
+      break;
+
+    case 'contexts':
+      cmdContexts(args);
       break;
 
     case 'rules':

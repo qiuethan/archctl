@@ -62,12 +62,6 @@ Archctl will create a `.archctl/archctl.config.json` file with your chosen archi
 archctl lint
 ```
 
-### Visualize Dependencies
-
-```bash
-archctl graph
-```
-
 ---
 
 ## Commands
@@ -110,17 +104,6 @@ The HTML report includes:
 - Violation details with suggestions
 - Top dependencies and most imported files
 
-### `archctl graph`
-
-Visualize your project's dependency graph.
-
-```bash
-archctl graph [options]
-
-Options:
-  --output <file>    Save graph to file
-```
-
 ### `archctl layers`
 
 Manage architectural layers.
@@ -133,6 +116,24 @@ Commands:
   add <name>         Add a new layer
   map <pattern>      Map file patterns to layers
 ```
+
+### `archctl contexts`
+
+Manage vertical contexts (context mappings and visibility rules).
+
+```bash
+archctl contexts <command>
+
+Commands:
+  list                                  List context mappings and visibility rules
+  add --context <name> --include <glob> Add or update a context mapping (supports --public, --exclude, --priority)
+  remove --context <name>               Remove a context mapping or specific include/public path
+  visibility --context <name> --allow   Set which contexts the given context can depend on
+```
+
+Examples:
+- `archctl contexts add --context billing --include src/billing/** --public src/billing/api/**`
+- `archctl contexts visibility --context billing --allow billing,shared`
 
 ### `archctl rules`
 

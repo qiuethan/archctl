@@ -215,6 +215,11 @@ Blacklist approach - specified capabilities are forbidden in the layer.
 
 Combine `contextMappings` with the `context-visibility` rule to separate feature slices (billing, orders, shared). `contextMappings` assigns files to contexts and defines their `public` API globs; `context-visibility` declares which contexts may depend on each other.
 
+**Manual context setup:**
+- Add `contextMappings` entries that map files to contexts and declare their public API globs.
+- Add a `context-visibility` rule that lists which contexts are allowed to depend on which.
+- Run `archctl lint` to verify boundaries.
+
 ## Complete Example
 
 ```json

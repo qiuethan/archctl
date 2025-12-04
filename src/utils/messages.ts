@@ -20,6 +20,10 @@ export const messages = {
       name: 'layers',
       description: 'Manage architecture layers and mappings',
     },
+    contexts: {
+      name: 'contexts',
+      description: 'Manage vertical contexts and visibility rules',
+    },
     rules: {
       name: 'rules',
       description: 'Manage architecture rules',
@@ -61,7 +65,9 @@ export const messages = {
     layersMapWithExclude: 'archctl layers map --layer <name> --include <path> --exclude <pattern>',
     layersExcludeOnly: 'archctl layers map --layer <name> --exclude <pattern>',
     layersUnmap: 'archctl layers unmap --layer <name> --include <path>',
-    graph: 'archctl graph',
+    contextsList: 'archctl contexts list',
+    contextsAdd: 'archctl contexts add --context <name> --include <path> --public <path>',
+    contextsVisibility: 'archctl contexts visibility --context <name> --allow billing,shared',
     sync: 'archctl sync',
     lint: 'archctl lint',
     prompt: 'archctl prompt',
@@ -75,7 +81,8 @@ export const messages = {
     nextSteps: [
       '  1. Review and customize layers in the configuration file',
       '  2. Add layer mappings to associate file paths with layers',
-      '  3. Run `archctl lint` to validate your architecture',
+      '  3. Add context mappings and visibility rules for vertical slices (optional)',
+      '  4. Run `archctl lint` to validate your architecture',
     ],
     alreadyExists:
       'already exists. Use --force to overwrite or choose a different --out directory.',
@@ -208,6 +215,51 @@ export const messages = {
     common: {
       configNotFound: 'Error: Configuration file not found. Run `archctl init` first.',
       configSaved: 'Configuration saved to:',
+    },
+  },
+
+  // Contexts Command Messages
+  contexts: {
+    common: {
+      configSaved: 'Configuration saved to:',
+    },
+    list: {
+      contextMappingsHeader: 'Context mappings:',
+      noContextMappings: 'No context mappings defined yet.',
+      suggestAdd:
+        'Use `archctl contexts add --context <name> --include <path> --public <path>` to add one.',
+      visibilityHeader: 'Context visibility rules:',
+      noVisibilityRules: 'No context-visibility rules defined yet.',
+      suggestVisibility:
+        'Use `archctl contexts visibility --context <name> --allow <ctx1,ctx2>` to define boundaries.',
+    },
+    add: {
+      success: 'Successfully added/updated context',
+      missingContext: 'Missing required argument: --context <name>',
+      missingInclude: 'Missing required argument: --include <path>',
+    },
+    remove: {
+      removedInclude: 'Removed include path for context',
+      removedPublic: 'Removed public path for context',
+      removedContext: 'Removed all mappings for context',
+      contextNotFound: 'Context not found:',
+    },
+    visibility: {
+      updated: 'Updated context visibility',
+    },
+    help: {
+      unknownSubcommand: 'Error: Unknown contexts subcommand:',
+      availableSubcommands: '\nAvailable subcommands:',
+      listUsage:
+        '  archctl contexts list                                          # List contexts and visibility',
+      addUsage:
+        '  archctl contexts add --context <name> --include <path> [--public <path>] [--exclude <path>] [--priority <n>]',
+      removeUsage:
+        '  archctl contexts remove --context <name> [--include <path> | --public <path>]',
+      unmapUsage:
+        '  archctl contexts unmap --context <name> --include <path>              # Alias for remove with include',
+      visibilityUsage:
+        '  archctl contexts visibility --context <name> --allow <ctx1,ctx2>      # Set allowed dependencies',
     },
   },
 
