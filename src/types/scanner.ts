@@ -45,6 +45,8 @@ export interface ProjectScanner {
     context: {
       projectRoot: string;
       capabilityPatterns?: import('./capabilities').CapabilityPattern[];
+      tsBaseUrl?: string;
+      tsPaths?: Record<string, string[]>;
     }
   ): Promise<ScanResult>;
 }

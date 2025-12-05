@@ -6,6 +6,7 @@ import type { ProjectScanner, FileInfo } from '../../types/scanner';
 import { inferLanguageFromPath } from '../../utils/language';
 import { resolveLayerForFile } from '../../utils/layers';
 import { toForwardSlashes } from '../../utils/path';
+import { loadTsConfig } from '../../utils/tsconfig';
 
 // Import scanners
 import { tsJsScanner } from '../scanners/tsJsScanner';
@@ -45,6 +46,9 @@ export interface BuildGraphOptions {
  */
 export async function buildProjectGraph(options: BuildGraphOptions): Promise<ProjectGraph> {
   const { projectRoot, files, config } = options;
+
+  // Load tsconfig (if any)
+  const tsConfig = loadTsConfig(projectRoot);
 
   // Initialize empty graph
   const graph: ProjectGraph = {
@@ -105,9 +109,17 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
           const scanContext: {
             projectRoot: string;
             capabilityPatterns?: import('../../types/capabilities').CapabilityPattern[];
+            tsBaseUrl?: string;
+            tsPaths?: Record<string, string[]>;
           } = {
             projectRoot,
           };
+          if (tsConfig?.baseUrl) {
+            scanContext.tsBaseUrl = tsConfig.baseUrl;
+          }
+          if (tsConfig?.paths) {
+            scanContext.tsPaths = tsConfig.paths;
+          }
           if (config.capabilities) {
             scanContext.capabilityPatterns = config.capabilities;
           }
