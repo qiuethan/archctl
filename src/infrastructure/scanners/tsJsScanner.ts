@@ -19,7 +19,12 @@ export const tsJsScanner: ProjectScanner = {
 
   async scan(
     file: FileInfo,
-    context: { projectRoot: string; capabilityPatterns?: CapabilityPattern[] }
+    context: {
+      projectRoot: string;
+      capabilityPatterns?: CapabilityPattern[];
+      tsBaseUrl?: string;
+      tsPaths?: Record<string, string[]>;
+    }
   ): Promise<ScanResult> {
     const edges: DependencyEdge[] = [];
     const externalImports: string[] = [];
@@ -42,7 +47,13 @@ export const tsJsScanner: ProjectScanner = {
           const moduleSpecifier = node.moduleSpecifier;
           if (ts.isStringLiteral(moduleSpecifier)) {
             const importPath = moduleSpecifier.text;
-            const resolved = resolveImport(importPath, file.path, context.projectRoot);
+            const resolved = resolveImport(
+              importPath,
+              file.path,
+              context.projectRoot,
+              context.tsBaseUrl,
+              context.tsPaths
+            );
             if (resolved) {
               edges.push({
                 from: file.path,
@@ -65,7 +76,13 @@ export const tsJsScanner: ProjectScanner = {
         if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
           if (ts.isStringLiteral(node.moduleSpecifier)) {
             const importPath = node.moduleSpecifier.text;
-            const resolved = resolveImport(importPath, file.path, context.projectRoot);
+            const resolved = resolveImport(
+              importPath,
+              file.path,
+              context.projectRoot,
+              context.tsBaseUrl,
+              context.tsPaths
+            );
             if (resolved) {
               edges.push({
                 from: file.path,
@@ -90,7 +107,13 @@ export const tsJsScanner: ProjectScanner = {
             const arg = node.arguments[0];
             if (arg && ts.isStringLiteral(arg)) {
               const importPath = arg.text;
-              const resolved = resolveImport(importPath, file.path, context.projectRoot);
+              const resolved = resolveImport(
+                importPath,
+                file.path,
+                context.projectRoot,
+                context.tsBaseUrl,
+                context.tsPaths
+              );
               if (resolved) {
                 edges.push({
                   from: file.path,
@@ -114,7 +137,13 @@ export const tsJsScanner: ProjectScanner = {
             const arg = node.arguments[0];
             if (arg && ts.isStringLiteral(arg)) {
               const importPath = arg.text;
-              const resolved = resolveImport(importPath, file.path, context.projectRoot);
+              const resolved = resolveImport(
+                importPath,
+                file.path,
+                context.projectRoot,
+                context.tsBaseUrl,
+                context.tsPaths
+              );
               if (resolved) {
                 edges.push({
                   from: file.path,
@@ -302,11 +331,28 @@ function getExpressionText(node: ts.Expression): string | null {
 
 /**
  * Resolve an import specifier to a project-relative file path
- * Only resolves local imports (relative or absolute within project)
- * Returns null for external modules
+ * Supports:
+ * - Relative imports (./, ../)
+ * - Absolute imports within project (/)
+ * - TypeScript path aliases (e.g., @/..., @app/...)
  */
-function resolveImport(specifier: string, fromFile: string, projectRoot: string): string | null {
-  // Ignore external modules (no leading . or /)
+function resolveImport(
+  specifier: string,
+  fromFile: string,
+  projectRoot: string,
+  tsBaseUrl?: string,
+  tsPaths?: Record<string, string[]>
+): string | null {
+  // 1. Try to resolve TS Path Aliases first
+  if (tsPaths) {
+    const resolvedAlias = resolveTsAlias(specifier, projectRoot, tsBaseUrl, tsPaths);
+    if (resolvedAlias) {
+      return resolvedAlias;
+    }
+  }
+
+  // 2. Handle local relative/absolute imports
+  // Ignore external modules (no leading . or /) if they weren't caught by aliases
   if (!specifier.startsWith('.') && !specifier.startsWith('/')) {
     return null;
   }
@@ -337,6 +383,52 @@ function resolveImport(specifier: string, fromFile: string, projectRoot: string)
 
   // Return normalized project-relative path
   return toForwardSlashes(relativePath);
+}
+
+/**
+ * Attempt to resolve a specifier using TypeScript paths config
+ */
+function resolveTsAlias(
+  specifier: string,
+  projectRoot: string,
+  tsBaseUrl: string | undefined,
+  tsPaths: Record<string, string[]>
+): string | null {
+  // We need a baseUrl to resolve non-relative paths
+  const effectiveBaseUrl = tsBaseUrl ? path.resolve(projectRoot, tsBaseUrl) : projectRoot;
+
+  for (const pattern in tsPaths) {
+    // Normalize pattern for matching
+    const isWildcard = pattern.endsWith('*');
+    const prefix = isWildcard ? pattern.slice(0, -1) : pattern;
+
+    if (specifier.startsWith(prefix)) {
+      // Found a match!
+      const mappings = tsPaths[pattern];
+      const suffix = specifier.slice(prefix.length);
+
+      if (!mappings) continue;
+
+      for (const mapping of mappings) {
+        // Replace wildcard in mapping with the suffix from specifier
+        const mappedPath = isWildcard ? mapping.replace('*', suffix) : mapping;
+
+        // Construct full path
+        const candidatePath = path.resolve(effectiveBaseUrl, mappedPath);
+
+        // Try to resolve to file
+        const resolved = tryResolveFile(candidatePath);
+        if (resolved) {
+          // Verify it's inside project
+          const relative = path.relative(projectRoot, resolved);
+          if (!relative.startsWith('..') && !path.isAbsolute(relative)) {
+            return toForwardSlashes(relative);
+          }
+        }
+      }
+    }
+  }
+  return null;
 }
 
 /**
