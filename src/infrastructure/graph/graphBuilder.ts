@@ -2,11 +2,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import type { ArchctlConfig } from '../../types/config';
 import type { ProjectGraph, ProjectFileNode, DependencyEdge } from '../../types/graph';
-import type { ProjectScanner, FileInfo } from '../../types/scanner';
+import type { ProjectScanner, FileInfo, ScanResult } from '../../types/scanner';
 import { inferLanguageFromPath } from '../../utils/language';
 import { resolveLayerForFile } from '../../utils/layers';
 import { toForwardSlashes } from '../../utils/path';
 import { loadTsConfig } from '../../utils/tsconfig';
+import { CacheService } from '../cache/cacheService';
 
 // Import scanners
 import { tsJsScanner } from '../scanners/tsJsScanner';
@@ -30,6 +31,9 @@ export interface BuildGraphOptions {
 
   /** Project configuration */
   config: ArchctlConfig;
+
+  /** Whether to use persistent caching (default: true) */
+  useCache?: boolean;
 }
 
 /**
@@ -45,10 +49,28 @@ export interface BuildGraphOptions {
  * @returns Complete project dependency graph
  */
 export async function buildProjectGraph(options: BuildGraphOptions): Promise<ProjectGraph> {
-  const { projectRoot, files, config } = options;
+  const { projectRoot, files, config, useCache = true } = options;
 
   // Load tsconfig (if any)
   const tsConfig = loadTsConfig(projectRoot);
+
+  // Initialize cache
+  const cache = new CacheService(projectRoot);
+
+  // Compute context hash (config + tsconfig)
+  const contextHash = CacheService.computeHash(
+    JSON.stringify({
+      layers: config.layers,
+      mappings: config.layerMappings,
+      capabilities: config.capabilities,
+      tsPaths: tsConfig?.paths,
+      tsBaseUrl: tsConfig?.baseUrl,
+    })
+  );
+
+  if (!useCache) {
+    cache.clear();
+  }
 
   // Initialize empty graph
   const graph: ProjectGraph = {
@@ -70,6 +92,26 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
       }
 
       const contents = fs.readFileSync(absPath, 'utf-8');
+      const fileHash = CacheService.computeHash(contents, contextHash);
+
+      // Check cache
+      if (useCache) {
+        const cachedResult = cache.get(normalizedPath, fileHash);
+        if (cachedResult) {
+          // Merge cached result into graph
+          if (cachedResult.nodes) {
+            for (const node of cachedResult.nodes) {
+              graph.files[node.id] = node;
+            }
+          }
+          if (cachedResult.edges) {
+            graph.edges.push(...cachedResult.edges);
+          }
+          continue; // Skip processing
+        }
+      }
+
+      // --- Start Processing (Cache Miss) ---
 
       // Infer language
       const language = inferLanguageFromPath(normalizedPath);
@@ -77,8 +119,8 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
       // Resolve layer
       const layer = resolveLayerForFile(normalizedPath, config.layers, config.layerMappings || []);
 
-      // Create file node
-      const node: ProjectFileNode = {
+      // Create base file node
+      let currentNode: ProjectFileNode = {
         id: normalizedPath,
         path: normalizedPath,
         language,
@@ -86,11 +128,11 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
 
       // Add layer if resolved
       if (layer) {
-        node.layer = layer;
+        currentNode.layer = layer;
       }
 
-      // Add node to graph
-      graph.files[normalizedPath] = node;
+      // Accumulate edges from all scanners
+      const fileEdges: DependencyEdge[] = [];
 
       // Create FileInfo for scanners
       const fileInfo: FileInfo = {
@@ -125,24 +167,16 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
           }
           const result = await scanner.scan(fileInfo, scanContext);
 
-          // Add edges from scan result
+          // Collect edges
           if (result.edges) {
-            graph.edges.push(...result.edges);
+            fileEdges.push(...result.edges);
           }
 
-          // Merge nodes from scan result (if any)
+          // Merge nodes (updates to currentNode)
           if (result.nodes) {
             for (const resultNode of result.nodes) {
-              // Merge with existing node or add new one
-              const existing = graph.files[resultNode.id];
-              if (existing) {
-                // Update existing node with new information
-                graph.files[resultNode.id] = {
-                  ...existing,
-                  ...resultNode,
-                };
-              } else {
-                graph.files[resultNode.id] = resultNode;
+              if (resultNode.id === normalizedPath) {
+                currentNode = { ...currentNode, ...resultNode };
               }
             }
           }
@@ -150,9 +184,27 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
           console.warn(`Scanner ${scanner.id} failed for ${normalizedPath}:`, error);
         }
       }
+
+      // Add to graph
+      graph.files[normalizedPath] = currentNode;
+      graph.edges.push(...fileEdges);
+
+      // Save to cache
+      if (useCache) {
+        const resultToCache: ScanResult = {
+          nodes: [currentNode],
+          edges: fileEdges,
+        };
+        cache.set(normalizedPath, fileHash, resultToCache);
+      }
     } catch (error) {
       console.warn(`Failed to process file ${relPath}:`, error);
     }
+  }
+
+  // Persist cache to disk
+  if (useCache) {
+    cache.save();
   }
 
   return graph;

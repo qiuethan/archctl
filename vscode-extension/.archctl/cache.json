@@ -1,0 +1,198 @@
+{
+  "version": "1.0.0",
+  "entries": {
+    "src/application/check-service.ts": {
+      "hash": "410a878913586b9e12a2ab4a3388ab07",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/application/check-service.ts",
+            "path": "src/application/check-service.ts",
+            "language": "typescript",
+            "layer": "application",
+            "imports": [
+              "path"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "src/application/check-service.ts",
+            "to": "src/domain/types.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          },
+          {
+            "from": "src/application/check-service.ts",
+            "to": "src/infrastructure/file-scanner.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          },
+          {
+            "from": "src/application/check-service.ts",
+            "to": "src/infrastructure/archctl-executor.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          }
+        ]
+      },
+      "timestamp": 1765485770341
+    },
+    "src/domain/types.ts": {
+      "hash": "19cafb61a014bc126dc078835ba4defd",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/domain/types.ts",
+            "path": "src/domain/types.ts",
+            "language": "typescript",
+            "layer": "domain"
+          }
+        ],
+        "edges": []
+      },
+      "timestamp": 1765485770342
+    },
+    "src/extension.ts": {
+      "hash": "35e24e21d35d6df3fc9a43c7609dad15",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/extension.ts",
+            "path": "src/extension.ts",
+            "language": "typescript",
+            "layer": "presentation",
+            "imports": [
+              "vscode"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "src/extension.ts",
+            "to": "src/application/check-service.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          },
+          {
+            "from": "src/extension.ts",
+            "to": "src/presentation/diagnostic-mapper.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          },
+          {
+            "from": "src/extension.ts",
+            "to": "src/shared/config-helper.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          },
+          {
+            "from": "src/extension.ts",
+            "to": "src/domain/types.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          }
+        ]
+      },
+      "timestamp": 1765485770349
+    },
+    "src/infrastructure/archctl-executor.ts": {
+      "hash": "9de484d66bede71298c7e5a2f41afe0e",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/infrastructure/archctl-executor.ts",
+            "path": "src/infrastructure/archctl-executor.ts",
+            "language": "typescript",
+            "layer": "infrastructure",
+            "imports": [
+              "child_process",
+              "util",
+              "path"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "src/infrastructure/archctl-executor.ts",
+            "to": "src/domain/types.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          }
+        ]
+      },
+      "timestamp": 1765485770354
+    },
+    "src/infrastructure/file-scanner.ts": {
+      "hash": "a48793f2077189d06246e774c2070d70",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/infrastructure/file-scanner.ts",
+            "path": "src/infrastructure/file-scanner.ts",
+            "language": "typescript",
+            "layer": "infrastructure",
+            "imports": [
+              "path",
+              "fs"
+            ]
+          }
+        ],
+        "edges": []
+      },
+      "timestamp": 1765485770355
+    },
+    "src/presentation/diagnostic-mapper.ts": {
+      "hash": "44966e76d1273298af4721d4946194f2",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/presentation/diagnostic-mapper.ts",
+            "path": "src/presentation/diagnostic-mapper.ts",
+            "language": "typescript",
+            "layer": "presentation",
+            "imports": [
+              "vscode"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "from": "src/presentation/diagnostic-mapper.ts",
+            "to": "src/domain/types.ts",
+            "kind": "import",
+            "confidence": 0.99,
+            "source": "ts-js-import"
+          }
+        ]
+      },
+      "timestamp": 1765485770358
+    },
+    "src/shared/config-helper.ts": {
+      "hash": "f4d158f07400a1cbd6f48ecd74fdc056",
+      "result": {
+        "nodes": [
+          {
+            "id": "src/shared/config-helper.ts",
+            "path": "src/shared/config-helper.ts",
+            "language": "typescript",
+            "layer": "shared",
+            "imports": [
+              "vscode"
+            ]
+          }
+        ],
+        "edges": []
+      },
+      "timestamp": 1765485770359
+    }
+  }
+}

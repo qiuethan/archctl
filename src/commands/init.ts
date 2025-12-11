@@ -89,6 +89,22 @@ export async function cmdInit(args: ParsedArgs): Promise<void> {
   // Write config file
   configService.saveConfig(configPath, config);
 
+  // Write .gitignore for cache
+  try {
+    const gitignorePath = path.join(outDir, '.gitignore');
+    if (!fs.existsSync(gitignorePath)) {
+      fs.writeFileSync(gitignorePath, 'cache.json\n', 'utf-8');
+    } else {
+      // Append if exists and not already ignored
+      const content = fs.readFileSync(gitignorePath, 'utf-8');
+      if (!content.includes('cache.json')) {
+        fs.appendFileSync(gitignorePath, '\ncache.json\n', 'utf-8');
+      }
+    }
+  } catch (error) {
+    // Ignore error
+  }
+
   // Copy AI setup guide
   const aiGuideSourcePath = path.join(
     __dirname,
