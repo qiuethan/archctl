@@ -87,7 +87,11 @@ archctl lint [options]
 Options:
   --format <type>    Output format: text (default), json, or html
   --output <file>    Output file path (for html format)
+  --no-cache         Force a fresh scan (ignore/clear cache)
 ```
+
+**Caching:**
+Archctl automatically caches scan results in `.archctl/cache.json` to significantly speed up repeated runs. The cache is automatically invalidated when files, configuration, or tsconfig change. Use `--no-cache` to force a full re-scan.
 
 **HTML Report:**
 Generate an interactive HTML report with visualizations:

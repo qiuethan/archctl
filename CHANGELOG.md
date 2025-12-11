@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Performance Caching** - New scanning cache mechanism (`.archctl/cache.json`) to significantly speed up repeated linting runs
+  - Automatically caches AST parsing and dependency extraction results
+  - Invalidates cache on file changes, config updates, or tsconfig changes
+  - New `--no-cache` flag for `archctl lint` to force a fresh scan
 - **Vertical Context Enforcement** - New `context-visibility` rule for enforcing modular boundaries between feature contexts
   - Define bounded contexts with `contextMappings` in configuration
   - Specify public API surfaces using glob patterns
@@ -28,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contexts CLI** - New `archctl contexts` command to add/list context mappings and set `context-visibility` rules from the CLI
 
 ### Changed
+- **Scanner Improvements** - Enhanced robustness and strict typing for Java and Python scanners
+- `archctl init` now creates a `.gitignore` file in the output directory to ignore the cache file
 - Capability violations now report at the specific line of the violation instead of the top of the file
 - Enhanced violation messages to include the specific action being performed
 
