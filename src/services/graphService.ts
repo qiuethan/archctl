@@ -17,6 +17,7 @@ import { parseGitignore, mergeExcludes } from '../utils/gitignore';
 export interface GraphAnalysisInput {
   projectRoot: string;
   config: ArchctlConfig;
+  useCache?: boolean;
 }
 
 export interface GraphAnalysisResult {
@@ -125,7 +126,7 @@ export function scanProjectFiles(
  * Analyze project dependencies and generate graph
  */
 export async function analyzeProjectGraph(input: GraphAnalysisInput): Promise<GraphAnalysisResult> {
-  const { projectRoot, config } = input;
+  const { projectRoot, config, useCache = true } = input;
 
   // Get excludes
   const { allExcludes, gitignoreCount, configCount } = getProjectExcludes(projectRoot, config);
@@ -138,6 +139,7 @@ export async function analyzeProjectGraph(input: GraphAnalysisInput): Promise<Gr
     projectRoot,
     files,
     config,
+    useCache,
   });
 
   const stats = getGraphStats(graph);

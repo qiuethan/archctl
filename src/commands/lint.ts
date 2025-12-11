@@ -18,12 +18,14 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   const isJsonOutput = format === 'json';
   const isHtmlOutput = format === 'html';
   const outputFile = _args.output as string | undefined;
+  const noCache = (_args['no-cache'] as boolean) || false;
 
   // Debug: log the format flag
   if (process.env.DEBUG_ARCHCTL) {
     console.error('DEBUG: _args =', JSON.stringify(_args));
     console.error('DEBUG: format =', format);
     console.error('DEBUG: isJsonOutput =', isJsonOutput);
+    console.error('DEBUG: noCache =', noCache);
   }
 
   try {
@@ -55,6 +57,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   const result = await graphService.analyzeProjectGraph({
     projectRoot,
     config,
+    useCache: !noCache,
   });
 
   const graphAnalysis = graphService.generateGraphReport(result.graph, result.stats, config.name);

@@ -53,3 +53,6 @@ test-output/
 
 # Generated reports
 archctl-report.html
+
+# Architecture Control Cache
+.archctl/cache.json
