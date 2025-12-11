@@ -129,27 +129,79 @@ export const pythonScanner: ProjectScanner = {
 /**
  * Extract import statements from Python source code
  */
+interface PythonNode {
+  getText(): string;
+  dotted_as_names?(): PythonNode;
+  dotted_as_name?(): PythonNode[];
+  dotted_name?(): PythonNode;
+}
+
 function extractPythonImports(contents: string): string[] {
   const imports: string[] = [];
 
-  // Match: import foo
-  // Match: import foo.bar
-  // Match: import foo as bar
-  const importRegex = /^\s*import\s+([\w.]+)(?:\s+as\s+\w+)?/gm;
-  let match;
-  while ((match = importRegex.exec(contents)) !== null) {
-    if (match[1]) {
-      imports.push(match[1]);
-    }
-  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const dtPython = require('dt-python-parser') as {
+      Python3Parser: new () => { parse: (text: string) => PythonNode };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Python3Visitor: new () => any;
+    };
+    const { Python3Parser, Python3Visitor } = dtPython;
 
-  // Match: from foo import bar
-  // Match: from foo.bar import baz
-  // Match: from foo import bar as baz
-  const fromImportRegex = /^\s*from\s+([\w.]+)\s+import\s+/gm;
-  while ((match = fromImportRegex.exec(contents)) !== null) {
-    if (match[1]) {
-      imports.push(match[1]);
+    class ImportVisitor extends Python3Visitor {
+      visitImport_name(ctx: PythonNode): void {
+        if (ctx.dotted_as_names) {
+          const dottedNames = ctx.dotted_as_names();
+          if (dottedNames && dottedNames.dotted_as_name) {
+            const names = dottedNames.dotted_as_name();
+            if (names) {
+              names.forEach((n: PythonNode) => {
+                if (n.dotted_name) {
+                  const dotted = n.dotted_name();
+                  if (dotted) {
+                    imports.push(dotted.getText());
+                  }
+                }
+              });
+            }
+          }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        super.visitImport_name(ctx);
+      }
+
+      visitImport_from(ctx: PythonNode): void {
+        if (ctx.dotted_name) {
+          const dotted = ctx.dotted_name();
+          if (dotted) {
+            imports.push(dotted.getText());
+          }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        super.visitImport_from(ctx);
+      }
+    }
+
+    const parser = new Python3Parser();
+    const tree = parser.parse(contents);
+    const visitor = new ImportVisitor();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    visitor.visit(tree);
+  } catch (error) {
+    // Fallback to regex
+    // Match: import foo
+    const importRegex = /^\s*import\s+([\w.]+)(?:\s+as\s+\w+)?/gm;
+    let match;
+    while ((match = importRegex.exec(contents)) !== null) {
+      if (match[1]) {
+        imports.push(match[1]);
+      }
+    }
+    const fromImportRegex = /^\s*from\s+([\w.]+)\s+import\s+/gm;
+    while ((match = fromImportRegex.exec(contents)) !== null) {
+      if (match[1]) {
+        imports.push(match[1]);
+      }
     }
   }
 
