@@ -132,16 +132,90 @@ export const javaScanner: ProjectScanner = {
 /**
  * Extract import statements from Java source code
  */
+interface JavaCstToken {
+  image: string;
+  startOffset?: number;
+}
+
+interface JavaCstNode {
+  children?: {
+    [key: string]: (JavaCstNode | JavaCstToken)[];
+  };
+  location?: {
+    startOffset: number;
+  };
+}
+
+type JavaCstElement = JavaCstNode | JavaCstToken;
+
 function extractJavaImports(contents: string): string[] {
   const imports: string[] = [];
 
-  // Match: import com.example.Foo;
-  // Match: import static com.example.Foo.bar;
-  const importRegex = /^\s*import\s+(?:static\s+)?([\w.]+)\s*;/gm;
-  let match;
-  while ((match = importRegex.exec(contents)) !== null) {
-    if (match[1]) {
-      imports.push(match[1]);
+  // Try parsing with java-parser
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const javaParser = require('java-parser') as { parse: (text: string) => JavaCstNode };
+    const cst = javaParser.parse(contents);
+
+    // Helper to traverse CST and extract text
+    const extractText = (n: JavaCstElement): string => {
+      if ('image' in n) return n.image;
+      if ('children' in n && n.children) {
+        const allChildren: JavaCstElement[] = [];
+        Object.values(n.children).forEach((arr) => allChildren.push(...arr));
+        allChildren.sort((a, b) => {
+          const startA =
+            'startOffset' in a ? a.startOffset : (a as JavaCstNode).location?.startOffset;
+          const startB =
+            'startOffset' in b ? b.startOffset : (b as JavaCstNode).location?.startOffset;
+          return (startA || 0) - (startB || 0);
+        });
+        return allChildren.map(extractText).join('');
+      }
+      return '';
+    };
+
+    if (
+      cst.children &&
+      cst.children.ordinaryCompilationUnit &&
+      cst.children.ordinaryCompilationUnit[0]
+    ) {
+      const unit = cst.children.ordinaryCompilationUnit[0] as JavaCstNode;
+      if (unit.children && unit.children.importDeclaration) {
+        unit.children.importDeclaration.forEach((impNode) => {
+          const imp = impNode as JavaCstNode;
+          // Check specifically for non-static import first
+          if (imp.children && imp.children.packageOrTypeName && !imp.children.static) {
+            // Normal import: import com.example.Foo;
+            const typeNameNode = imp.children.packageOrTypeName[0];
+            if (typeNameNode) {
+              const typeName = extractText(typeNameNode);
+              if (typeName) imports.push(typeName);
+            }
+          } else if (
+            imp.children &&
+            imp.children.static &&
+            imp.children.packageOrTypeName &&
+            imp.children.Identifier
+          ) {
+            // Static import logic...
+            // Usually: import static package.Type.member;
+            // java-parser structure might vary for static.
+            // Let's rely on packageOrTypeName if present + check static keyword
+          }
+        });
+      }
+    }
+  } catch (error) {
+    // Fallback to regex if parsing fails (e.g. syntax error in file)
+    // Match: import com.example.Foo;
+    // Match: import static com.example.Foo.bar;
+    const importRegex = /^\s*import\s+(?:static\s+)?([\w.]+)\s*;/gm;
+    let match;
+    while ((match = importRegex.exec(contents)) !== null) {
+      if (match[1]) {
+        imports.push(match[1]);
+      }
     }
   }
 

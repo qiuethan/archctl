@@ -25,8 +25,8 @@ describe('tsJsScanner with Path Aliases', () => {
       '@/*': ['src/*'],
       '@components/*': ['src/components/*'],
       '@utils/*': ['src/shared/utils/*'],
-      'config': ['src/config/index.ts']
-    }
+      config: ['src/config/index.ts'],
+    },
   };
 
   it('should resolve aliases correctly', async () => {
@@ -39,21 +39,24 @@ describe('tsJsScanner with Path Aliases', () => {
         '/test/project/src/domain/user.ts',
         '/test/project/src/components/Button.tsx',
         '/test/project/src/shared/utils/helpers.ts',
-        '/test/project/src/config/index.ts'
+        '/test/project/src/config/index.ts',
       ].includes(normalized);
     });
 
     // Setup mock implementation for fs.statSync
-    vi.mocked(fs.statSync).mockImplementation(() => ({
-      isFile: () => true,
-      isDirectory: () => false,
-    } as any));
+    vi.mocked(fs.statSync).mockImplementation(
+      () =>
+        ({
+          isFile: () => true,
+          isDirectory: () => false,
+        }) as unknown as fs.Stats
+    );
 
     const result = await tsJsScanner.scan(file, context);
 
     expect(result.edges).toHaveLength(4);
 
-    const targets = result.edges?.map(e => e.to);
+    const targets = result.edges?.map((e) => e.to);
     expect(targets).toContain('src/domain/user.ts');
     expect(targets).toContain('src/components/Button.tsx');
     expect(targets).toContain('src/shared/utils/helpers.ts');
@@ -61,11 +64,11 @@ describe('tsJsScanner with Path Aliases', () => {
   });
 
   it('should fail gracefully if alias does not resolve to a file', async () => {
-     vi.mocked(fs.existsSync).mockReturnValue(false);
-     
-     const result = await tsJsScanner.scan(file, context);
-     
-     // Should not have resolved edges for aliases that don't exist on disk
-     expect(result.edges).toHaveLength(0);
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+
+    const result = await tsJsScanner.scan(file, context);
+
+    // Should not have resolved edges for aliases that don't exist on disk
+    expect(result.edges).toHaveLength(0);
   });
 });

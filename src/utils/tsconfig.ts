@@ -1,6 +1,5 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import * as fs from 'fs';
 
 export interface TsConfigPaths {
   baseUrl?: string | undefined;
@@ -11,15 +10,15 @@ export interface TsConfigPaths {
  * Load and parse tsconfig.json from the project root
  */
 export function loadTsConfig(projectRoot: string): TsConfigPaths | null {
-  const configPath = ts.findConfigFile(projectRoot, ts.sys.fileExists, 'tsconfig.json');
+  const configPath = ts.findConfigFile(projectRoot, (f) => ts.sys.fileExists(f), 'tsconfig.json');
 
   if (!configPath) {
     return null;
   }
 
   try {
-    const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
-    
+    const configFile = ts.readConfigFile(configPath, (f) => ts.sys.readFile(f));
+
     if (configFile.error) {
       return null;
     }
