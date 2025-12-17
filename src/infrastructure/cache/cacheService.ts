@@ -1,27 +1,36 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { constants } from '../../utils/constants';
 import type { ScanResult } from '../../types/scanner';
 
-export interface CacheEntry {
-  hash: string;
-  result: ScanResult;
-  timestamp: number;
-}
-
+/**
+ * Interface for cache data stored on disk
+ */
 export interface CacheStore {
   version: string;
-  entries: Record<string, CacheEntry>;
+  entries: Record<string, FileCacheEntry>;
 }
 
+export interface FileCacheEntry {
+  hash: string; // Hash of file content + context
+  timestamp: number;
+  result: ScanResult; // The scan result
+}
+
+/**
+ * Service to handle caching of scan results
+ *
+ * Caches are stored in .archctl/cache.json
+ */
 export class CacheService {
   private cachePath: string;
   private store: CacheStore;
-  private isDirty: boolean = false;
+  private isDirty = false;
   private readonly CACHE_VERSION = '1.0.0';
 
   constructor(projectRoot: string) {
-    this.cachePath = path.join(projectRoot, '.archctl', 'cache.json');
+    this.cachePath = path.join(projectRoot, constants.defaultOutDir, 'cache.json');
     this.store = this.loadStore();
   }
 

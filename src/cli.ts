@@ -23,6 +23,7 @@ import { cmdPrompt } from './commands/prompt';
 import { cmdLayers } from './commands/layers';
 import { cmdRules } from './commands/rules';
 import { cmdContexts } from './commands/contexts';
+import { cmdSuggest } from './commands/suggest';
 import * as presenter from './presentation/cliPresenter';
 
 async function main() {
@@ -39,6 +40,10 @@ async function main() {
 
     case 'lint':
       await cmdLint(args);
+      break;
+
+    case 'suggest':
+      await cmdSuggest(args);
       break;
 
     case 'prompt':

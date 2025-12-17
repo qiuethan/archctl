@@ -1,5 +1,6 @@
 import type { ArchctlConfig } from '../types';
 import { TEMPLATES, getTemplateById } from '../templates';
+import { constants } from '../utils/constants';
 
 /**
  * Application service for initialization logic
@@ -18,7 +19,15 @@ export interface InitConfig {
 export function createCustomConfig(projectName: string, entryPoint: string): ArchctlConfig {
   const config: ArchctlConfig = {
     name: projectName,
-    exclude: ['node_modules', '.git', 'dist', 'build', 'target', '.archctl', 'coverage'],
+    exclude: [
+      'node_modules',
+      '.git',
+      'dist',
+      'build',
+      'target',
+      constants.defaultOutDir,
+      'coverage',
+    ],
     layers: [],
     layerMappings: [],
     rules: [],
@@ -48,7 +57,15 @@ export function createConfigFromTemplate(
   // Templates now provide concrete RuleConfig objects directly
   const config: ArchctlConfig = {
     name: projectName,
-    exclude: ['node_modules', '.git', 'dist', 'build', 'target', '.archctl', 'coverage'],
+    exclude: [
+      'node_modules',
+      '.git',
+      'dist',
+      'build',
+      'target',
+      constants.defaultOutDir,
+      'coverage',
+    ],
     layers: template.layers.map((layer) => ({
       name: layer.name,
       description: layer.description,

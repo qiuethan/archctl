@@ -36,6 +36,10 @@ export const messages = {
       name: 'lint',
       description: 'Enforce architecture rules',
     },
+    suggest: {
+      name: 'suggest',
+      description: 'Analyze codebase and suggest architecture configuration',
+    },
     prompt: {
       name: 'prompt',
       description: 'Generate AI prompts with architecture context',
@@ -70,6 +74,7 @@ export const messages = {
     contextsVisibility: 'archctl contexts visibility --context <name> --allow billing,shared',
     sync: 'archctl sync',
     lint: 'archctl lint',
+    suggest: 'archctl suggest',
     prompt: 'archctl prompt',
   },
 

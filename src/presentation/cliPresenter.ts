@@ -23,6 +23,7 @@ Commands:
   ${commands.rules.name.padEnd(10)}${commands.rules.description}
   ${commands.sync.name.padEnd(10)}${commands.sync.description}
   ${commands.lint.name.padEnd(10)}${commands.lint.description}
+  ${commands.suggest.name.padEnd(10)}${commands.suggest.description}
   ${commands.prompt.name.padEnd(10)}${commands.prompt.description}
 
 Init Options:
@@ -40,6 +41,7 @@ Examples:
   ${examples.contextsVisibility}
   ${examples.sync}
   ${examples.lint}
+  ${examples.suggest}
   ${examples.prompt}
 
 ${cliMoreInfo}

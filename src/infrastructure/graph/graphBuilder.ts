@@ -91,7 +91,20 @@ export async function buildProjectGraph(options: BuildGraphOptions): Promise<Pro
         continue;
       }
 
-      const contents = fs.readFileSync(absPath, 'utf-8');
+      let contents = '';
+      try {
+        // Ensure it is a file before reading
+        const stat = fs.statSync(absPath);
+        if (stat.isDirectory()) {
+          console.warn(`Skipping directory erroneously included in files list: ${absPath}`);
+          continue;
+        }
+        contents = fs.readFileSync(absPath, 'utf-8');
+      } catch (readErr) {
+        console.warn(`Failed to read file ${absPath}: ${(readErr as Error).message}`);
+        continue;
+      }
+
       const fileHash = CacheService.computeHash(contents, contextHash);
 
       // Check cache
