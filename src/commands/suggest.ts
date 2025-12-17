@@ -19,7 +19,7 @@ export async function cmdSuggest(_args: Record<string, unknown>) {
   }
 
   try {
-    const config = loadConfig(projectRoot);
+    const config = loadConfig(configPath);
     if (!config) {
       console.error(colors.error('Failed to load configuration.'));
       return;
