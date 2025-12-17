@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { confirm, checkbox } from '@inquirer/prompts';
+import { confirm, checkbox, select, input } from '@inquirer/prompts';
 import type { SuggestionResult, DirectorySuggestion } from '../types/suggestion';
 import type { ArchctlConfig, LayerMapping } from '../types/config';
 import * as fs from 'fs';
@@ -15,53 +15,62 @@ export async function presentAndApply(
   console.log(chalk.bold('\n🔍 Archctl Discovery\n'));
   console.log(chalk.gray(`Analyzed ${result.suggestions.length} directories.\n`));
 
-  if (result.suggestions.length === 0) {
+  let approvedMappings: LayerMapping[] = [];
+
+  if (result.suggestions.length > 0) {
+    // Filter out low confidence suggestions
+    const highConfidence = result.suggestions.filter((s) => s.confidence > 0.4);
+
+    if (highConfidence.length > 0) {
+      // Group by Layer
+      const byLayer: Record<string, DirectorySuggestion[]> = {};
+      for (const s of highConfidence) {
+        if (!byLayer[s.suggestedLayer]) {
+          byLayer[s.suggestedLayer] = [];
+        }
+        byLayer[s.suggestedLayer]!.push(s);
+      }
+
+      // Interactive Review
+      for (const [layer, suggestions] of Object.entries(byLayer)) {
+        console.log(chalk.cyan(`\nFound potential ${chalk.bold(layer.toUpperCase())} components:`));
+
+        const choices = suggestions.map((s) => ({
+          name: `${s.path} ${chalk.gray(`(confidence: ${Math.round(s.confidence * 100)}%)`)}`,
+          value: s,
+          checked: true,
+        }));
+
+        const selected = await checkbox({
+          message: `Select directories to map to '${layer}' layer:`,
+          choices,
+        });
+
+        for (const s of selected) {
+          approvedMappings.push({
+            layer: layer,
+            include: [`${s.path}/**`],
+          });
+        }
+      }
+    } else {
+      console.log(
+        chalk.yellow('Found some directories, but confidence is too low to make suggestions.')
+      );
+    }
+  } else {
     console.log(chalk.yellow('No significant architectural patterns found to suggest.'));
-    return;
   }
 
-  // Filter out low confidence suggestions
-  const highConfidence = result.suggestions.filter((s) => s.confidence > 0.4);
+  // Ask for manual configuration
+  const wantManual = await confirm({
+    message: 'Would you like to manually map any layers?',
+    default: false,
+  });
 
-  if (highConfidence.length === 0) {
-    console.log(
-      chalk.yellow('Found some directories, but confidence is too low to make suggestions.')
-    );
-    return;
-  }
-
-  // Group by Layer
-  const byLayer: Record<string, DirectorySuggestion[]> = {};
-  for (const s of highConfidence) {
-    if (!byLayer[s.suggestedLayer]) {
-      byLayer[s.suggestedLayer] = [];
-    }
-    byLayer[s.suggestedLayer]!.push(s);
-  }
-
-  // Interactive Review
-  const approvedMappings: LayerMapping[] = [];
-
-  for (const [layer, suggestions] of Object.entries(byLayer)) {
-    console.log(chalk.cyan(`\nFound potential ${chalk.bold(layer.toUpperCase())} components:`));
-
-    const choices = suggestions.map((s) => ({
-      name: `${s.path} ${chalk.gray(`(confidence: ${Math.round(s.confidence * 100)}%)`)}`,
-      value: s,
-      checked: true,
-    }));
-
-    const selected = await checkbox({
-      message: `Select directories to map to '${layer}' layer:`,
-      choices,
-    });
-
-    for (const s of selected) {
-      approvedMappings.push({
-        layer: layer,
-        include: [`${s.path}/**`],
-      });
-    }
+  if (wantManual) {
+    const manualMappings = await presentManualConfiguration(currentConfig);
+    approvedMappings = [...approvedMappings, ...manualMappings];
   }
 
   if (approvedMappings.length === 0) {
@@ -83,6 +92,42 @@ export async function presentAndApply(
   if (shouldApply) {
     updateConfig(currentConfig, approvedMappings, configPath);
   }
+}
+
+async function presentManualConfiguration(config: ArchctlConfig): Promise<LayerMapping[]> {
+  const mappings: LayerMapping[] = [];
+  let continueMapping = true;
+
+  const availableLayers = config.layers.map((l) => l.name);
+  if (availableLayers.length === 0) {
+    console.log(chalk.yellow('No layers defined in config.'));
+    return [];
+  }
+
+  while (continueMapping) {
+    const layer = await select({
+      message: 'Select a layer to map:',
+      choices: availableLayers.map((l) => ({ name: l, value: l })),
+    });
+
+    const pathPattern = await input({
+      message: `Enter glob pattern for ${layer} (e.g., src/domain/**):`,
+      validate: (input) => (input.length > 0 ? true : 'Path cannot be empty'),
+    });
+
+    mappings.push({
+      layer,
+      include: [pathPattern],
+      priority: 1, // Ensure manual mappings override suggestions
+    });
+
+    continueMapping = await confirm({
+      message: 'Map another layer?',
+      default: true,
+    });
+  }
+
+  return mappings;
 }
 
 function updateConfig(config: ArchctlConfig, newMappings: LayerMapping[], configPath: string) {
