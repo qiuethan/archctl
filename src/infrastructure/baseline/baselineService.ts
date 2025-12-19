@@ -152,13 +152,15 @@ export class BaselineService {
 
     const metrics = this.calculateMetrics(baselineViolations);
 
-    return {
+    this.baseline = {
       version: this.BASELINE_VERSION,
       createdAt: now,
       updatedAt: now,
       violations: baselineViolations,
       metrics,
     };
+
+    return this.baseline;
   }
 
   /**
