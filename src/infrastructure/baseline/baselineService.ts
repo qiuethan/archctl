@@ -167,8 +167,9 @@ export class BaselineService {
    * Update existing baseline with new violations
    * 
    * @param violations - Current rule violations
+   * @param maxHistorySize - Maximum number of metrics snapshots to keep (default: 50)
    */
-  public updateBaseline(violations: RuleViolation[]): void {
+  public updateBaseline(violations: RuleViolation[], maxHistorySize: number = 50): void {
     const now = new Date().toISOString();
     const existingBaseline = this.baseline;
 
@@ -193,6 +194,13 @@ export class BaselineService {
       }
     });
 
+    // Store current metrics in history before updating
+    const metricsHistory = existingBaseline.metricsHistory || [];
+    metricsHistory.push(existingBaseline.metrics);
+
+    // Keep only last N snapshots to prevent file bloat
+    const trimmedHistory = metricsHistory.slice(-maxHistorySize);
+
     const metrics = this.calculateMetrics(updatedViolations);
 
     this.baseline = {
@@ -201,6 +209,7 @@ export class BaselineService {
       updatedAt: now,
       violations: updatedViolations,
       metrics,
+      metricsHistory: trimmedHistory,
     };
   }
 
