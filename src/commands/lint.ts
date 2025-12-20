@@ -188,6 +188,21 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
       );
       console.log('');
     }
+
+    // Ratchet check: warn/fail if violations were resolved
+    if (ratchet && comparisonResult.resolved.length > 0) {
+      if (!isSilent) {
+        console.log(
+          `\n${colors.symbols.warning} ${colors.warning('Ratchet:')} ${colors.bold(comparisonResult.resolved.length.toString())} ${colors.warning('violation(s) resolved!')}`
+        );
+        console.log(
+          `   ${colors.dim('Update baseline to lock in improvements:')}`
+        );
+        console.log(
+          `   ${colors.info('archctl lint --update-baseline')}`
+        );
+      }
+    }
   }
 
   // Display results
