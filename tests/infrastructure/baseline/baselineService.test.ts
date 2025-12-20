@@ -373,6 +373,254 @@ describe('BaselineService', () => {
       expect(baseline!.violations).toHaveLength(1);
       expect(baseline!.violations[0]!.ruleId).toBe('rule1');
     });
+
+    describe('metricsHistory', () => {
+      it('should not create history on first update', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        baselineService.updateBaseline([violation]);
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline).not.toBeNull();
+        expect(baseline!.metricsHistory).toBeUndefined();
+      });
+
+      it('should create history on second update', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // First update
+        baselineService.updateBaseline([violation]);
+        const firstMetrics = baselineService.getBaseline()!.metrics;
+
+        // Second update
+        baselineService.updateBaseline([violation]);
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline!.metricsHistory).toBeDefined();
+        expect(baseline!.metricsHistory).toHaveLength(1);
+        expect(baseline!.metricsHistory![0]).toEqual(firstMetrics);
+      });
+
+      it('should accumulate history with multiple updates', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // First update - no history
+        baselineService.updateBaseline([violation]);
+        expect(baselineService.getBaseline()!.metricsHistory).toBeUndefined();
+
+        // Second update - 1 entry
+        baselineService.updateBaseline([violation]);
+        expect(baselineService.getBaseline()!.metricsHistory).toHaveLength(1);
+
+        // Third update - 2 entries
+        baselineService.updateBaseline([violation]);
+        expect(baselineService.getBaseline()!.metricsHistory).toHaveLength(2);
+
+        // Fourth update - 3 entries
+        baselineService.updateBaseline([violation]);
+        expect(baselineService.getBaseline()!.metricsHistory).toHaveLength(3);
+      });
+
+      it('should trim history when exceeding default maxHistorySize (50)', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline
+        baselineService.updateBaseline([violation]);
+
+        // Update 55 times (exceeds default 50)
+        for (let i = 0; i < 54; i++) {
+          baselineService.updateBaseline([violation]);
+        }
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline!.metricsHistory).toBeDefined();
+        expect(baseline!.metricsHistory).toHaveLength(50);
+      });
+
+      it('should trim history when exceeding custom maxHistorySize', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline
+        baselineService.updateBaseline([violation]);
+
+        // Update 15 times with custom maxHistorySize = 10
+        for (let i = 0; i < 14; i++) {
+          baselineService.updateBaseline([violation], 10);
+        }
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline!.metricsHistory).toBeDefined();
+        expect(baseline!.metricsHistory).toHaveLength(10);
+      });
+
+      it('should not trim history when exactly at maxHistorySize', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline
+        baselineService.updateBaseline([violation]);
+
+        // Update exactly 50 more times (total 51 updates = 50 history entries)
+        for (let i = 0; i < 50; i++) {
+          baselineService.updateBaseline([violation]);
+        }
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline!.metricsHistory).toHaveLength(50);
+      });
+
+      it('should not trim history when below maxHistorySize', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline
+        baselineService.updateBaseline([violation]);
+
+        // Update 10 more times (total 11 updates = 10 history entries)
+        for (let i = 0; i < 10; i++) {
+          baselineService.updateBaseline([violation]);
+        }
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline!.metricsHistory).toHaveLength(10);
+      });
+
+      it('should handle undefined metricsHistory initially', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline (no history)
+        baselineService.updateBaseline([violation]);
+        baselineService.save();
+
+        // Load in new service instance (simulates loading from disk)
+        const newService = new BaselineService(tempDir);
+        expect(newService.getBaseline()!.metricsHistory).toBeUndefined();
+
+        // Update should create history
+        newService.updateBaseline([violation]);
+        expect(newService.getBaseline()!.metricsHistory).toHaveLength(1);
+      });
+
+      it('should persist history after save and load', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline and update 4 times (4 updates = 3 history entries)
+        baselineService.updateBaseline([violation]);
+        baselineService.updateBaseline([violation]);
+        baselineService.updateBaseline([violation]);
+        baselineService.updateBaseline([violation]);
+        baselineService.save();
+
+        // Load in new service instance
+        const newService = new BaselineService(tempDir);
+        const loadedBaseline = newService.getBaseline();
+
+        expect(loadedBaseline!.metricsHistory).toBeDefined();
+        expect(loadedBaseline!.metricsHistory).toHaveLength(3);
+      });
+
+      it('should persist trimmed history after save and load', () => {
+        const violation: RuleViolation = {
+          ruleId: 'test-rule',
+          severity: 'error',
+          message: 'Test violation',
+          file: 'src/test.ts',
+        };
+
+        // Create baseline
+        baselineService.updateBaseline([violation]);
+
+        // Update 55 times (exceeds default 50)
+        for (let i = 0; i < 54; i++) {
+          baselineService.updateBaseline([violation]);
+        }
+        baselineService.save();
+
+        // Load in new service instance
+        const newService = new BaselineService(tempDir);
+        const loadedBaseline = newService.getBaseline();
+
+        expect(loadedBaseline!.metricsHistory).toBeDefined();
+        expect(loadedBaseline!.metricsHistory).toHaveLength(50);
+      });
+
+      it('should store correct metrics in history entries', () => {
+        const violation1: RuleViolation = {
+          ruleId: 'rule1',
+          severity: 'error',
+          message: 'Violation 1',
+          file: 'src/file1.ts',
+        };
+
+        const violation2: RuleViolation = {
+          ruleId: 'rule2',
+          severity: 'warning',
+          message: 'Violation 2',
+          file: 'src/file2.ts',
+        };
+
+        // First update - 1 violation
+        baselineService.updateBaseline([violation1]);
+        const firstMetrics = baselineService.getBaseline()!.metrics;
+
+        // Second update - 2 violations
+        baselineService.updateBaseline([violation1, violation2]);
+        const secondMetrics = baselineService.getBaseline()!.metrics;
+
+        // Third update - check history
+        baselineService.updateBaseline([violation1, violation2]);
+
+        const baseline = baselineService.getBaseline();
+        expect(baseline!.metricsHistory).toHaveLength(2);
+        expect(baseline!.metricsHistory![0]).toEqual(firstMetrics);
+        expect(baseline!.metricsHistory![1]).toEqual(secondMetrics);
+        expect(baseline!.metricsHistory![0]!.totalViolations).toBe(1);
+        expect(baseline!.metricsHistory![1]!.totalViolations).toBe(2);
+      });
+    });
   });
 
   describe('save and loadBaseline', () => {
