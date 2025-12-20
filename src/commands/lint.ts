@@ -23,6 +23,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   const outputFile = _args.output as string | undefined;
   const noCache = (_args['no-cache'] as boolean) || false;
   const updateBaseline = (_args['update-baseline'] as boolean) || false;
+  const ratchet = (_args.ratchet as boolean) || false;
 
   // Debug: log the format flag
   if (process.env.DEBUG_ARCHCTL) {
