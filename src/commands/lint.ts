@@ -132,6 +132,9 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
     violationsToReport = comparisonResult.new;
   }
 
+  // Calculate ratchet check once (reused in all exit points)
+  const hasResolvedViolations = ratchet && comparisonResult && comparisonResult.resolved.length > 0;
+
   // HTML output format
   if (isHtmlOutput) {
     const htmlOutput = htmlReportService.generateHtmlReport({
@@ -149,7 +152,8 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
     htmlReportService.saveHtmlReport(htmlOutput, htmlOutputPath);
     console.log(`\n${colors.success('HTML report generated:')} ${colors.path(htmlOutputPath)}`);
-    process.exit(violationsToReport.some((v) => v.severity === 'error') ? 1 : 0);
+    const hasNewViolations = violationsToReport.some((v) => v.severity === 'error');
+    process.exit(hasNewViolations || hasResolvedViolations ? 1 : 0);
   }
 
   // JSON output format
@@ -168,7 +172,8 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
       suggestion: v.suggestion,
     }));
     console.log(JSON.stringify(jsonOutput, null, 2));
-    process.exit(violationsToReport.some((v) => v.severity === 'error') ? 1 : 0);
+    const hasNewViolations = violationsToReport.some((v) => v.severity === 'error');
+    process.exit(hasNewViolations || hasResolvedViolations ? 1 : 0);
   }
 
   // Display baseline comparison summary if baseline exists
@@ -214,7 +219,8 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
     } else {
       console.log(`${colors.symbols.check} ${colors.success.bold('No rule violations found!')}`);
     }
-    process.exit(0);
+    // Check ratchet: fail if resolved violations exist
+    process.exit(hasResolvedViolations ? 1 : 0);
   }
 
   const summary = ruleService.getViolationSummary(violationsToReport);
@@ -267,8 +273,10 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
     });
   }
 
-  // Exit with error code if there are errors
-  if (grouped.errors.length > 0) {
+  // Exit with error code if there are errors or ratchet violations
+  const hasNewViolations = grouped.errors.length > 0;
+
+  if (hasNewViolations || hasResolvedViolations) {
     console.log(`\n${colors.symbols.cross} ${colors.error.bold('Architecture validation failed')}`);
     process.exit(1);
   }
