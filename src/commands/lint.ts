@@ -8,7 +8,7 @@ import * as ruleService from '../services/ruleService';
 import * as htmlReportService from '../services/htmlReportService';
 import { BaselineService } from '../infrastructure/baseline/baselineService';
 import { messages } from '../utils/messages';
-import { colors, formatFilePath, formatCount } from '../utils/colors';
+import { colors, formatFilePath, formatCount, formatTrendSeries } from '../utils/colors';
 
 /**
  * Lint command - enforce architecture rules
@@ -192,6 +192,51 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
         `   ${colors.dim('Unchanged violations:')} ${formatCount(comparisonResult.unchanged.length, true)}`
       );
       console.log('');
+
+      // Display metrics trends if history exists
+      const baseline = baselineService.getBaseline();
+      if (baseline?.metricsHistory && baseline.metricsHistory.length > 0) {
+        const history = baseline.metricsHistory;
+        const currentMetrics = baseline.metrics;
+        const allMetrics = [...history, currentMetrics];
+        const displayCount = Math.min(5, allMetrics.length);
+
+        console.log(
+          `${colors.dim(`Metrics Trends (last ${displayCount} updates):`)}`
+        );
+
+        // Total violations trend
+        const totalViolations = allMetrics.map((m) => m.totalViolations);
+        console.log(
+          `   ${colors.dim('Total Violations:')} ${formatTrendSeries(totalViolations, displayCount)}`
+        );
+
+        // Errors trend
+        const errors = allMetrics.map((m) => m.errors);
+        console.log(
+          `   ${colors.dim('Errors:')} ${formatTrendSeries(errors, displayCount)}`
+        );
+
+        // Warnings trend
+        const warnings = allMetrics.map((m) => m.warnings);
+        console.log(
+          `   ${colors.dim('Warnings:')} ${formatTrendSeries(warnings, displayCount)}`
+        );
+
+        // Info trend
+        const info = allMetrics.map((m) => m.info);
+        console.log(
+          `   ${colors.dim('Info:')} ${formatTrendSeries(info, displayCount)}`
+        );
+
+        // Files affected trend
+        const filesAffected = allMetrics.map((m) => m.filesAffected);
+        console.log(
+          `   ${colors.dim('Files affected:')} ${formatTrendSeries(filesAffected, displayCount)}`
+        );
+
+        console.log('');
+      }
     }
 
     // Ratchet check: warn/fail if violations were resolved

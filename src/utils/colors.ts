@@ -97,3 +97,55 @@ export function formatContext(context: string): string {
 export function formatPackage(pkg: string): string {
   return chalk.cyan(pkg);
 }
+
+/**
+ * Calculate percentage change between two numbers
+ */
+function calculatePercentageChange(oldValue: number, newValue: number): number {
+  if (oldValue === 0) {
+    return newValue === 0 ? 0 : 100;
+  }
+  return ((newValue - oldValue) / oldValue) * 100;
+}
+
+/**
+ * Format a trend with arrow and percentage
+ */
+export function formatTrend(oldValue: number, newValue: number): string {
+  const change = calculatePercentageChange(oldValue, newValue);
+  const absChange = Math.abs(change);
+
+  if (absChange < 0.1) {
+    return `${chalk.gray('→')} ${chalk.gray('stable')}`;
+  }
+
+  if (change > 0) {
+    return `${chalk.red('↑')} ${chalk.red(`+${absChange.toFixed(1)}%`)}`;
+  }
+
+  return `${chalk.green('↓')} ${chalk.green(`${absChange.toFixed(1)}%`)}`;
+}
+
+/**
+ * Format a series of values with trend
+ */
+export function formatTrendSeries(values: number[], maxDisplay: number = 5): string {
+  if (values.length === 0) {
+    return '';
+  }
+
+  const displayValues = values.slice(-maxDisplay);
+  const valueStr = displayValues.map((v) => v.toString()).join(' → ');
+  
+  // Calculate trend from oldest to newest in the displayed range
+  if (displayValues.length >= 2) {
+    const oldest = displayValues[0];
+    const newest = displayValues[displayValues.length - 1];
+    if (oldest !== undefined && newest !== undefined) {
+      const trend = formatTrend(oldest, newest);
+      return `${valueStr} (${trend})`;
+    }
+  }
+
+  return valueStr;
+}
