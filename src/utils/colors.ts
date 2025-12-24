@@ -136,7 +136,7 @@ export function formatTrendSeries(values: number[], maxDisplay: number = 5): str
 
   const displayValues = values.slice(-maxDisplay);
   const valueStr = displayValues.map((v) => v.toString()).join(' → ');
-  
+
   // Calculate trend from oldest to newest in the displayed range
   if (displayValues.length >= 2) {
     const oldest = displayValues[0];

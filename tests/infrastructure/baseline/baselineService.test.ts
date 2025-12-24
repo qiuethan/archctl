@@ -144,7 +144,12 @@ describe('BaselineService', () => {
       expect(baselineViolation.severity).toBe('error');
       expect(baselineViolation.message).toBe('Test violation');
       expect(baselineViolation.file).toBe('src/test.ts');
-      expect(baselineViolation.range).toEqual({ startLine: 1, startCol: 0, endLine: 1, endCol: 10 });
+      expect(baselineViolation.range).toEqual({
+        startLine: 1,
+        startCol: 0,
+        endLine: 1,
+        endCol: 10,
+      });
       expect(baselineViolation.suggestion).toBe('Fix this');
       expect(baselineViolation.firstSeen).toBe(firstSeen);
       expect(baselineViolation.fingerprint).toBeDefined();
@@ -158,7 +163,10 @@ describe('BaselineService', () => {
         file: 'src/test.ts',
       };
 
-      const baselineViolation = baselineService.violationToBaseline(violation, '2025-01-15T10:00:00Z');
+      const baselineViolation = baselineService.violationToBaseline(
+        violation,
+        '2025-01-15T10:00:00Z'
+      );
 
       expect(baselineViolation.range).toBeUndefined();
       expect(baselineViolation.suggestion).toBeUndefined();
@@ -470,7 +478,7 @@ describe('BaselineService', () => {
 
         // Update 15 times with custom maxHistorySize = 10
         for (let i = 0; i < 14; i++) {
-          baselineService.updateBaseline([violation], 10);
+          baselineService.updateBaseline([violation], undefined, 10);
         }
 
         const baseline = baselineService.getBaseline();
@@ -868,4 +876,3 @@ describe('BaselineService', () => {
     });
   });
 });
-

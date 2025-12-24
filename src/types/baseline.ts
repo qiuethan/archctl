@@ -1,13 +1,13 @@
 /**
  * Baseline types for architecture debt tracking
- * 
+ *
  * A baseline is a snapshot of known violations that allows teams to:
  * - Freeze the current state of violations
  * - Only fail CI on NEW violations (drift detection)
  * - Track metrics and trends over time
  */
 
-import type { RuleViolation, PositionRange } from './rules';
+import type { PositionRange } from './rules';
 
 /**
  * A violation stored in the baseline
@@ -64,6 +64,15 @@ export interface BaselineMetrics {
 
   /** Timestamp when metrics were calculated */
   timestamp: string; // ISO 8601 timestamp
+
+  /** Average dependencies per file (coupling score) - higher = more coupled */
+  couplingScore?: number;
+
+  /** Average violations per affected file (violation density) - higher = more concentrated */
+  violationDensity?: number;
+
+  /** Overall architecture health score (0-100) - higher = healthier */
+  healthScore?: number;
 }
 
 /**
@@ -88,4 +97,3 @@ export interface Baseline {
   /** Optional: History of metrics over time (for trend tracking) */
   metricsHistory?: BaselineMetrics[];
 }
-

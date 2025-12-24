@@ -4,6 +4,20 @@ import * as crypto from 'crypto';
 import type { RuleViolation } from '../../types/rules';
 import type { Baseline, BaselineViolation, BaselineMetrics } from '../../types/baseline';
 
+/**
+ * Graph statistics for calculating additional metrics
+ */
+export interface GraphStats {
+  /** Total number of files in the project */
+  totalFiles: number;
+  /** Total number of dependencies (edges) in the graph */
+  totalDependencies: number;
+  /** Average dependencies per file */
+  averageDependenciesPerFile: number;
+  /** Number of unmapped files (not assigned to a layer) */
+  unmappedFiles?: number;
+}
+
 export class BaselineService {
   private baselinePath: string;
   private baseline: Baseline | null = null;
@@ -11,7 +25,7 @@ export class BaselineService {
 
   /**
    * Constructor - Initialize the service with project root
-   * 
+   *
    * @param projectRoot - Absolute path to project root directory
    */
   constructor(projectRoot: string) {
@@ -21,7 +35,7 @@ export class BaselineService {
 
   /**
    * Load baseline from disk
-   * 
+   *
    * @returns Baseline object or null if file doesn't exist or is invalid
    */
   private loadBaseline(): Baseline | null {
@@ -39,7 +53,7 @@ export class BaselineService {
 
       console.warn(
         `Baseline version mismatch. Expected ${this.BASELINE_VERSION}, got ${data.version}. ` +
-        'Baseline will be recreated.'
+          'Baseline will be recreated.'
       );
       return null;
     } catch (error) {
@@ -50,7 +64,7 @@ export class BaselineService {
 
   /**
    * Get the current baseline (loads from disk if not already loaded)
-   * 
+   *
    * @returns Baseline object or null if no baseline exists
    */
   public getBaseline(): Baseline | null {
@@ -59,7 +73,7 @@ export class BaselineService {
 
   /**
    * Check if a baseline exists
-   * 
+   *
    * @returns true if baseline file exists and is valid
    */
   public hasBaseline(): boolean {
@@ -68,7 +82,7 @@ export class BaselineService {
 
   /**
    * Generate a fingerprint for a violation
-   * 
+   *
    * @param violation - The rule violation to fingerprint
    * @returns Unique hash string identifying this violation
    */
@@ -84,7 +98,7 @@ export class BaselineService {
 
   /**
    * Hash a message string (for fingerprint fallback)
-   * 
+   *
    * @param message - Violation message
    * @returns Hash of the message
    */
@@ -95,7 +109,7 @@ export class BaselineService {
 
   /**
    * Convert a RuleViolation to a BaselineViolation
-   * 
+   *
    * @param violation - Current rule violation
    * @param firstSeen - When this violation was first seen (ISO timestamp)
    * @returns BaselineViolation with fingerprint
@@ -116,41 +130,95 @@ export class BaselineService {
 
   /**
    * Calculate metrics from violations
-   * 
+   *
    * @param violations - Array of violations to calculate metrics for
+   * @param graphStats - Optional graph statistics for additional metrics
    * @returns BaselineMetrics object
    */
-  public calculateMetrics(violations: BaselineViolation[]): BaselineMetrics {
+  public calculateMetrics(
+    violations: BaselineViolation[],
+    graphStats?: GraphStats
+  ): BaselineMetrics {
     const errors = violations.filter((v) => v.severity === 'error').length;
     const warnings = violations.filter((v) => v.severity === 'warning').length;
     const info = violations.filter((v) => v.severity === 'info').length;
 
     const uniqueFiles = new Set(violations.map((v) => v.file));
+    const filesAffected = uniqueFiles.size;
 
-    return {
+    const metrics: BaselineMetrics = {
       totalViolations: violations.length,
       errors,
       warnings,
       info,
-      filesAffected: uniqueFiles.size,
+      filesAffected,
       timestamp: new Date().toISOString(),
     };
+
+    // Calculate violation density (always available)
+    metrics.violationDensity = filesAffected > 0 ? violations.length / filesAffected : 0;
+
+    // Calculate additional metrics if graph stats provided
+    if (graphStats) {
+      // Coupling score: average dependencies per file
+      metrics.couplingScore = graphStats.averageDependenciesPerFile;
+
+      // Health score: overall architecture health (0-100)
+      metrics.healthScore = this.calculateHealthScore({ errors, warnings, info }, graphStats);
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Calculate architecture health score (0-100)
+   *
+   * @param violationSummary - Summary of violations by severity
+   * @param graphStats - Graph statistics
+   * @returns Health score from 0-100
+   */
+  private calculateHealthScore(
+    violationSummary: { errors: number; warnings: number; info: number },
+    graphStats: GraphStats
+  ): number {
+    let score = 100;
+
+    // Deduct for violations
+    score -= violationSummary.errors * 5;
+    score -= violationSummary.warnings * 2;
+    score -= violationSummary.info * 0.5;
+
+    // Deduct for high coupling
+    const avgDeps = graphStats.averageDependenciesPerFile;
+    if (avgDeps > 10) {
+      score -= (avgDeps - 10) * 2;
+    }
+
+    // Deduct for unmapped files
+    if (graphStats.totalFiles > 0 && graphStats.unmappedFiles !== undefined) {
+      const unmappedRatio = graphStats.unmappedFiles / graphStats.totalFiles;
+      score -= unmappedRatio * 20;
+    }
+
+    // Clamp to 0-100 range
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   /**
    * Create a new baseline from current violations
-   * 
+   *
    * @param violations - Current rule violations to baseline
+   * @param graphStats - Optional graph statistics for additional metrics
    * @returns Baseline object
    */
-  public createBaseline(violations: RuleViolation[]): Baseline {
+  public createBaseline(violations: RuleViolation[], graphStats?: GraphStats): Baseline {
     const now = new Date().toISOString();
 
     const baselineViolations: BaselineViolation[] = violations.map((v) =>
       this.violationToBaseline(v, now)
     );
 
-    const metrics = this.calculateMetrics(baselineViolations);
+    const metrics = this.calculateMetrics(baselineViolations, graphStats);
 
     this.baseline = {
       version: this.BASELINE_VERSION,
@@ -165,16 +233,21 @@ export class BaselineService {
 
   /**
    * Update existing baseline with new violations
-   * 
+   *
    * @param violations - Current rule violations
+   * @param graphStats - Optional graph statistics for additional metrics
    * @param maxHistorySize - Maximum number of metrics snapshots to keep (default: 50)
    */
-  public updateBaseline(violations: RuleViolation[], maxHistorySize: number = 50): void {
+  public updateBaseline(
+    violations: RuleViolation[],
+    graphStats?: GraphStats,
+    maxHistorySize: number = 50
+  ): void {
     const now = new Date().toISOString();
     const existingBaseline = this.baseline;
 
     if (!existingBaseline) {
-      this.baseline = this.createBaseline(violations);
+      this.baseline = this.createBaseline(violations, graphStats);
       return;
     }
 
@@ -201,7 +274,7 @@ export class BaselineService {
     // Keep only last N snapshots to prevent file bloat
     const trimmedHistory = metricsHistory.slice(-maxHistorySize);
 
-    const metrics = this.calculateMetrics(updatedViolations);
+    const metrics = this.calculateMetrics(updatedViolations, graphStats);
 
     this.baseline = {
       version: this.BASELINE_VERSION,
@@ -227,11 +300,7 @@ export class BaselineService {
         fs.mkdirSync(dir, { recursive: true });
       }
 
-      fs.writeFileSync(
-        this.baselinePath,
-        JSON.stringify(this.baseline, null, 2),
-        'utf-8'
-      );
+      fs.writeFileSync(this.baselinePath, JSON.stringify(this.baseline, null, 2), 'utf-8');
     } catch (error) {
       console.warn('Failed to save baseline:', error);
       throw error;
@@ -240,7 +309,7 @@ export class BaselineService {
 
   /**
    * Compare current violations against baseline
-   * 
+   *
    * @param currentViolations - Current rule violations from lint check
    * @returns Object containing new, resolved, and unchanged violations
    */
@@ -305,4 +374,3 @@ export class BaselineService {
     }
   }
 }
-

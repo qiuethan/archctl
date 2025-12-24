@@ -8,7 +8,6 @@ import type { ArchctlConfig } from '../../src/types/config';
 
 describe('cmdLint', () => {
   let tempDir: string;
-  let configPath: string;
   let srcDir: string;
 
   // Mock console methods
@@ -22,7 +21,6 @@ describe('cmdLint', () => {
   beforeEach(() => {
     // Create temporary test directory
     tempDir = path.join(process.cwd(), '.test-lint-' + Date.now());
-    configPath = path.join(tempDir, 'archctl.config.json');
     srcDir = path.join(tempDir, 'src');
 
     fs.mkdirSync(tempDir, { recursive: true });
@@ -313,4 +311,3 @@ describe('cmdLint', () => {
     });
   });
 });
-
