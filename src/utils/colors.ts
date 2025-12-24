@@ -110,6 +110,7 @@ function calculatePercentageChange(oldValue: number, newValue: number): number {
 
 /**
  * Format a trend with arrow and percentage
+ * Returns format like: "↓ 5%" or "↑ 10%" or "→ stable"
  */
 export function formatTrend(oldValue: number, newValue: number): string {
   const change = calculatePercentageChange(oldValue, newValue);
@@ -119,23 +120,48 @@ export function formatTrend(oldValue: number, newValue: number): string {
     return `${chalk.gray('→')} ${chalk.gray('stable')}`;
   }
 
+  // Round percentage to whole number for cleaner display
+  const roundedChange = Math.round(absChange);
+
   if (change > 0) {
-    return `${chalk.red('↑')} ${chalk.red(`+${absChange.toFixed(1)}%`)}`;
+    return `${chalk.red('↑')} ${chalk.red(`${roundedChange}%`)}`;
   }
 
-  return `${chalk.green('↓')} ${chalk.green(`${absChange.toFixed(1)}%`)}`;
+  return `${chalk.green('↓')} ${chalk.green(`${roundedChange}%`)}`;
 }
 
 /**
  * Format a series of values with trend
+ * Returns format like: "500 → 490 → 485 → 480 → 475 (↓ 5%)"
+ *
+ * @param values - Array of numeric values (oldest to newest)
+ * @param maxDisplay - Maximum number of values to display (default: 5)
+ * @param decimalPlaces - Number of decimal places for formatting (default: auto-detect)
  */
-export function formatTrendSeries(values: number[], maxDisplay: number = 5): string {
+export function formatTrendSeries(
+  values: number[],
+  maxDisplay: number = 5,
+  decimalPlaces?: number
+): string {
   if (values.length === 0) {
     return '';
   }
 
   const displayValues = values.slice(-maxDisplay);
-  const valueStr = displayValues.map((v) => v.toString()).join(' → ');
+
+  // Auto-detect if we need decimals (if any value has decimals)
+  const needsDecimals =
+    decimalPlaces !== undefined ? decimalPlaces > 0 : displayValues.some((v) => v % 1 !== 0);
+
+  // Format values: integers as-is, decimals with 1 decimal place
+  const formatValue = (v: number): string => {
+    if (needsDecimals) {
+      return v.toFixed(1);
+    }
+    return Math.round(v).toString();
+  };
+
+  const valueStr = displayValues.map(formatValue).join(' → ');
 
   // Calculate trend from oldest to newest in the displayed range
   if (displayValues.length >= 2) {

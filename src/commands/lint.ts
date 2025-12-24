@@ -258,7 +258,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
         if (hasCouplingScore) {
           const couplingScores = allMetrics.map((m) => m.couplingScore ?? 0);
           console.log(
-            `   ${colors.dim('Coupling Score:')} ${formatTrendSeries(couplingScores, displayCount)}`
+            `   ${colors.dim('Coupling Score:')} ${formatTrendSeries(couplingScores, displayCount, 1)}`
           );
         }
 
@@ -266,7 +266,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
         if (hasViolationDensity) {
           const violationDensities = allMetrics.map((m) => m.violationDensity ?? 0);
           console.log(
-            `   ${colors.dim('Violation Density:')} ${formatTrendSeries(violationDensities, displayCount)}`
+            `   ${colors.dim('Violation Density:')} ${formatTrendSeries(violationDensities, displayCount, 1)}`
           );
         }
 
