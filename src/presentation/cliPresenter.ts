@@ -9,7 +9,7 @@ import { messages } from '../utils/messages';
  * Display CLI help
  */
 export function displayHelp(): void {
-  const { cliName, cliUsage, commands, initOptions, examples, cliMoreInfo } = messages;
+  const { cliName, cliUsage, commands, initOptions, lintOptions, examples, cliMoreInfo } = messages;
 
   console.log(`${cliName}
 
@@ -29,6 +29,13 @@ Init Options:
   ${initOptions.out.flag.padEnd(12)}${initOptions.out.description}
   ${initOptions.force.flag.padEnd(12)}${initOptions.force.description}
 
+Lint Options:
+  ${lintOptions.format.flag.padEnd(18)}${lintOptions.format.description}
+  ${lintOptions.output.flag.padEnd(18)}${lintOptions.output.description}
+  ${lintOptions['no-cache'].flag.padEnd(18)}${lintOptions['no-cache'].description}
+  ${lintOptions['update-baseline'].flag.padEnd(18)}${lintOptions['update-baseline'].description}
+  ${lintOptions.ratchet.flag.padEnd(18)}${lintOptions.ratchet.description}
+
 Examples:
   ${examples.init}
   ${examples.initWithOut}
@@ -40,6 +47,9 @@ Examples:
   ${examples.contextsVisibility}
   ${examples.sync}
   ${examples.lint}
+  ${examples.lintWithBaseline}
+  ${examples.lintWithRatchet}
+  ${examples.lintHtml}
   ${examples.prompt}
 
 ${cliMoreInfo}
