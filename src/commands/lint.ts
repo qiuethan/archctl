@@ -165,7 +165,12 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
 
   // HTML output format
   if (isHtmlOutput) {
-    const htmlOutput = htmlReportService.generateHtmlReport({
+    // Get baseline and trends data if available
+    const baselineService = new BaselineService(projectRoot);
+    const baseline = baselineService.getBaseline();
+    const hasTrends = baseline && baseline.metricsHistory && baseline.metricsHistory.length > 0;
+
+    const reportData: Parameters<typeof htmlReportService.generateHtmlReport>[0] = {
       graphReport: graphAnalysis,
       violations: violationsToReport,
       options: {
@@ -173,7 +178,16 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
         includeGraph: true,
         includeViolations: true,
       },
-    });
+    };
+
+    if (hasTrends && baseline) {
+      reportData.trends = {
+        metricsHistory: baseline.metricsHistory!,
+        baseline,
+      };
+    }
+
+    const htmlOutput = htmlReportService.generateHtmlReport(reportData);
 
     const defaultOutputPath = path.join(projectRoot, 'archctl-report.html');
     const htmlOutputPath = outputFile || defaultOutputPath;
