@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cmdLint } from '../../src/commands/lint';
-import { BaselineService } from '../../src/infrastructure/baseline/baselineService';
+import { BaselineService, type GraphStats } from '../../src/infrastructure/baseline/baselineService';
 import type { RuleViolation } from '../../src/types/rules';
 import type { ArchctlConfig } from '../../src/types/config';
 
@@ -306,6 +306,188 @@ describe('cmdLint', () => {
       // Should not show baseline comparison
       const logCalls = mockLog.mock.calls.flat().join('\n');
       expect(logCalls).not.toContain('Baseline comparison:');
+
+      mockExit.mockRestore();
+    });
+  });
+
+  describe('trends display', () => {
+    it('should display trends when baseline has history', async () => {
+      // INPUT: Create baseline with 3 updates to generate history
+      const baselineService = new BaselineService(tempDir);
+      const violation1: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation 1',
+        file: 'src/file1.ts',
+      };
+      const violation2: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation 2',
+        file: 'src/file2.ts',
+      };
+      const violation3: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation 3',
+        file: 'src/file3.ts',
+      };
+
+      const graphStats: GraphStats = {
+        totalFiles: 100,
+        totalDependencies: 350,
+        averageDependenciesPerFile: 3.5,
+        unmappedFiles: 5,
+      };
+
+      // Create history: 3 updates (creates 2 history entries)
+      baselineService.updateBaseline([violation1], graphStats);
+      baselineService.updateBaseline([violation1, violation2], graphStats);
+      baselineService.updateBaseline([violation1, violation2, violation3], graphStats);
+      baselineService.save();
+
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      // EXECUTE
+      await expect(async () => {
+        await cmdLint({});
+      }).rejects.toThrow('process.exit called');
+
+      // EXPECTED OUTPUT:
+      // - Should contain "Metrics Trends" header
+      // - Should contain trend lines like "Total Violations: 1 → 2 → 3"
+      // - Should contain trend indicators (↓, ↑, or →)
+      const logCalls = mockLog.mock.calls.flat().join('\n');
+      expect(logCalls).toContain('Metrics Trends');
+      expect(logCalls).toContain('Total Violations:');
+      expect(logCalls).toMatch(/\d+\s*→\s*\d+/); // Pattern: number → number
+
+      mockExit.mockRestore();
+    });
+
+    it('should not display trends when no history exists', async () => {
+      // INPUT: Baseline exists but no history (only one update)
+      const baselineService = new BaselineService(tempDir);
+      const violation: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation',
+        file: 'src/file1.ts',
+      };
+      baselineService.updateBaseline([violation]);
+      baselineService.save();
+
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      // EXECUTE
+      await expect(async () => {
+        await cmdLint({});
+      }).rejects.toThrow('process.exit called');
+
+      // EXPECTED OUTPUT:
+      // - Should NOT contain "Metrics Trends"
+      const logCalls = mockLog.mock.calls.flat().join('\n');
+      expect(logCalls).not.toContain('Metrics Trends');
+
+      mockExit.mockRestore();
+    });
+
+    it('should display all metric trends (coupling, density, health) when available', async () => {
+      // INPUT: Baseline with history that includes graphStats metrics
+      const baselineService = new BaselineService(tempDir);
+      const violation: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation',
+        file: 'src/file1.ts',
+      };
+
+      const graphStats: GraphStats = {
+        totalFiles: 100,
+        totalDependencies: 350,
+        averageDependenciesPerFile: 3.5,
+        unmappedFiles: 5,
+      };
+
+      // Create history with graphStats
+      baselineService.updateBaseline([violation], graphStats);
+      baselineService.updateBaseline([violation], graphStats);
+      baselineService.updateBaseline([violation], graphStats);
+      baselineService.save();
+
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      // EXECUTE
+      await expect(async () => {
+        await cmdLint({});
+      }).rejects.toThrow('process.exit called');
+
+      // EXPECTED OUTPUT:
+      // - Should contain all trend lines: Total Violations, Errors, Warnings, Info, Files affected
+      // - Should contain additional metrics: Coupling Score, Violation Density, Health Score
+      const logCalls = mockLog.mock.calls.flat().join('\n');
+      expect(logCalls).toContain('Total Violations:');
+      expect(logCalls).toContain('Errors:');
+      expect(logCalls).toContain('Coupling Score:');
+      expect(logCalls).toContain('Violation Density:');
+      expect(logCalls).toContain('Health Score:');
+
+      mockExit.mockRestore();
+    });
+
+    it('should format trends correctly with arrows and percentages', async () => {
+      // INPUT: Baseline with improving metrics (violations decreasing)
+      const baselineService = new BaselineService(tempDir);
+      const violation1: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation 1',
+        file: 'src/file1.ts',
+      };
+      const violation2: RuleViolation = {
+        ruleId: 'test-rule',
+        severity: 'error',
+        message: 'Violation 2',
+        file: 'src/file2.ts',
+      };
+
+      const graphStats: GraphStats = {
+        totalFiles: 100,
+        totalDependencies: 350,
+        averageDependenciesPerFile: 3.5,
+        unmappedFiles: 5,
+      };
+
+      // Create history: 3 violations → 2 violations → 1 violation (improving)
+      baselineService.updateBaseline([violation1, violation2, { ...violation1, file: 'src/file3.ts' }], graphStats);
+      baselineService.updateBaseline([violation1, violation2], graphStats);
+      baselineService.updateBaseline([violation1], graphStats);
+      baselineService.save();
+
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      // EXECUTE
+      await expect(async () => {
+        await cmdLint({});
+      }).rejects.toThrow('process.exit called');
+
+      // EXPECTED OUTPUT:
+      // - Should contain trend format: "3 → 2 → 1 (↓ X%)"
+      // - Should contain downward arrow (↓) for improvement
+      // - Should contain percentage change
+      const logCalls = mockLog.mock.calls.flat().join('\n');
+      expect(logCalls).toContain('Total Violations:');
+      expect(logCalls).toMatch(/\d+\s*→\s*\d+\s*→\s*\d+/); // Pattern: number → number → number
+      expect(logCalls).toMatch(/\(↓\s*\d+%\)/); // Pattern: (↓ percentage%)
 
       mockExit.mockRestore();
     });
