@@ -54,6 +54,30 @@ export const messages = {
     },
   },
 
+  // Lint Command Options
+  lintOptions: {
+    format: {
+      flag: '--format',
+      description: 'Output format: text, json, or html (default: text)',
+    },
+    output: {
+      flag: '--output',
+      description: 'Output file path (for html format)',
+    },
+    'no-cache': {
+      flag: '--no-cache',
+      description: 'Disable dependency graph caching',
+    },
+    'update-baseline': {
+      flag: '--update-baseline',
+      description: 'Create or update baseline of current violations',
+    },
+    ratchet: {
+      flag: '--ratchet',
+      description: 'Fail CI if violations are resolved (requires baseline update)',
+    },
+  },
+
   // Examples
   examples: {
     init: 'archctl init',
@@ -70,6 +94,9 @@ export const messages = {
     contextsVisibility: 'archctl contexts visibility --context <name> --allow billing,shared',
     sync: 'archctl sync',
     lint: 'archctl lint',
+    lintWithBaseline: 'archctl lint --update-baseline',
+    lintWithRatchet: 'archctl lint --ratchet',
+    lintHtml: 'archctl lint --format=html',
     prompt: 'archctl prompt',
   },
 
