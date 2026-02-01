@@ -1,11 +1,14 @@
 import * as path from 'path';
 import type { ParsedArgs } from '../types';
+import type { RuleViolation } from '../types/rules';
+import type { BaselineViolation } from '../types/baseline';
 import * as configService from '../services/configService';
 import * as graphService from '../services/graphService';
 import * as ruleService from '../services/ruleService';
 import * as htmlReportService from '../services/htmlReportService';
+import { BaselineService, type GraphStats } from '../infrastructure/baseline/baselineService';
 import { messages } from '../utils/messages';
-import { colors, formatFilePath, formatCount } from '../utils/colors';
+import { colors, formatFilePath, formatCount, formatTrendSeries } from '../utils/colors';
 
 /**
  * Lint command - enforce architecture rules
@@ -19,6 +22,8 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   const isHtmlOutput = format === 'html';
   const outputFile = _args.output as string | undefined;
   const noCache = (_args['no-cache'] as boolean) || false;
+  const updateBaseline = (_args['update-baseline'] as boolean) || false;
+  const ratchet = (_args.ratchet as boolean) || false;
 
   // Debug: log the format flag
   if (process.env.DEBUG_ARCHCTL) {
@@ -80,29 +85,122 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   // Check all rules
   const violations = ruleService.checkRules(rules, ruleContext);
 
+  // Extract graph stats for additional metrics
+  const graphStats: GraphStats | undefined = {
+    totalFiles: graphAnalysis.summary.totalFiles,
+    totalDependencies: graphAnalysis.summary.totalDependencies,
+    averageDependenciesPerFile: parseFloat(graphAnalysis.summary.averageDependenciesPerFile),
+    unmappedFiles: graphAnalysis.summary.layers.unmapped || 0,
+  };
+
+  // Update baseline if requested
+  if (updateBaseline) {
+    const baselineService = new BaselineService(projectRoot);
+    baselineService.updateBaseline(violations, graphStats);
+    baselineService.save();
+
+    if (!isSilent) {
+      const baseline = baselineService.getBaseline();
+      if (baseline) {
+        console.log(
+          `\n${colors.success('Baseline updated:')} ${colors.bold(baseline.violations.length.toString())} ${colors.dim('violation(s)')}`
+        );
+        console.log(`   ${colors.dim('Errors:')} ${formatCount(baseline.metrics.errors, true)}`);
+        console.log(
+          `   ${colors.dim('Warnings:')} ${formatCount(baseline.metrics.warnings, true)}`
+        );
+        console.log(`   ${colors.dim('Info:')} ${formatCount(baseline.metrics.info, true)}`);
+        console.log(
+          `   ${colors.dim('Files affected:')} ${colors.bold(baseline.metrics.filesAffected.toString())}`
+        );
+
+        // Show additional metrics if available
+        if (baseline.metrics.violationDensity !== undefined) {
+          console.log(
+            `   ${colors.dim('Violation density:')} ${colors.bold(baseline.metrics.violationDensity.toFixed(2))}`
+          );
+        }
+        if (baseline.metrics.couplingScore !== undefined) {
+          console.log(
+            `   ${colors.dim('Coupling score:')} ${colors.bold(baseline.metrics.couplingScore.toFixed(2))}`
+          );
+        }
+        if (baseline.metrics.healthScore !== undefined) {
+          const healthColor =
+            baseline.metrics.healthScore >= 80
+              ? colors.success
+              : baseline.metrics.healthScore >= 60
+                ? colors.warning
+                : colors.error;
+          console.log(
+            `   ${colors.dim('Health score:')} ${healthColor(baseline.metrics.healthScore.toString())}%`
+          );
+        }
+
+        console.log(
+          `\n${colors.success('Baseline saved to:')} ${colors.path(path.join('.archctl', 'baseline.json'))}`
+        );
+      }
+    }
+
+    process.exit(0);
+  }
+
+  // Compare against baseline if it exists
+  const baselineService = new BaselineService(projectRoot);
+  let violationsToReport = violations;
+  let comparisonResult: {
+    new: RuleViolation[];
+    resolved: BaselineViolation[];
+    unchanged: RuleViolation[];
+  } | null = null;
+
+  if (baselineService.hasBaseline()) {
+    comparisonResult = baselineService.compareViolations(violations);
+    violationsToReport = comparisonResult.new;
+  }
+
+  // Calculate ratchet check once (reused in all exit points)
+  const hasResolvedViolations = ratchet && comparisonResult && comparisonResult.resolved.length > 0;
+
   // HTML output format
   if (isHtmlOutput) {
-    const htmlOutput = htmlReportService.generateHtmlReport({
+    // Get baseline and trends data if available
+    const baselineService = new BaselineService(projectRoot);
+    const baseline = baselineService.getBaseline();
+    const hasTrends = baseline && baseline.metricsHistory && baseline.metricsHistory.length > 0;
+
+    const reportData: Parameters<typeof htmlReportService.generateHtmlReport>[0] = {
       graphReport: graphAnalysis,
-      violations,
+      violations: violationsToReport,
       options: {
         title: `Architecture Report - ${config.name}`,
         includeGraph: true,
         includeViolations: true,
       },
-    });
+    };
+
+    if (hasTrends && baseline) {
+      reportData.trends = {
+        metricsHistory: baseline.metricsHistory!,
+        baseline,
+      };
+    }
+
+    const htmlOutput = htmlReportService.generateHtmlReport(reportData);
 
     const defaultOutputPath = path.join(projectRoot, 'archctl-report.html');
     const htmlOutputPath = outputFile || defaultOutputPath;
 
     htmlReportService.saveHtmlReport(htmlOutput, htmlOutputPath);
     console.log(`\n${colors.success('HTML report generated:')} ${colors.path(htmlOutputPath)}`);
-    process.exit(violations.some((v) => v.severity === 'error') ? 1 : 0);
+    const hasNewViolations = violationsToReport.some((v) => v.severity === 'error');
+    process.exit(hasNewViolations || hasResolvedViolations ? 1 : 0);
   }
 
   // JSON output format
   if (isJsonOutput) {
-    const jsonOutput = violations.map((v) => ({
+    const jsonOutput = violationsToReport.map((v) => ({
       ruleId: v.ruleId,
       message: v.message,
       filePath: v.file,
@@ -116,19 +214,123 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
       suggestion: v.suggestion,
     }));
     console.log(JSON.stringify(jsonOutput, null, 2));
-    process.exit(violations.some((v) => v.severity === 'error') ? 1 : 0);
+    const hasNewViolations = violationsToReport.some((v) => v.severity === 'error');
+    process.exit(hasNewViolations || hasResolvedViolations ? 1 : 0);
+  }
+
+  // Display baseline comparison summary if baseline exists
+  if (comparisonResult) {
+    if (!isSilent) {
+      console.log(`\n${colors.dim('Baseline comparison:')}`);
+      console.log(
+        `   ${colors.dim('New violations:')} ${formatCount(comparisonResult.new.length, true)}`
+      );
+      console.log(
+        `   ${colors.dim('Resolved violations:')} ${formatCount(comparisonResult.resolved.length, true)}`
+      );
+      console.log(
+        `   ${colors.dim('Unchanged violations:')} ${formatCount(comparisonResult.unchanged.length, true)}`
+      );
+      console.log('');
+
+      // Display metrics trends if history exists
+      const baseline = baselineService.getBaseline();
+      if (baseline?.metricsHistory && baseline.metricsHistory.length > 0) {
+        const history = baseline.metricsHistory;
+        const currentMetrics = baseline.metrics;
+        const allMetrics = [...history, currentMetrics];
+        const displayCount = Math.min(5, allMetrics.length);
+
+        console.log(`${colors.dim(`Metrics Trends (last ${displayCount} updates):`)}`);
+
+        // Total violations trend
+        const totalViolations = allMetrics.map((m) => m.totalViolations);
+        console.log(
+          `   ${colors.dim('Total Violations:')} ${formatTrendSeries(totalViolations, displayCount)}`
+        );
+
+        // Errors trend
+        const errors = allMetrics.map((m) => m.errors);
+        console.log(`   ${colors.dim('Errors:')} ${formatTrendSeries(errors, displayCount)}`);
+
+        // Warnings trend
+        const warnings = allMetrics.map((m) => m.warnings);
+        console.log(`   ${colors.dim('Warnings:')} ${formatTrendSeries(warnings, displayCount)}`);
+
+        // Info trend
+        const info = allMetrics.map((m) => m.info);
+        console.log(`   ${colors.dim('Info:')} ${formatTrendSeries(info, displayCount)}`);
+
+        // Files affected trend
+        const filesAffected = allMetrics.map((m) => m.filesAffected);
+        console.log(
+          `   ${colors.dim('Files affected:')} ${formatTrendSeries(filesAffected, displayCount)}`
+        );
+
+        // Additional metrics trends (if available)
+        const hasCouplingScore = allMetrics.some((m) => m.couplingScore !== undefined);
+        if (hasCouplingScore) {
+          const couplingScores = allMetrics.map((m) => m.couplingScore ?? 0);
+          console.log(
+            `   ${colors.dim('Coupling Score:')} ${formatTrendSeries(couplingScores, displayCount, 1)}`
+          );
+        }
+
+        const hasViolationDensity = allMetrics.some((m) => m.violationDensity !== undefined);
+        if (hasViolationDensity) {
+          const violationDensities = allMetrics.map((m) => m.violationDensity ?? 0);
+          console.log(
+            `   ${colors.dim('Violation Density:')} ${formatTrendSeries(violationDensities, displayCount, 1)}`
+          );
+        }
+
+        const hasHealthScore = allMetrics.some((m) => m.healthScore !== undefined);
+        if (hasHealthScore) {
+          const healthScores = allMetrics.map((m) => m.healthScore ?? 0);
+          console.log(
+            `   ${colors.dim('Health Score:')} ${formatTrendSeries(healthScores, displayCount)}`
+          );
+        }
+
+        console.log('');
+      }
+    }
+
+    // Ratchet check: warn/fail if violations were resolved
+    if (ratchet && comparisonResult.resolved.length > 0) {
+      if (!isSilent) {
+        console.log(
+          `\n${colors.symbols.warning} ${colors.warning('Ratchet:')} ${colors.bold(comparisonResult.resolved.length.toString())} ${colors.warning('violation(s) resolved!')}`
+        );
+        console.log(`   ${colors.dim('Update baseline to lock in improvements:')}`);
+        console.log(`   ${colors.info('archctl lint --update-baseline')}`);
+      }
+    }
   }
 
   // Display results
-  if (violations.length === 0) {
-    console.log(`${colors.symbols.check} ${colors.success.bold('No rule violations found!')}`);
-    process.exit(0);
+  if (violationsToReport.length === 0) {
+    if (comparisonResult && comparisonResult.resolved.length > 0) {
+      console.log(
+        `${colors.symbols.check} ${colors.success.bold('No new violations!')} ${colors.dim(`(${comparisonResult.resolved.length} resolved)`)}`
+      );
+    } else {
+      console.log(`${colors.symbols.check} ${colors.success.bold('No rule violations found!')}`);
+    }
+    // Check ratchet: fail if resolved violations exist
+    process.exit(hasResolvedViolations ? 1 : 0);
   }
 
-  const summary = ruleService.getViolationSummary(violations);
-  console.log(
-    `\n${colors.symbols.warning} ${colors.warning.bold('Found')} ${colors.bold(summary.total.toString())} ${colors.warning.bold('violation(s):')}`
-  );
+  const summary = ruleService.getViolationSummary(violationsToReport);
+  if (comparisonResult) {
+    console.log(
+      `\n${colors.symbols.warning} ${colors.warning.bold('Found')} ${colors.bold(summary.total.toString())} ${colors.warning.bold('new violation(s):')}`
+    );
+  } else {
+    console.log(
+      `\n${colors.symbols.warning} ${colors.warning.bold('Found')} ${colors.bold(summary.total.toString())} ${colors.warning.bold('violation(s):')}`
+    );
+  }
   console.log(`   ${colors.dim('Errors:')} ${formatCount(summary.errors, true)}`);
   console.log(`   ${colors.dim('Warnings:')} ${formatCount(summary.warnings, true)}`);
   console.log(`   ${colors.dim('Info:')} ${formatCount(summary.info, true)}`);
@@ -137,7 +339,7 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
   );
 
   // Group by severity and display
-  const grouped = ruleService.groupViolationsBySeverity(violations);
+  const grouped = ruleService.groupViolationsBySeverity(violationsToReport);
 
   if (grouped.errors.length > 0) {
     console.log(`\n${colors.severityError('Errors:')}`);
@@ -169,8 +371,10 @@ export async function cmdLint(_args: ParsedArgs): Promise<void> {
     });
   }
 
-  // Exit with error code if there are errors
-  if (grouped.errors.length > 0) {
+  // Exit with error code if there are errors or ratchet violations
+  const hasNewViolations = grouped.errors.length > 0;
+
+  if (hasNewViolations || hasResolvedViolations) {
     console.log(`\n${colors.symbols.cross} ${colors.error.bold('Architecture validation failed')}`);
     process.exit(1);
   }

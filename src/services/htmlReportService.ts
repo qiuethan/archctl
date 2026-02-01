@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import type { GraphReport } from './graphService';
 import type { RuleViolation } from '../types/rules';
+import type { Baseline, BaselineMetrics } from '../types/baseline';
 
 export interface HtmlReportOptions {
   title?: string;
@@ -16,18 +17,23 @@ export interface HtmlReportData {
   graphReport: GraphReport;
   violations?: RuleViolation[];
   options?: HtmlReportOptions;
+  trends?: {
+    metricsHistory: BaselineMetrics[];
+    baseline: Baseline;
+  };
 }
 
 /**
  * Generate an interactive HTML report
  */
 export function generateHtmlReport(data: HtmlReportData): string {
-  const { graphReport, violations = [], options = {} } = data;
+  const { graphReport, violations = [], options = {}, trends } = data;
   const title = options.title || `Architecture Report - ${graphReport.project}`;
 
   const violationSummary = getViolationSummary(violations);
   const layerData = prepareLayerData(graphReport);
   const graphData = prepareGraphData(graphReport);
+  const hasTrends = trends && trends.metricsHistory && trends.metricsHistory.length > 0;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -38,6 +44,7 @@ export function generateHtmlReport(data: HtmlReportData): string {
   <style>
     ${getStyles()}
   </style>
+  ${hasTrends ? '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>' : ''}
 </head>
 <body>
   <div class="container">
@@ -53,6 +60,7 @@ export function generateHtmlReport(data: HtmlReportData): string {
     <nav class="tabs">
       <button class="tab-btn active" data-tab="overview">Overview</button>
       <button class="tab-btn" data-tab="violations">Violations (${violations.length})</button>
+      ${hasTrends ? '<button class="tab-btn" data-tab="trends">Trends</button>' : ''}
       <button class="tab-btn" data-tab="dependencies">Dependencies</button>
       <button class="tab-btn" data-tab="layers">Layers</button>
       <button class="tab-btn" data-tab="graph">Graph</button>
@@ -61,6 +69,7 @@ export function generateHtmlReport(data: HtmlReportData): string {
     <main class="content">
       ${generateOverviewTab(graphReport, violationSummary)}
       ${generateViolationsTab(violations, violationSummary)}
+      ${hasTrends ? generateTrendsTab(trends!) : ''}
       ${generateDependenciesTab(graphReport)}
       ${generateLayersTab(layerData)}
       ${generateGraphTab(graphData)}
@@ -69,7 +78,7 @@ export function generateHtmlReport(data: HtmlReportData): string {
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
-    ${getScripts(graphData)}
+    ${getScripts(graphData, trends)}
   </script>
 </body>
 </html>`;
@@ -424,6 +433,146 @@ function generateLayersTab(layerData: ReturnType<typeof prepareLayerData>): stri
                 </tr>
               `
                 )
+                .join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Generate trends tab content
+ */
+function generateTrendsTab(trends: {
+  metricsHistory: BaselineMetrics[];
+  baseline: Baseline;
+}): string {
+  const { metricsHistory, baseline } = trends;
+  const allMetrics = [...metricsHistory, baseline.metrics];
+
+  // Prepare data for charts
+  const labels = allMetrics.map((_, i) => `Update ${i + 1}`);
+  const totalViolations = allMetrics.map((m) => m.totalViolations);
+  const errors = allMetrics.map((m) => m.errors);
+  const warnings = allMetrics.map((m) => m.warnings);
+  const info = allMetrics.map((m) => m.info);
+  const filesAffected = allMetrics.map((m) => m.filesAffected);
+  const couplingScores = allMetrics.map((m) => m.couplingScore ?? null).filter((v) => v !== null);
+  const violationDensities = allMetrics
+    .map((m) => m.violationDensity ?? null)
+    .filter((v) => v !== null);
+  const healthScores = allMetrics.map((m) => m.healthScore ?? null).filter((v) => v !== null);
+
+  const hasCouplingScore = couplingScores.length > 0;
+  const hasViolationDensity = violationDensities.length > 0;
+  const hasHealthScore = healthScores.length > 0;
+
+  return `
+    <div class="tab-content" id="trends">
+      <div class="section">
+        <h2>Metrics Trends</h2>
+        <p class="section-desc">Track architecture health over time (last ${allMetrics.length} updates)</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="section">
+          <h3>Total Violations</h3>
+          <canvas id="chart-total-violations" class="trend-chart"></canvas>
+        </div>
+
+        <div class="section">
+          <h3>Violations by Severity</h3>
+          <canvas id="chart-severity" class="trend-chart"></canvas>
+        </div>
+
+        <div class="section">
+          <h3>Files Affected</h3>
+          <canvas id="chart-files-affected" class="trend-chart"></canvas>
+        </div>
+
+        ${
+          hasHealthScore
+            ? `
+        <div class="section">
+          <h3>Health Score</h3>
+          <canvas id="chart-health-score" class="trend-chart"></canvas>
+        </div>
+        `
+            : ''
+        }
+
+        ${
+          hasCouplingScore
+            ? `
+        <div class="section">
+          <h3>Coupling Score</h3>
+          <canvas id="chart-coupling-score" class="trend-chart"></canvas>
+        </div>
+        `
+            : ''
+        }
+
+        ${
+          hasViolationDensity
+            ? `
+        <div class="section">
+          <h3>Violation Density</h3>
+          <canvas id="chart-violation-density" class="trend-chart"></canvas>
+        </div>
+        `
+            : ''
+        }
+      </div>
+
+      <div class="section">
+        <h2>Metrics History Table</h2>
+        <div class="table-container">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Update</th>
+                <th>Total</th>
+                <th>Errors</th>
+                <th>Warnings</th>
+                <th>Info</th>
+                <th>Files</th>
+                ${hasHealthScore ? '<th>Health</th>' : ''}
+                ${hasCouplingScore ? '<th>Coupling</th>' : ''}
+                ${hasViolationDensity ? '<th>Density</th>' : ''}
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allMetrics
+                .map((m, i) => {
+                  const prev = i > 0 ? allMetrics[i - 1] : null;
+                  const trendIndicator = (oldVal: number, newVal: number) => {
+                    if (!prev) return '';
+                    const change = ((newVal - oldVal) / oldVal) * 100;
+                    if (Math.abs(change) < 0.1) return '<span class="trend-stable">→</span>';
+                    return change > 0
+                      ? `<span class="trend-worse">↑</span>`
+                      : `<span class="trend-better">↓</span>`;
+                  };
+
+                  return `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td>${m.totalViolations} ${trendIndicator(prev?.totalViolations ?? m.totalViolations, m.totalViolations)}</td>
+                  <td>${m.errors} ${trendIndicator(prev?.errors ?? m.errors, m.errors)}</td>
+                  <td>${m.warnings} ${trendIndicator(prev?.warnings ?? m.warnings, m.warnings)}</td>
+                  <td>${m.info} ${trendIndicator(prev?.info ?? m.info, m.info)}</td>
+                  <td>${m.filesAffected} ${trendIndicator(prev?.filesAffected ?? m.filesAffected, m.filesAffected)}</td>
+                  ${hasHealthScore ? `<td>${m.healthScore ?? 'N/A'}</td>` : ''}
+                  ${hasCouplingScore ? `<td>${m.couplingScore !== undefined ? m.couplingScore.toFixed(1) : 'N/A'}</td>` : ''}
+                  ${hasViolationDensity ? `<td>${m.violationDensity !== undefined ? m.violationDensity.toFixed(2) : 'N/A'}</td>` : ''}
+                  <td>${new Date(m.timestamp).toLocaleDateString()}</td>
+                </tr>
+              `;
+                })
+                .reverse()
                 .join('')}
             </tbody>
           </table>
@@ -1059,6 +1208,62 @@ function getStyles(): string {
       background: #f5f5f5;
     }
 
+    .trend-chart {
+      max-height: 300px;
+      margin-top: 1rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .metrics-table th,
+    .metrics-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .metrics-table th {
+      background: #f5f5f5;
+      font-weight: 600;
+      color: #000;
+      position: sticky;
+      top: 0;
+    }
+
+    .metrics-table td {
+      color: #000;
+    }
+
+    .metrics-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    .trend-better {
+      color: #000;
+      font-weight: 600;
+      margin-left: 0.25rem;
+    }
+
+    .trend-worse {
+      color: #000;
+      font-weight: 600;
+      margin-left: 0.25rem;
+    }
+
+    .trend-stable {
+      color: #666;
+      margin-left: 0.25rem;
+    }
+
     @media (max-width: 768px) {
       .grid-2 {
         grid-template-columns: 1fr;
@@ -1078,7 +1283,10 @@ function getStyles(): string {
 /**
  * Get JavaScript code for interactivity
  */
-function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
+function getScripts(
+  graphData: ReturnType<typeof prepareGraphData>,
+  trends?: { metricsHistory: BaselineMetrics[]; baseline: Baseline }
+): string {
   return `
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1404,5 +1612,179 @@ function getScripts(graphData: ReturnType<typeof prepareGraphData>): string {
 
     console.log('Archctl HTML Report loaded');
     console.log('Graph data:', graphData);
+
+    // Initialize trends charts if available
+    ${trends ? initializeTrendsCharts(trends) : ''}
+  `;
+}
+
+/**
+ * Generate JavaScript to initialize Chart.js charts for trends
+ */
+function initializeTrendsCharts(trends: {
+  metricsHistory: BaselineMetrics[];
+  baseline: Baseline;
+}): string {
+  const { metricsHistory, baseline } = trends;
+  const allMetrics = [...metricsHistory, baseline.metrics];
+  const labels = allMetrics.map((_, i) => `Update ${i + 1}`);
+
+  const chartConfig = (
+    label: string,
+    data: (number | null)[],
+    color: string,
+    yAxisLabel?: string
+  ) => {
+    const validData = data.filter((v) => v !== null) as number[];
+    if (validData.length === 0) return '';
+
+    return `
+      {
+        type: 'line',
+        data: {
+          labels: ${JSON.stringify(labels)},
+          datasets: [{
+            label: '${label}',
+            data: ${JSON.stringify(data)},
+            borderColor: '${color}',
+            backgroundColor: '${color}33',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ${yAxisLabel ? `title: { display: true, text: '${yAxisLabel}' }` : ''}
+            }
+          }
+        }
+      }
+    `;
+  };
+
+  const totalViolations = allMetrics.map((m) => m.totalViolations);
+  const errors = allMetrics.map((m) => m.errors);
+  const warnings = allMetrics.map((m) => m.warnings);
+  const info = allMetrics.map((m) => m.info);
+  const filesAffected = allMetrics.map((m) => m.filesAffected);
+  const couplingScores = allMetrics.map((m) => m.couplingScore ?? null);
+  const violationDensities = allMetrics.map((m) => m.violationDensity ?? null);
+  const healthScores = allMetrics.map((m) => m.healthScore ?? null);
+
+  return `
+    const trendsData = ${JSON.stringify({ metricsHistory, baseline })};
+    
+    function initTrendsCharts() {
+      if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded, skipping trends charts');
+        return;
+      }
+
+      // Total Violations Chart
+      const totalViolationsCtx = document.getElementById('chart-total-violations');
+      if (totalViolationsCtx) {
+        new Chart(totalViolationsCtx, ${chartConfig('Total Violations', totalViolations, '#000')});
+      }
+
+      // Severity Chart
+      const severityCtx = document.getElementById('chart-severity');
+      if (severityCtx) {
+        new Chart(severityCtx, {
+          type: 'line',
+          data: {
+            labels: ${JSON.stringify(labels)},
+            datasets: [
+              {
+                label: 'Errors',
+                data: ${JSON.stringify(errors)},
+                borderColor: '#000',
+                backgroundColor: '#00033',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+              },
+              {
+                label: 'Warnings',
+                data: ${JSON.stringify(warnings)},
+                borderColor: '#666',
+                backgroundColor: '#66633',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+              },
+              {
+                label: 'Info',
+                data: ${JSON.stringify(info)},
+                borderColor: '#999',
+                backgroundColor: '#99933',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+
+      // Files Affected Chart
+      const filesAffectedCtx = document.getElementById('chart-files-affected');
+      if (filesAffectedCtx) {
+        new Chart(filesAffectedCtx, ${chartConfig('Files Affected', filesAffected, '#000')});
+      }
+
+      // Health Score Chart
+      const healthScoreCtx = document.getElementById('chart-health-score');
+      if (healthScoreCtx) {
+        new Chart(healthScoreCtx, ${chartConfig('Health Score', healthScores, '#000', 'Score (0-100)')});
+      }
+
+      // Coupling Score Chart
+      const couplingScoreCtx = document.getElementById('chart-coupling-score');
+      if (couplingScoreCtx) {
+        new Chart(couplingScoreCtx, ${chartConfig('Coupling Score', couplingScores, '#000', 'Avg Dependencies')});
+      }
+
+      // Violation Density Chart
+      const violationDensityCtx = document.getElementById('chart-violation-density');
+      if (violationDensityCtx) {
+        new Chart(violationDensityCtx, ${chartConfig('Violation Density', violationDensities, '#000', 'Violations per File')});
+      }
+    }
+
+    // Initialize charts when trends tab is shown
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.tab === 'trends') {
+          setTimeout(() => {
+            initTrendsCharts();
+          }, 100);
+        }
+      });
+    });
   `;
 }
