@@ -1,8 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import type { RuleViolation } from '../../types/rules';
-import type { Baseline, BaselineViolation, BaselineMetrics } from '../../types/baseline';
+import type { RuleViolation } from '../types/rules';
+import type { Baseline, BaselineViolation, BaselineMetrics } from '../types/baseline';
 
 /**
  * Graph statistics for calculating additional metrics

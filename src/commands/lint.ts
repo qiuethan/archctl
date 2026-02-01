@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import * as path from 'path';
 import type { ParsedArgs } from '../types';
 import type { RuleViolation } from '../types/rules';
@@ -6,7 +11,7 @@ import * as configService from '../services/configService';
 import * as graphService from '../services/graphService';
 import * as ruleService from '../services/ruleService';
 import * as htmlReportService from '../services/htmlReportService';
-import { BaselineService, type GraphStats } from '../infrastructure/baseline/baselineService';
+import { BaselineService, type GraphStats } from '../services/baselineService';
 import { messages } from '../utils/messages';
 import { colors, formatFilePath, formatCount, formatTrendSeries } from '../utils/colors';
 

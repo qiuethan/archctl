@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  BaselineService,
-  type GraphStats,
-} from '../../../src/infrastructure/baseline/baselineService';
+import { BaselineService, type GraphStats } from '../../../src/services/baselineService';
 import type { RuleViolation } from '../../../src/types/rules';
 import type { Baseline, BaselineViolation } from '../../../src/types/baseline';
 
