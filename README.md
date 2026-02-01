@@ -75,7 +75,8 @@ Initialize a new Archctl configuration for your project.
 archctl init [options]
 
 Options:
-  --force    Overwrite existing configuration
+  --out <dir>    Folder to store architecture files (default: ".archctl")
+  --force        Overwrite existing configuration
 ```
 
 ### `archctl lint`
@@ -136,15 +137,29 @@ The HTML report includes:
 
 ### `archctl layers`
 
-Manage architectural layers.
+Manage architectural layers and file mappings.
 
 ```bash
 archctl layers <command>
 
 Commands:
-  list               List all defined layers
-  add <name>         Add a new layer
-  map <pattern>      Map file patterns to layers
+  list                                      List all layers and mappings
+  add --preset <id>                         Add layers from a preset
+  add --name <name> --description <desc>    Add a custom layer
+  remove --layer <name>                     Remove a layer and all its mappings
+  map --layer <name> --include <path>       Map files to a layer
+  map --layer <name> --exclude <path>       Add exclusions to a layer
+  unmap --layer <name> --include <path>     Remove a mapping from a layer
+```
+
+Examples:
+```bash
+archctl layers list
+archctl layers add --preset clean-architecture
+archctl layers add --name utils --description "Utility functions"
+archctl layers map --layer domain --include "src/domain/**"
+archctl layers map --layer domain --exclude "src/domain/**/*.test.ts"
+archctl layers unmap --layer domain --include "src/legacy/**"
 ```
 
 ### `archctl contexts`
@@ -177,6 +192,34 @@ Commands:
   add                Add a new rule interactively
   remove <id>        Remove a rule by ID
 ```
+
+### `archctl sync`
+
+Propagate architecture documentation (coming soon).
+
+```bash
+archctl sync
+```
+
+Planned features:
+- Generate architecture documentation
+- Create/update README sections
+- Export diagrams (Mermaid, PlantUML)
+- Sync with ADR tools
+
+### `archctl prompt`
+
+Generate AI prompts with architecture context (coming soon).
+
+```bash
+archctl prompt
+```
+
+Planned features:
+- Generate context-aware prompts for AI assistants
+- Include architecture rules and constraints
+- Add relevant code patterns and examples
+- Support multiple prompt templates
 
 ---
 

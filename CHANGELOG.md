@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Additional Metrics** - Coupling score, violation density, and health score (0-100)
   - **CLI Trend Display** - View metrics trends in terminal output when baseline exists
   - **HTML Report Trends** - Interactive charts showing metrics history in HTML reports
-- New `BaselineService` class in `src/infrastructure/baseline/`
+- New `BaselineService` class in `src/services/baselineService.ts`
 - New baseline types in `src/types/baseline.ts`
 
 ### Changed
@@ -113,7 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release
-- Core CLI commands: `init`, `lint`, `graph`, `layers`, `rules`
+- Core CLI commands: `init`, `lint`, `layers`, `rules`, `sync`, `prompt`
 - Architecture templates: Clean Architecture, Hexagonal Architecture
 - Rule implementations:
   - `allowed-layer-import` - Whitelist layer dependencies

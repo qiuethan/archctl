@@ -53,14 +53,17 @@ npm run dev
 ```
 archctl/
 ├── src/
-│   ├── commands/          # CLI commands (init, lint, graph, etc.)
+│   ├── commands/          # CLI commands (init, lint, layers, contexts, rules, etc.)
 │   ├── infrastructure/    # Core implementation
+│   │   ├── cache/         # Caching for performance
 │   │   ├── config/        # Configuration management
+│   │   ├── contexts/      # Context/vertical slice logic
 │   │   ├── graph/         # Dependency graph analysis
 │   │   ├── layers/        # Layer mapping logic
-│   │   └── rules/         # Rule implementations
+│   │   ├── rules/         # Rule implementations
+│   │   └── scanners/      # Language-specific file scanners
 │   ├── presentation/      # CLI output formatting
-│   ├── services/          # Business logic services
+│   ├── services/          # Business logic services (baseline, graph, rules, etc.)
 │   ├── templates/         # Architecture templates
 │   ├── types/             # TypeScript type definitions
 │   └── utils/             # Utility functions
