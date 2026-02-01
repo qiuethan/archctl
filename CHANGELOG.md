@@ -8,10 +8,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Architecture Debt Tracking** - Comprehensive baseline system for tracking and managing architecture violations over time
+  - Create baselines with `archctl lint --update-baseline` to snapshot current violations
+  - Drift detection: only fail CI on NEW violations, not existing ones
+  - **Ratchet Mode** (`--ratchet` flag) - Fail CI when violations are resolved to enforce baseline updates
+  - **Metrics History** - Track trends over time with automatic metrics snapshots
+  - **Additional Metrics** - Coupling score, violation density, and health score (0-100)
+  - **CLI Trend Display** - View metrics trends in terminal output when baseline exists
+  - **HTML Report Trends** - Interactive charts showing metrics history in HTML reports
+- New `BaselineService` class in `src/infrastructure/baseline/`
+- New baseline types in `src/types/baseline.ts`
+
+### Changed
+- HTML reports now include a "Trends" tab when baseline history exists
+- Lint command output shows baseline comparison summary with new/resolved/unchanged violations
+
+### Fixed
+- N/A
+
+## [0.4.5] - 2025-01-15
+
+### Added
 - **Performance Caching** - New scanning cache mechanism (`.archctl/cache.json`) to significantly speed up repeated linting runs
   - Automatically caches AST parsing and dependency extraction results
   - Invalidates cache on file changes, config updates, or tsconfig changes
   - New `--no-cache` flag for `archctl lint` to force a fresh scan
+
+### Changed
+- `archctl init` now creates a `.gitignore` file in the output directory to ignore the cache file
+
+## [0.4.4] - 2025-01-10
+
+### Fixed
+- **Scanner Improvements** - Enhanced robustness and strict typing for Java and Python scanners
+- Fixed TypeScript scanner path resolution issues
+
+## [0.4.3] - 2025-01-05
+
+### Fixed
+- Fixed scanner edge cases and improved error handling
+
+## [0.4.2] - 2024-12-20
+
+### Added
+- **Contexts CLI** - New `archctl contexts` command to add/list context mappings and set `context-visibility` rules from the CLI
+
+## [0.4.1] - 2024-12-15
+
+### Added
 - **Vertical Context Enforcement** - New `context-visibility` rule for enforcing modular boundaries between feature contexts
   - Define bounded contexts with `contextMappings` in configuration
   - Specify public API surfaces using glob patterns
@@ -23,31 +67,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ContextVisibilityRule` class in `src/infrastructure/rules/`
 - Extended `RuleContext` to include `contextMappings`
 - Added `ContextMapping` interface to config types
+
+## [0.4.0] - 2024-12-10
+
+### Added
 - **Capability-based rules** - New rule types `allowed-capability` and `forbidden-capability` to control what actions code can perform
 - **Capability detection** - Automatic detection of network calls, file I/O, database access, process spawning, and more
 - **User-defined capabilities** - Define custom capability patterns in config to detect specific imports and function calls
 - **Line-level violation reporting** - Capability violations now show the exact line number where the violation occurs
 - **Multi-language capability support** - Capability detection works across TypeScript, JavaScript, Python, and Java
 - **Template capabilities** - All architecture templates now include pre-configured capability patterns and rules
-- **Contexts CLI** - New `archctl contexts` command to add/list context mappings and set `context-visibility` rules from the CLI
 
 ### Changed
-- **Scanner Improvements** - Enhanced robustness and strict typing for Java and Python scanners
-- `archctl init` now creates a `.gitignore` file in the output directory to ignore the cache file
 - Capability violations now report at the specific line of the violation instead of the top of the file
 - Enhanced violation messages to include the specific action being performed
 
-### Deprecated
-- N/A
+## [0.3.0] - 2024-12-05
 
-### Removed
-- N/A
-
-### Fixed
-- N/A
-
-### Security
-- N/A
+### Added
+- Improved multi-language support
+- Enhanced dependency graph analysis
 
 ## [0.2.0] - 2024-12-01
 

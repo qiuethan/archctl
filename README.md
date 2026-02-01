@@ -25,11 +25,12 @@ Archctl is a CLI tool and VS Code extension that helps teams maintain clean arch
 - **Capability-Based Rules** - Control what actions code can perform (network, I/O, database, etc.)
 - **Dependency Rules** - Control which modules can import from which layers
 - **Cyclic Dependency Detection** - Find and eliminate circular dependencies
-- **Interactive HTML Reports** - Beautiful visualizations with health scores and dependency graphs
+- **Architecture Debt Tracking** - Baseline violations and track improvement over time with ratchet mode
+- **Interactive HTML Reports** - Beautiful visualizations with health scores, dependency graphs, and trend charts
 - **Template-Based Setup** - Start quickly with Clean Architecture, Hexagonal, or custom templates
 - **Multi-Language Support** - Works with TypeScript, JavaScript, Python, Java, and more
 - **VS Code Integration** - Real-time feedback with inline diagnostics
-- **CI/CD Ready** - Fail builds on architecture violations
+- **CI/CD Ready** - Fail builds on architecture violations with baseline support
 
 ---
 
@@ -85,13 +86,37 @@ Check your codebase for architecture violations.
 archctl lint [options]
 
 Options:
-  --format <type>    Output format: text (default), json, or html
-  --output <file>    Output file path (for html format)
-  --no-cache         Force a fresh scan (ignore/clear cache)
+  --format <type>       Output format: text (default), json, or html
+  --output <file>       Output file path (for html format)
+  --no-cache            Force a fresh scan (ignore/clear cache)
+  --update-baseline     Create or update the baseline with current violations
+  --ratchet             Fail if violations have been resolved (enforce baseline updates)
 ```
 
 **Caching:**
 Archctl automatically caches scan results in `.archctl/cache.json` to significantly speed up repeated runs. The cache is automatically invalidated when files, configuration, or tsconfig change. Use `--no-cache` to force a full re-scan.
+
+**Baseline & Debt Tracking:**
+Archctl supports architecture debt tracking through baselines. A baseline is a snapshot of known violations that allows teams to:
+- Freeze the current state of violations
+- Only fail CI on NEW violations (drift detection)
+- Track metrics and trends over time
+
+```bash
+# Create/update baseline with current violations
+archctl lint --update-baseline
+
+# Normal lint (compares against baseline if it exists)
+archctl lint
+
+# Ratchet mode: fail if violations were resolved (enforce continuous improvement)
+archctl lint --ratchet
+```
+
+When a baseline exists, the lint output shows:
+- **New violations** - Violations not in the baseline (these cause failures)
+- **Resolved violations** - Violations that have been fixed since the baseline
+- **Unchanged violations** - Known violations that remain from the baseline
 
 **HTML Report:**
 Generate an interactive HTML report with visualizations:
@@ -107,6 +132,7 @@ The HTML report includes:
 - Layer interaction matrices
 - Violation details with suggestions
 - Top dependencies and most imported files
+- **Metrics trends** (when baseline history exists)
 
 ### `archctl layers`
 

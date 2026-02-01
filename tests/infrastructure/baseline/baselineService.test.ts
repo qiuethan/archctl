@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { BaselineService, type GraphStats } from '../../../src/infrastructure/baseline/baselineService';
+import {
+  BaselineService,
+  type GraphStats,
+} from '../../../src/infrastructure/baseline/baselineService';
 import type { RuleViolation } from '../../../src/types/rules';
-import type { Baseline } from '../../../src/types/baseline';
+import type { Baseline, BaselineViolation } from '../../../src/types/baseline';
 
 describe('BaselineService', () => {
   let tempDir: string;
@@ -431,7 +434,7 @@ describe('BaselineService', () => {
 
     it('should handle violationDensity when filesAffected is 0', () => {
       // INPUT: Empty violations array
-      const violations: any[] = [];
+      const violations: BaselineViolation[] = [];
 
       // EXECUTE
       const metrics = baselineService.calculateMetrics(violations);
@@ -902,10 +905,10 @@ describe('BaselineService', () => {
 
         // EXECUTE: Three updates with different graphStats
         baselineService.updateBaseline([violation], graphStats1);
-        const metrics1 = baselineService.getBaseline()!.metrics;
+        const _metrics1 = baselineService.getBaseline()!.metrics;
 
         baselineService.updateBaseline([violation], graphStats2);
-        const metrics2 = baselineService.getBaseline()!.metrics;
+        const _metrics2 = baselineService.getBaseline()!.metrics;
 
         baselineService.updateBaseline([violation], graphStats1);
 
@@ -936,10 +939,10 @@ describe('BaselineService', () => {
 
         // EXECUTE: Update with graphStats, then without
         baselineService.updateBaseline([violation], graphStats);
-        const metricsWithStats = baselineService.getBaseline()!.metrics;
+        const _metricsWithStats = baselineService.getBaseline()!.metrics;
 
         baselineService.updateBaseline([violation]); // No graphStats
-        const metricsWithoutStats = baselineService.getBaseline()!.metrics;
+        const _metricsWithoutStats = baselineService.getBaseline()!.metrics;
 
         baselineService.updateBaseline([violation], graphStats);
 

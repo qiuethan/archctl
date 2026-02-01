@@ -69,7 +69,7 @@ export function generateHtmlReport(data: HtmlReportData): string {
     <main class="content">
       ${generateOverviewTab(graphReport, violationSummary)}
       ${generateViolationsTab(violations, violationSummary)}
-      ${hasTrends ? generateTrendsTab(trends!) : ''}
+      ${hasTrends && trends ? generateTrendsTab(trends) : ''}
       ${generateDependenciesTab(graphReport)}
       ${generateLayersTab(layerData)}
       ${generateGraphTab(graphData)}
@@ -452,13 +452,7 @@ function generateTrendsTab(trends: {
   const { metricsHistory, baseline } = trends;
   const allMetrics = [...metricsHistory, baseline.metrics];
 
-  // Prepare data for charts
-  const labels = allMetrics.map((_, i) => `Update ${i + 1}`);
-  const totalViolations = allMetrics.map((m) => m.totalViolations);
-  const errors = allMetrics.map((m) => m.errors);
-  const warnings = allMetrics.map((m) => m.warnings);
-  const info = allMetrics.map((m) => m.info);
-  const filesAffected = allMetrics.map((m) => m.filesAffected);
+  // Prepare data for charts - check if optional metrics are available
   const couplingScores = allMetrics.map((m) => m.couplingScore ?? null).filter((v) => v !== null);
   const violationDensities = allMetrics
     .map((m) => m.violationDensity ?? null)
@@ -1635,7 +1629,7 @@ function initializeTrendsCharts(trends: {
     color: string,
     yAxisLabel?: string
   ) => {
-    const validData = data.filter((v) => v !== null) as number[];
+    const validData = data.filter((v): v is number => v !== null);
     if (validData.length === 0) return '';
 
     return `

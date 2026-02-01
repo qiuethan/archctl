@@ -333,4 +333,3 @@ describe('HTML Report Trends', () => {
     expect(html).toContain('N/A'); // For missing metrics in table
   });
 });
-

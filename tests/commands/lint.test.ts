@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cmdLint } from '../../src/commands/lint';
-import { BaselineService, type GraphStats } from '../../src/infrastructure/baseline/baselineService';
+import {
+  BaselineService,
+  type GraphStats,
+} from '../../src/infrastructure/baseline/baselineService';
 import type { RuleViolation } from '../../src/types/rules';
 import type { ArchctlConfig } from '../../src/types/config';
 
@@ -466,7 +469,10 @@ describe('cmdLint', () => {
       };
 
       // Create history: 3 violations → 2 violations → 1 violation (improving)
-      baselineService.updateBaseline([violation1, violation2, { ...violation1, file: 'src/file3.ts' }], graphStats);
+      baselineService.updateBaseline(
+        [violation1, violation2, { ...violation1, file: 'src/file3.ts' }],
+        graphStats
+      );
       baselineService.updateBaseline([violation1, violation2], graphStats);
       baselineService.updateBaseline([violation1], graphStats);
       baselineService.save();
